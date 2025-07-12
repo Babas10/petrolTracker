@@ -89,12 +89,13 @@ flutter analyze
 
 ### ✅ Completed
 - [x] Issue #21: Flutter project structure setup
+- [x] Issue #22: SQLite database with Drift ORM
 - [x] Material Design 3 theming
 - [x] Basic app architecture
+- [x] Database layer with error handling
 - [x] Documentation foundation
 
 ### 🚧 In Progress
-- [ ] Issue #22: SQLite database configuration
 - [ ] Issue #23: Data models and repositories
 - [ ] Issue #24: Riverpod state management
 - [ ] Issue #25: Navigation structure
@@ -115,6 +116,7 @@ flutter analyze
 ## Documentation
 
 - [Issue #21 Implementation](docs/issue-21-implementation.md) - Project setup details
+- [Issue #22 Implementation](docs/issue-22-implementation.md) - SQLite database configuration
 
 ## License
 
