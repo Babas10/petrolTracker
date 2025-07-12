@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const PetrolTrackerApp());
+  runApp(const ProviderScope(child: PetrolTrackerApp()));
 }
 
 class PetrolTrackerApp extends StatelessWidget {
