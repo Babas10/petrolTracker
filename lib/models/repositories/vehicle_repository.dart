@@ -3,6 +3,8 @@ import 'package:petrol_tracker/database/database.dart';
 import 'package:petrol_tracker/database/database_service.dart';
 import 'package:petrol_tracker/database/database_exceptions.dart';
 import '../vehicle_model.dart';
+import '../vehicle_statistics.dart';
+import '../fuel_entry_model.dart';
 import 'vehicle_repository_interface.dart';
 
 /// Concrete implementation of VehicleRepositoryInterface using Drift
@@ -195,6 +197,94 @@ class VehicleRepository implements VehicleRepositoryInterface {
       throw DatabaseExceptionHandler.handleException(
         e,
         'Failed to get vehicle count',
+      );
+    }
+  }
+
+  /// Get comprehensive statistics for a vehicle
+  Future<VehicleStatistics> getVehicleStatistics(int vehicleId) async {
+    try {
+      // Get all fuel entries for this vehicle
+      final fuelEntries = await (_database
+          .select(_database.fuelEntries)
+          ..where((t) => t.vehicleId.equals(vehicleId))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+          .get();
+
+      // Convert to models for statistics calculation
+      final entryModels = fuelEntries.map((entry) => FuelEntryModel.fromEntity(entry)).toList();
+
+      return VehicleStatistics.fromEntries(vehicleId, entryModels);
+    } catch (e) {
+      throw DatabaseExceptionHandler.handleException(
+        e,
+        'Failed to get vehicle statistics for vehicle $vehicleId',
+      );
+    }
+  }
+
+  /// Initialize database with proper error handling
+  Future<void> ensureDatabaseReady() async {
+    try {
+      await _databaseService.initialize();
+      
+      // Test connection with a simple query
+      await _database.customSelect('SELECT 1').get();
+    } catch (e) {
+      throw DatabaseExceptionHandler.handleException(
+        e,
+        'Failed to initialize database',
+      );
+    }
+  }
+
+  /// Verify database integrity
+  Future<bool> checkDatabaseHealth() async {
+    try {
+      return await _databaseService.checkIntegrity();
+    } catch (e) {
+      throw DatabaseExceptionHandler.handleException(
+        e,
+        'Failed to check database health',
+      );
+    }
+  }
+
+  /// Get vehicles with their basic statistics
+  Future<List<Map<String, dynamic>>> getVehiclesWithBasicStats() async {
+    try {
+      final vehicles = await getAllVehicles();
+      final result = <Map<String, dynamic>>[];
+
+      for (final vehicle in vehicles) {
+        // Get entry count for this vehicle
+        final entryCount = await (_database
+            .selectOnly(_database.fuelEntries)
+            ..addColumns([_database.fuelEntries.id.count()])
+            ..where(_database.fuelEntries.vehicleId.equals(vehicle.id!)))
+            .getSingle()
+            .then((row) => row.read(_database.fuelEntries.id.count()) ?? 0);
+
+        // Get latest entry for this vehicle
+        final latestEntry = await (_database
+            .select(_database.fuelEntries)
+            ..where((t) => t.vehicleId.equals(vehicle.id!))
+            ..orderBy([(t) => OrderingTerm.desc(t.date)])
+            ..limit(1))
+            .getSingleOrNull();
+
+        result.add({
+          'vehicle': vehicle,
+          'entryCount': entryCount,
+          'latestEntry': latestEntry != null ? FuelEntryModel.fromEntity(latestEntry) : null,
+        });
+      }
+
+      return result;
+    } catch (e) {
+      throw DatabaseExceptionHandler.handleException(
+        e,
+        'Failed to get vehicles with statistics',
       );
     }
   }

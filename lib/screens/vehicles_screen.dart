@@ -141,7 +141,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// List of vehicles
+/// Enhanced list of vehicles with pull-to-refresh
 class _VehiclesList extends ConsumerWidget {
   const _VehiclesList();
 
@@ -151,52 +151,166 @@ class _VehiclesList extends ConsumerWidget {
 
     return vehiclesAsync.when(
       data: (vehicleState) {
-        if (vehicleState.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+        // Show database connection status
+        if (!vehicleState.isDatabaseReady) {
+          return _buildDatabaseErrorState(context, ref, vehicleState);
         }
 
+        // Show operation in progress indicator
+        if (vehicleState.isOperationInProgress) {
+          return _buildOperationInProgressState(context, vehicleState);
+        }
+
+        // Show error state with user-friendly message
         if (vehicleState.error != null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Error loading vehicles',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(vehicleState.error!),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => ref.refresh(vehiclesNotifierProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
+          return _buildErrorState(context, ref, vehicleState);
         }
 
+        // Show empty state
         if (vehicleState.vehicles.isEmpty) {
           return const _EmptyVehiclesState();
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: vehicleState.vehicles.length,
-          itemBuilder: (context, index) {
-            final vehicle = vehicleState.vehicles[index];
-            return _VehicleCard(vehicle: vehicle);
+        // Show vehicles list with pull-to-refresh
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.refresh(vehiclesNotifierProvider.future);
           },
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: vehicleState.vehicles.length,
+            itemBuilder: (context, index) {
+              final vehicle = vehicleState.vehicles[index];
+              return _VehicleCard(vehicle: vehicle);
+            },
+          ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
+      loading: () => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Loading vehicles...'),
+          ],
+        ),
+      ),
+      error: (error, stack) => _buildCriticalErrorState(context, ref, error),
+    );
+  }
+
+  Widget _buildDatabaseErrorState(BuildContext context, WidgetRef ref, VehicleState state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.storage_outlined,
+              size: 80,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Database Connection Issue',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Unable to connect to the database. This may be due to initialization issues.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => ref.refresh(vehiclesNotifierProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton.icon(
+                  onPressed: () => _showDatabaseHelpDialog(context),
+                  icon: const Icon(Icons.help_outline),
+                  label: const Text('Help'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOperationInProgressState(BuildContext context, VehicleState state) {
+    String operationText;
+    switch (state.currentOperation) {
+      case VehicleOperation.adding:
+        operationText = 'Adding vehicle...';
+        break;
+      case VehicleOperation.updating:
+        operationText = 'Updating vehicle...';
+        break;
+      case VehicleOperation.deleting:
+        operationText = 'Deleting vehicle...';
+        break;
+      default:
+        operationText = 'Processing...';
+    }
+
+    return Column(
+      children: [
+        // Show existing list if available
+        if (state.vehicles.isNotEmpty)
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: state.vehicles.length,
+              itemBuilder: (context, index) {
+                final vehicle = state.vehicles[index];
+                return _VehicleCard(vehicle: vehicle);
+              },
+            ),
+          ),
+        // Show operation progress at bottom
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Text(operationText),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, WidgetRef ref, VehicleState state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -207,18 +321,101 @@ class _VehiclesList extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading vehicles',
+              'Error Loading Vehicles',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            Text(error.toString()),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.refresh(vehiclesNotifierProvider),
-              child: const Text('Retry'),
+            Text(
+              state.userFriendlyError ?? state.error!,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => ref.refresh(vehiclesNotifierProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton.icon(
+                  onPressed: () => ref.read(vehiclesNotifierProvider.notifier).clearError(),
+                  icon: const Icon(Icons.clear),
+                  label: const Text('Clear Error'),
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCriticalErrorState(BuildContext context, WidgetRef ref, Object error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error,
+              size: 80,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Critical Error',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'A critical error occurred while loading vehicles. The app may need to be restarted.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => ref.refresh(vehiclesNotifierProvider),
+              icon: const Icon(Icons.restart_alt),
+              label: const Text('Restart'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDatabaseHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Database Help'),
+        content: const Text(
+          'If you continue to see database connection issues:\n\n'
+          '1. Try restarting the app\n'
+          '2. Check available storage space\n'
+          '3. Clear app data if necessary\n\n'
+          'If problems persist, please contact support.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

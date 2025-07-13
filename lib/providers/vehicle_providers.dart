@@ -1,31 +1,81 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
+import 'package:petrol_tracker/models/vehicle_statistics.dart';
 import 'package:petrol_tracker/database/database_exceptions.dart';
 import 'database_providers.dart';
 
 part 'vehicle_providers.g.dart';
 
-/// State class for vehicle operations
+/// Enum for different vehicle operations
+enum VehicleOperation {
+  loading,
+  adding,
+  updating,
+  deleting,
+  none,
+}
+
+/// Enhanced state class for vehicle operations
 class VehicleState {
   final List<VehicleModel> vehicles;
   final bool isLoading;
   final String? error;
+  final VehicleOperation currentOperation;
+  final Map<int, VehicleStatistics> statistics;
+  final bool isDatabaseReady;
+  final DateTime? lastUpdated;
 
   const VehicleState({
     this.vehicles = const [],
     this.isLoading = false,
     this.error,
+    this.currentOperation = VehicleOperation.none,
+    this.statistics = const {},
+    this.isDatabaseReady = false,
+    this.lastUpdated,
   });
+
+  /// Check if we have any vehicles
+  bool get hasVehicles => vehicles.isNotEmpty;
+
+  /// Check if a specific operation is in progress
+  bool get isOperationInProgress => currentOperation != VehicleOperation.none;
+
+  /// Get user-friendly error message
+  String? get userFriendlyError {
+    if (error == null) return null;
+    
+    // Convert technical error to user-friendly message
+    if (error!.contains('database')) {
+      return 'Database connection issue. Please try again.';
+    }
+    if (error!.contains('unique constraint')) {
+      return 'A vehicle with this name already exists.';
+    }
+    if (error!.contains('foreign key')) {
+      return 'Cannot delete vehicle with existing fuel entries.';
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
+  }
 
   VehicleState copyWith({
     List<VehicleModel>? vehicles,
     bool? isLoading,
     String? error,
+    VehicleOperation? currentOperation,
+    Map<int, VehicleStatistics>? statistics,
+    bool? isDatabaseReady,
+    DateTime? lastUpdated,
   }) {
     return VehicleState(
       vehicles: vehicles ?? this.vehicles,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      currentOperation: currentOperation ?? this.currentOperation,
+      statistics: statistics ?? this.statistics,
+      isDatabaseReady: isDatabaseReady ?? this.isDatabaseReady,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
 
@@ -35,11 +85,19 @@ class VehicleState {
     return other is VehicleState &&
         other.vehicles == vehicles &&
         other.isLoading == isLoading &&
-        other.error == error;
+        other.error == error &&
+        other.currentOperation == currentOperation &&
+        other.isDatabaseReady == isDatabaseReady;
   }
 
   @override
-  int get hashCode => Object.hash(vehicles, isLoading, error);
+  int get hashCode => Object.hash(
+    vehicles,
+    isLoading,
+    error,
+    currentOperation,
+    isDatabaseReady,
+  );
 }
 
 /// Notifier for managing vehicles state
@@ -54,11 +112,23 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   Future<VehicleState> _loadVehicles() async {
     try {
       final repository = ref.read(vehicleRepositoryProvider);
+      
+      // Ensure database is ready
+      await repository.ensureDatabaseReady();
+      
       final vehicles = await repository.getAllVehicles();
-      return VehicleState(vehicles: vehicles);
+      
+      return VehicleState(
+        vehicles: vehicles,
+        isDatabaseReady: true,
+        lastUpdated: DateTime.now(),
+      );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      return VehicleState(error: errorMessage);
+      return VehicleState(
+        error: errorMessage,
+        isDatabaseReady: false,
+      );
     }
   }
 
@@ -71,8 +141,12 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Add a new vehicle
   Future<void> addVehicle(VehicleModel vehicle) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
-      const VehicleState(isLoading: true)
+      state.valueOrNull?.copyWith(
+        currentOperation: VehicleOperation.adding,
+        error: null,
+      ) ?? const VehicleState(
+        currentOperation: VehicleOperation.adding,
+      )
     );
 
     try {
@@ -88,8 +162,9 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       state = AsyncValue.data(
         currentState.copyWith(
           vehicles: updatedVehicles,
-          isLoading: false,
+          currentOperation: VehicleOperation.none,
           error: null,
+          lastUpdated: DateTime.now(),
         )
       );
     } catch (e) {
@@ -97,7 +172,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       final currentState = state.valueOrNull ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
-          isLoading: false,
+          currentOperation: VehicleOperation.none,
           error: errorMessage,
         )
       );
@@ -228,4 +303,25 @@ Future<bool> vehicleNameExists(VehicleNameExistsRef ref, String vehicleName, {in
 Future<int> vehicleCount(VehicleCountRef ref) async {
   final repository = ref.watch(vehicleRepositoryProvider);
   return repository.getVehicleCount();
+}
+
+/// Provider for getting vehicle statistics
+@riverpod
+Future<VehicleStatistics> vehicleStatistics(VehicleStatisticsRef ref, int vehicleId) async {
+  final repository = ref.watch(vehicleRepositoryProvider);
+  return repository.getVehicleStatistics(vehicleId);
+}
+
+/// Provider for getting vehicles with basic statistics
+@riverpod
+Future<List<Map<String, dynamic>>> vehiclesWithStats(VehiclesWithStatsRef ref) async {
+  final repository = ref.watch(vehicleRepositoryProvider);
+  return repository.getVehiclesWithBasicStats();
+}
+
+/// Provider for checking database health
+@riverpod
+Future<bool> databaseHealth(DatabaseHealthRef ref) async {
+  final repository = ref.watch(vehicleRepositoryProvider);
+  return repository.checkDatabaseHealth();
 }
