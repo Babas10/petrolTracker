@@ -47,6 +47,8 @@ class DatabaseService {
         developer.log('Database initialized successfully');
       } catch (e) {
         developer.log('Database initialization failed: $e');
+        // Clean up failed database instance
+        _database = null;
         rethrow;
       }
     }

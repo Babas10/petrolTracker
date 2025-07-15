@@ -76,9 +76,21 @@ class AppInitializationService {
       await DatabaseService.instance.initialize();
       developer.log('Database connection established', name: _logTag);
     } catch (e) {
+      // On web platforms, provide more specific error handling
+      if (kIsWeb && e.toString().contains('sql.js')) {
+        throw AppInitializationException(
+          'Web database configuration issue: IndexedDB not properly configured',
+          originalError: e,
+          recoveryHint: 'This appears to be a configuration issue. Please try refreshing the page.',
+        );
+      }
+      
       throw AppInitializationException(
         'Database initialization failed: $e',
         originalError: e,
+        recoveryHint: kIsWeb 
+          ? 'Please try refreshing the page or clearing browser data'
+          : 'Please try restarting the application',
       );
     }
   }
