@@ -73,23 +73,21 @@ class AppInitializationService {
   /// Initialize the database connection
   static Future<void> _initializeDatabase() async {
     try {
+      // For web platforms, temporarily skip database initialization
+      // to allow the app to work without database persistence
+      if (kIsWeb) {
+        developer.log('Skipping database initialization on web platform (temporary workaround)', name: _logTag);
+        return;
+      }
+      
       await DatabaseService.instance.initialize();
       developer.log('Database connection established', name: _logTag);
     } catch (e) {
-      // On web platforms, provide more specific error handling
-      if (kIsWeb && e.toString().contains('sql.js')) {
-        throw AppInitializationException(
-          'Web database configuration issue: IndexedDB not properly configured',
-          originalError: e,
-          recoveryHint: 'This appears to be a configuration issue. Please try refreshing the page.',
-        );
-      }
-      
       throw AppInitializationException(
         'Database initialization failed: $e',
         originalError: e,
         recoveryHint: kIsWeb 
-          ? 'Please try refreshing the page or clearing browser data'
+          ? 'Web database temporarily disabled - app will work without persistence'
           : 'Please try restarting the application',
       );
     }
@@ -98,22 +96,22 @@ class AppInitializationService {
   /// Verify database health and integrity
   static Future<void> _verifyDatabaseHealth() async {
     try {
-      // On web platforms with IndexedDB, skip complex integrity checks
-      // and just verify basic functionality
+      // Skip database health checks on web platform for now
       if (kIsWeb) {
-        await _performBasicWebHealthCheck();
-      } else {
-        final isHealthy = await DatabaseService.instance.checkIntegrity();
-        if (!isHealthy) {
-          throw AppInitializationException(
-            'Database health verification failed',
-            recoveryHint: 'Try clearing app data or reinstalling the application',
-          );
-        }
-        
-        // Additional health checks for native platforms
-        await _performAdditionalHealthChecks();
+        developer.log('Skipping database health checks on web platform', name: _logTag);
+        return;
       }
+      
+      final isHealthy = await DatabaseService.instance.checkIntegrity();
+      if (!isHealthy) {
+        throw AppInitializationException(
+          'Database health verification failed',
+          recoveryHint: 'Try clearing app data or reinstalling the application',
+        );
+      }
+      
+      // Additional health checks for native platforms
+      await _performAdditionalHealthChecks();
       
       developer.log('Database health verification passed', name: _logTag);
     } catch (e) {
@@ -121,9 +119,7 @@ class AppInitializationService {
       throw AppInitializationException(
         'Database health verification failed: $e',
         originalError: e,
-        recoveryHint: kIsWeb 
-          ? 'Please try refreshing the page or clearing your browser data'
-          : 'Try restarting the application',
+        recoveryHint: 'Try restarting the application',
       );
     }
   }
@@ -294,6 +290,10 @@ class AppInitializationService {
   
   /// Check if the app has been initialized
   static bool get isInitialized {
+    // On web platforms, consider it initialized if we've reached this point
+    if (kIsWeb) {
+      return true;
+    }
     return DatabaseService.instance.isInitialized;
   }
   
@@ -305,7 +305,9 @@ class AppInitializationService {
       'platform': _getPlatformInfo(),
     };
     
-    if (isInitialized) {
+    if (kIsWeb) {
+      status['database'] = {'status': 'Web platform - database temporarily disabled'};
+    } else if (isInitialized) {
       try {
         final dbSize = await DatabaseService.instance.getDatabaseSize();
         final dbStats = await DatabaseService.instance.getStats();
