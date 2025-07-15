@@ -33,13 +33,11 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!-- SQL.js for Drift database support on web -->
-  <script src="https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.js"></script>
+  <!-- Web database configuration for Drift -->
   <script>
-    // Configure sql.js for Drift
-    window.sqlJsConfig = {
-      locateFile: (file) => `https://unpkg.com/sql.js@1.8.0/dist/${file}`
-    };
+    // Configure Drift to use IndexedDB instead of sql.js
+    // This is more reliable and doesn't require external dependencies
+    window.driftWorkerPath = null; // Disable worker-based sql.js
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

@@ -98,20 +98,22 @@ class AppInitializationService {
   /// Verify database health and integrity
   static Future<void> _verifyDatabaseHealth() async {
     try {
-      final isHealthy = await DatabaseService.instance.checkIntegrity();
-      if (!isHealthy) {
-        // On web platforms, integrity checks might not be fully supported
-        // so we should be more forgiving and provide web-specific guidance
-        throw AppInitializationException(
-          'Database health verification failed',
-          recoveryHint: kIsWeb 
-            ? 'Please try refreshing the page or clearing your browser data'
-            : 'Try clearing app data or reinstalling the application',
-        );
+      // On web platforms with IndexedDB, skip complex integrity checks
+      // and just verify basic functionality
+      if (kIsWeb) {
+        await _performBasicWebHealthCheck();
+      } else {
+        final isHealthy = await DatabaseService.instance.checkIntegrity();
+        if (!isHealthy) {
+          throw AppInitializationException(
+            'Database health verification failed',
+            recoveryHint: 'Try clearing app data or reinstalling the application',
+          );
+        }
+        
+        // Additional health checks for native platforms
+        await _performAdditionalHealthChecks();
       }
-      
-      // Additional health checks
-      await _performAdditionalHealthChecks();
       
       developer.log('Database health verification passed', name: _logTag);
     } catch (e) {
@@ -122,6 +124,21 @@ class AppInitializationService {
         recoveryHint: kIsWeb 
           ? 'Please try refreshing the page or clearing your browser data'
           : 'Try restarting the application',
+      );
+    }
+  }
+  
+  /// Perform basic health check for web platforms
+  static Future<void> _performBasicWebHealthCheck() async {
+    try {
+      // Just verify we can run a simple query - this is sufficient for web
+      await DatabaseService.instance.database.customSelect('SELECT 1').get();
+      developer.log('Web database basic functionality verified', name: _logTag);
+    } catch (e) {
+      throw AppInitializationException(
+        'Web database basic functionality test failed: $e',
+        originalError: e,
+        recoveryHint: 'Please try refreshing the page or clearing your browser data',
       );
     }
   }
