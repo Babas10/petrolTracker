@@ -33,6 +33,12 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Web database configuration for Drift -->
+  <script>
+    // Configure Drift to use IndexedDB instead of sql.js
+    // This is more reliable and doesn't require external dependencies
+    window.driftWorkerPath = null; // Disable worker-based sql.js
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

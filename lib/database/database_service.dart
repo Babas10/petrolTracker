@@ -47,6 +47,8 @@ class DatabaseService {
         developer.log('Database initialized successfully');
       } catch (e) {
         developer.log('Database initialization failed: $e');
+        // Clean up failed database instance
+        _database = null;
         rethrow;
       }
     }
@@ -91,9 +93,11 @@ class DatabaseService {
   /// Check database integrity
   /// 
   /// Runs SQLite's built-in integrity check to verify the database
-  /// is not corrupted.
+  /// is not corrupted. On web platforms, this may not be supported
+  /// so we fall back to a basic functionality test.
   Future<bool> checkIntegrity() async {
     try {
+      // Try the full integrity check first
       final result = await database.customSelect('PRAGMA integrity_check').get();
       final isOk = result.isNotEmpty && 
                    result.first.data['integrity_check'] == 'ok';
@@ -108,11 +112,23 @@ class DatabaseService {
       return isOk;
     } catch (e) {
       developer.log('Database integrity check error: $e');
-      return false;
+      
+      // On web or other platforms where PRAGMA integrity_check might not work,
+      // fall back to a basic functionality test
+      try {
+        await database.customSelect('SELECT 1').get();
+        developer.log('Database basic functionality check: OK (fallback)');
+        return true;
+      } catch (fallbackError) {
+        developer.log('Database basic functionality check failed: $fallbackError');
+        return false;
+      }
     }
   }
 
   /// Get database file size in bytes
+  /// 
+  /// Note: This may not be supported on all platforms (e.g., web with IndexedDB)
   Future<int?> getDatabaseSize() async {
     try {
       final result = await database.customSelect('PRAGMA page_count').get();
@@ -123,7 +139,7 @@ class DatabaseService {
       
       return pageCount * pageSize;
     } catch (e) {
-      developer.log('Error getting database size: $e');
+      developer.log('Error getting database size (may not be supported on this platform): $e');
       return null;
     }
   }

@@ -156,7 +156,7 @@ class _VehicleProviderElement
   int get vehicleId => (origin as VehicleProvider).vehicleId;
 }
 
-String _$vehicleNameExistsHash() => r'b374297f8949258f0e0c85089201398ee354a464';
+String _$vehicleNameExistsHash() => r'3794ff01d125beabdc85e4a587434c6c825c06ff';
 
 /// Provider for checking if a vehicle name exists
 ///
@@ -496,7 +496,7 @@ final databaseHealthProvider = AutoDisposeFutureProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DatabaseHealthRef = AutoDisposeFutureProviderRef<bool>;
-String _$vehiclesNotifierHash() => r'ce1e067aa1409341789733997b6d387501a2742b';
+String _$vehiclesNotifierHash() => r'c57395a2b2277d03e603ffe943e6c5cc4d14ec57';
 
 /// Notifier for managing vehicles state
 ///
