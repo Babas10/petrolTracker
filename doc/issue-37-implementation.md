@@ -189,10 +189,10 @@ if (kIsWeb) {
 ```
 
 #### Platform Capabilities
-- **Web**: Browser-specific database setup
-- **Android**: Native database and permissions
-- **iOS**: iOS-specific database configuration
-- **Desktop**: Windows, macOS, Linux support
+- **Web**: IndexedDB-based storage using DriftWebStorage (no sql.js required)
+- **Android**: Native SQLite database with file system permissions
+- **iOS**: iOS-specific SQLite database configuration
+- **Desktop**: Windows, macOS, Linux native SQLite support
 
 ### 5. Development and Debugging Support
 
@@ -423,6 +423,8 @@ test/app_test.dart
 - ✅ Initialization errors are handled gracefully with recovery options
 - ✅ Comprehensive error information for debugging
 - ✅ Platform-specific initialization works on all supported platforms
+- ✅ Web platform properly uses IndexedDB storage without requiring sql.js
+- ✅ Cross-platform database integrity checks with appropriate fallbacks
 
 ### Performance
 - ✅ Fast initialization (< 2 seconds on average)
