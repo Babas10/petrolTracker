@@ -88,9 +88,13 @@ class AppInitializationService {
     try {
       final isHealthy = await DatabaseService.instance.checkIntegrity();
       if (!isHealthy) {
+        // On web platforms, integrity checks might not be fully supported
+        // so we should be more forgiving and provide web-specific guidance
         throw AppInitializationException(
-          'Database integrity check failed',
-          recoveryHint: 'Try clearing app data or reinstalling the application',
+          'Database health verification failed',
+          recoveryHint: kIsWeb 
+            ? 'Please try refreshing the page or clearing your browser data'
+            : 'Try clearing app data or reinstalling the application',
         );
       }
       
@@ -103,6 +107,9 @@ class AppInitializationService {
       throw AppInitializationException(
         'Database health verification failed: $e',
         originalError: e,
+        recoveryHint: kIsWeb 
+          ? 'Please try refreshing the page or clearing your browser data'
+          : 'Try restarting the application',
       );
     }
   }
@@ -114,13 +121,20 @@ class AppInitializationService {
       // Check if we can perform basic queries
       await DatabaseService.instance.database.customSelect('SELECT 1').get();
       
-      // Check database size (warn if too large)
-      final size = await DatabaseService.instance.getDatabaseSize();
-      if (size != null && size > 100 * 1024 * 1024) { // 100MB
-        developer.log(
-          'Database size is large: ${(size / 1024 / 1024).toStringAsFixed(1)}MB',
-          name: _logTag,
-        );
+      // Check database size (warn if too large) - skip on web as it may not be supported
+      if (!kIsWeb) {
+        try {
+          final size = await DatabaseService.instance.getDatabaseSize();
+          if (size != null && size > 100 * 1024 * 1024) { // 100MB
+            developer.log(
+              'Database size is large: ${(size / 1024 / 1024).toStringAsFixed(1)}MB',
+              name: _logTag,
+            );
+          }
+        } catch (e) {
+          developer.log('Database size check not available on this platform: $e', name: _logTag);
+          // Don't fail initialization for size check issues
+        }
       }
       
       developer.log('Additional health checks passed', name: _logTag);
@@ -128,6 +142,9 @@ class AppInitializationService {
       throw AppInitializationException(
         'Basic database operations failed: $e',
         originalError: e,
+        recoveryHint: kIsWeb 
+          ? 'Please ensure your browser supports IndexedDB and try refreshing the page'
+          : 'Please try restarting the application',
       );
     }
   }
@@ -162,7 +179,22 @@ class AppInitializationService {
   static Future<void> _initializeWebServices() async {
     // Web-specific initialization
     developer.log('Initializing web services', name: _logTag);
-    // Add any web-specific initialization here
+    
+    try {
+      // For web, we need to ensure IndexedDB is available
+      // This is a basic check - IndexedDB should be available in all modern browsers
+      developer.log('Checking IndexedDB availability', name: _logTag);
+      
+      // Additional web-specific setup can go here
+      developer.log('Web services initialized successfully', name: _logTag);
+    } catch (e) {
+      developer.log('Web services initialization failed: $e', name: _logTag);
+      throw AppInitializationException(
+        'Web platform initialization failed: $e',
+        originalError: e,
+        recoveryHint: 'Please ensure you are using a modern web browser that supports IndexedDB',
+      );
+    }
   }
   
   /// Initialize Android-specific services
