@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/models/vehicle_statistics.dart';
@@ -5,6 +6,15 @@ import 'package:petrol_tracker/database/database_exceptions.dart';
 import 'database_providers.dart';
 
 part 'vehicle_providers.g.dart';
+
+/// Web-only in-memory storage for vehicles (temporary workaround)
+final Map<int, VehicleModel> _webVehicleStorage = <int, VehicleModel>{};
+int _webVehicleIdCounter = 1;
+
+/// Get next available ID for web vehicle storage
+int _getNextWebVehicleId() {
+  return _webVehicleIdCounter++;
+}
 
 /// Enum for different vehicle operations
 enum VehicleOperation {
@@ -111,6 +121,16 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Load all vehicles from the repository
   Future<VehicleState> _loadVehicles() async {
     try {
+      // For web platforms, use in-memory storage as temporary workaround
+      if (kIsWeb) {
+        final vehicles = _webVehicleStorage.values.toList();
+        return VehicleState(
+          vehicles: vehicles,
+          isDatabaseReady: true,
+          lastUpdated: DateTime.now(),
+        );
+      }
+      
       final repository = ref.read(vehicleRepositoryProvider);
       
       // Ensure database is ready
@@ -150,11 +170,18 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     );
 
     try {
-      final repository = ref.read(vehicleRepositoryProvider);
-      final id = await repository.insertVehicle(vehicle);
+      late final VehicleModel newVehicle;
       
-      // Create the vehicle with the new ID
-      final newVehicle = vehicle.copyWith(id: id);
+      if (kIsWeb) {
+        // Use in-memory storage for web platforms
+        final id = _getNextWebVehicleId();
+        newVehicle = vehicle.copyWith(id: id);
+        _webVehicleStorage[id] = newVehicle;
+      } else {
+        final repository = ref.read(vehicleRepositoryProvider);
+        final id = await repository.insertVehicle(vehicle);
+        newVehicle = vehicle.copyWith(id: id);
+      }
       
       final currentState = state.valueOrNull ?? const VehicleState();
       final updatedVehicles = [...currentState.vehicles, newVehicle];
@@ -294,6 +321,14 @@ Future<VehicleModel?> vehicle(VehicleRef ref, int vehicleId) async {
 /// Provider for checking if a vehicle name exists
 @riverpod
 Future<bool> vehicleNameExists(VehicleNameExistsRef ref, String vehicleName, {int? excludeId}) async {
+  if (kIsWeb) {
+    // Check in-memory storage for web platforms
+    return _webVehicleStorage.values.any((vehicle) => 
+      vehicle.name.toLowerCase() == vehicleName.toLowerCase() && 
+      vehicle.id != excludeId
+    );
+  }
+  
   final repository = ref.watch(vehicleRepositoryProvider);
   return repository.vehicleNameExists(vehicleName, excludeId: excludeId);
 }

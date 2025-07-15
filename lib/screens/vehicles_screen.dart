@@ -50,7 +50,25 @@ class _VehiclesScreenState extends ConsumerState<VehiclesScreen> {
   void _showAddVehicleDialog() {
     showDialog(
       context: context,
-      builder: (context) => _AddVehicleDialog(ref: ref),
+      builder: (context) => _AddVehicleDialog(
+        ref: ref,
+        onSuccess: (message) {
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        onError: (message) {
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -468,7 +486,25 @@ class _EmptyVehiclesState extends ConsumerWidget {
   void _showAddVehicleDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => _AddVehicleDialog(ref: ref),
+      builder: (dialogContext) => _AddVehicleDialog(
+        ref: ref,
+        onSuccess: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        onError: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -570,7 +606,26 @@ class _VehicleCard extends ConsumerWidget {
   void _showEditVehicleDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => _EditVehicleDialog(vehicle: vehicle, ref: ref),
+      builder: (dialogContext) => _EditVehicleDialog(
+        vehicle: vehicle,
+        ref: ref,
+        onSuccess: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        onError: (message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -605,7 +660,7 @@ class _VehicleCard extends ConsumerWidget {
     try {
       await ref.read(vehiclesNotifierProvider.notifier).deleteVehicle(vehicle.id!);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
             content: Text('${vehicle.name} deleted successfully'),
             backgroundColor: Colors.green,
@@ -614,7 +669,7 @@ class _VehicleCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
             content: Text('Error deleting vehicle: $e'),
             backgroundColor: Colors.red,
@@ -637,8 +692,14 @@ class _VehicleCard extends ConsumerWidget {
 /// Add vehicle dialog
 class _AddVehicleDialog extends StatefulWidget {
   final WidgetRef ref;
+  final Function(String)? onSuccess;
+  final Function(String)? onError;
 
-  const _AddVehicleDialog({required this.ref});
+  const _AddVehicleDialog({
+    required this.ref,
+    this.onSuccess,
+    this.onError,
+  });
 
   @override
   State<_AddVehicleDialog> createState() => _AddVehicleDialogState();
@@ -765,21 +826,11 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
       
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vehicle added successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        widget.onSuccess?.call('Vehicle added successfully!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error adding vehicle: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        widget.onError?.call('Error adding vehicle: $e');
       }
     } finally {
       if (mounted) {
@@ -795,8 +846,15 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
 class _EditVehicleDialog extends StatefulWidget {
   final VehicleModel vehicle;
   final WidgetRef ref;
+  final Function(String)? onSuccess;
+  final Function(String)? onError;
 
-  const _EditVehicleDialog({required this.vehicle, required this.ref});
+  const _EditVehicleDialog({
+    required this.vehicle,
+    required this.ref,
+    this.onSuccess,
+    this.onError,
+  });
 
   @override
   State<_EditVehicleDialog> createState() => _EditVehicleDialogState();
@@ -932,21 +990,11 @@ class _EditVehicleDialogState extends State<_EditVehicleDialog> {
       
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vehicle updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        widget.onSuccess?.call('Vehicle updated successfully!');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating vehicle: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        widget.onError?.call('Error updating vehicle: $e');
       }
     } finally {
       if (mounted) {
