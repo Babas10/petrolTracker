@@ -6,7 +6,7 @@ part of 'vehicle_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$vehicleHash() => r'cf1ffb3354618fb499a7d02f805aa19aec25f32b';
+String _$vehicleHash() => r'3460a7847ad3dcb3c32a67771672be418b47de54';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -156,7 +156,7 @@ class _VehicleProviderElement
   int get vehicleId => (origin as VehicleProvider).vehicleId;
 }
 
-String _$vehicleNameExistsHash() => r'3794ff01d125beabdc85e4a587434c6c825c06ff';
+String _$vehicleNameExistsHash() => r'34b3492c79609c9feb9b7755b1a09753a8b58629';
 
 /// Provider for checking if a vehicle name exists
 ///
@@ -304,7 +304,7 @@ class _VehicleNameExistsProviderElement
   int? get excludeId => (origin as VehicleNameExistsProvider).excludeId;
 }
 
-String _$vehicleCountHash() => r'f0b0f4902231a0f366e517c58671fd507f718f26';
+String _$vehicleCountHash() => r'ea60e68e5e77669104044bfd2614078d64dd01b1';
 
 /// Provider for getting vehicle count
 ///
@@ -323,7 +323,7 @@ final vehicleCountProvider = AutoDisposeFutureProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef VehicleCountRef = AutoDisposeFutureProviderRef<int>;
-String _$vehicleStatisticsHash() => r'f7b088433cd42296026809883ecad8bcb681f6fd';
+String _$vehicleStatisticsHash() => r'637dc21f663b842a8c839012067947cba82ebccd';
 
 /// Provider for getting vehicle statistics
 ///
@@ -456,7 +456,7 @@ class _VehicleStatisticsProviderElement
   int get vehicleId => (origin as VehicleStatisticsProvider).vehicleId;
 }
 
-String _$vehiclesWithStatsHash() => r'8c5647589aa4bed3ed6f238f91e3077e08f5ae93';
+String _$vehiclesWithStatsHash() => r'02822d7378a0801b76700646ae79845596b42342';
 
 /// Provider for getting vehicles with basic statistics
 ///
@@ -477,26 +477,27 @@ final vehiclesWithStatsProvider =
 // ignore: unused_element
 typedef VehiclesWithStatsRef =
     AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
-String _$databaseHealthHash() => r'3a9962e16d4a9a60c84593bd7b78fffd821fcc6c';
+String _$ephemeralStorageHealthHash() =>
+    r'c44eace610caaf06d032e436adc2140925e03fdc';
 
-/// Provider for checking database health
+/// Provider for checking ephemeral storage health
 ///
-/// Copied from [databaseHealth].
-@ProviderFor(databaseHealth)
-final databaseHealthProvider = AutoDisposeFutureProvider<bool>.internal(
-  databaseHealth,
-  name: r'databaseHealthProvider',
+/// Copied from [ephemeralStorageHealth].
+@ProviderFor(ephemeralStorageHealth)
+final ephemeralStorageHealthProvider = AutoDisposeFutureProvider<bool>.internal(
+  ephemeralStorageHealth,
+  name: r'ephemeralStorageHealthProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$databaseHealthHash,
+      : _$ephemeralStorageHealthHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DatabaseHealthRef = AutoDisposeFutureProviderRef<bool>;
-String _$vehiclesNotifierHash() => r'c57395a2b2277d03e603ffe943e6c5cc4d14ec57';
+typedef EphemeralStorageHealthRef = AutoDisposeFutureProviderRef<bool>;
+String _$vehiclesNotifierHash() => r'aade0e2a5a71969fab5edcba067c96d0c3cd7b34';
 
 /// Notifier for managing vehicles state
 ///

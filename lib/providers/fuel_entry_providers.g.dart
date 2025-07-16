@@ -7,7 +7,7 @@ part of 'fuel_entry_providers.dart';
 // **************************************************************************
 
 String _$fuelEntriesByVehicleHash() =>
-    r'e87c2dcef1d7dc563431618097ba20f2b9c6128f';
+    r'184f291dca5c0a1b28fa0d340e521e2e17a1b023';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -167,7 +167,7 @@ class _FuelEntriesByVehicleProviderElement
 }
 
 String _$fuelEntriesByDateRangeHash() =>
-    r'b585b3de01717cd60a36dcbbafa3ca483aae6495';
+    r'6b64b2bd210dacf3214445241abb543e3cb29122';
 
 /// Provider for getting fuel entries by date range
 ///
@@ -321,7 +321,7 @@ class _FuelEntriesByDateRangeProviderElement
 }
 
 String _$fuelEntriesByVehicleAndDateRangeHash() =>
-    r'26dda7d9ac0e868906715903bb854215e0790eaa';
+    r'aac7cc58ac2794ac2fbfb99b11de20c53d196fbc';
 
 /// Provider for getting fuel entries by vehicle and date range
 ///
@@ -503,7 +503,7 @@ class _FuelEntriesByVehicleAndDateRangeProviderElement
 }
 
 String _$latestFuelEntryForVehicleHash() =>
-    r'392261ec09da1ba3cb2d2851ff5b6cc1977238c0';
+    r'395f7be9c772aae6b47475ce0405de0f4ae2d1f8';
 
 /// Provider for getting the latest fuel entry for a vehicle
 ///
@@ -643,7 +643,7 @@ class _LatestFuelEntryForVehicleProviderElement
   int get vehicleId => (origin as LatestFuelEntryForVehicleProvider).vehicleId;
 }
 
-String _$fuelEntryHash() => r'1f95bd02ca87257b349c335b44b9eb50dd990bc1';
+String _$fuelEntryHash() => r'9beb777b7d6ad88adbc9ce0770cf2c4856bdb34c';
 
 /// Provider for getting a specific fuel entry by ID
 ///
@@ -772,7 +772,7 @@ class _FuelEntryProviderElement
   int get entryId => (origin as FuelEntryProvider).entryId;
 }
 
-String _$fuelEntryCountHash() => r'f2dd214f39fd6928c5796dd67b2c6c0d52c1b62c';
+String _$fuelEntryCountHash() => r'e0965c2487be3acd611f6893529de7fd51df91b0';
 
 /// Provider for getting fuel entry count
 ///
@@ -792,7 +792,7 @@ final fuelEntryCountProvider = AutoDisposeFutureProvider<int>.internal(
 // ignore: unused_element
 typedef FuelEntryCountRef = AutoDisposeFutureProviderRef<int>;
 String _$fuelEntryCountForVehicleHash() =>
-    r'1d58cc36f3b2d6c9ebdbbf85855d9211a8d466d5';
+    r'51a29fda6491a197bfd95634712cbd5737359c6f';
 
 /// Provider for getting fuel entry count for a specific vehicle
 ///
@@ -929,7 +929,7 @@ class _FuelEntryCountForVehicleProviderElement
 }
 
 String _$fuelEntriesGroupedByCountryHash() =>
-    r'b599daedfa3b38cc4d1f7abbabd159ecd2e0dea3';
+    r'6603dbba502b3e2eab4dd29feca3e1879c94ea87';
 
 /// Provider for getting fuel entries grouped by country
 ///
@@ -951,7 +951,7 @@ final fuelEntriesGroupedByCountryProvider =
 typedef FuelEntriesGroupedByCountryRef =
     AutoDisposeFutureProviderRef<Map<String, List<FuelEntryModel>>>;
 String _$averageConsumptionForVehicleHash() =>
-    r'4aa7020d919c1c5b8b34f8220c4f878bb2c8fece';
+    r'7ef76ff3050459bd4dd8ec508c2844ad5417e9f2';
 
 /// Provider for getting average consumption for a vehicle
 ///
@@ -1091,7 +1091,7 @@ class _AverageConsumptionForVehicleProviderElement
 }
 
 String _$fuelEntriesNotifierHash() =>
-    r'fa34d337c696380dadeaf28aaa86b193165b1855';
+    r'ef49126ff64c6587fd194c9e206db61d700a06a4';
 
 /// Notifier for managing fuel entries state
 ///

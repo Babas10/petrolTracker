@@ -1,19 +1,16 @@
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/models/vehicle_statistics.dart';
-import 'package:petrol_tracker/database/database_exceptions.dart';
-import 'database_providers.dart';
 
 part 'vehicle_providers.g.dart';
 
-/// Web-only in-memory storage for vehicles (temporary workaround)
-final Map<int, VehicleModel> _webVehicleStorage = <int, VehicleModel>{};
-int _webVehicleIdCounter = 1;
+/// Ephemeral in-memory storage for vehicles (all platforms)
+final Map<int, VehicleModel> _ephemeralVehicleStorage = <int, VehicleModel>{};
+int _ephemeralVehicleIdCounter = 1;
 
-/// Get next available ID for web vehicle storage
-int _getNextWebVehicleId() {
-  return _webVehicleIdCounter++;
+/// Get next available ID for ephemeral vehicle storage
+int _getNextEphemeralVehicleId() {
+  return _ephemeralVehicleIdCounter++;
 }
 
 /// Enum for different vehicle operations
@@ -56,13 +53,10 @@ class VehicleState {
     if (error == null) return null;
     
     // Convert technical error to user-friendly message
-    if (error!.contains('database')) {
-      return 'Database connection issue. Please try again.';
-    }
-    if (error!.contains('unique constraint')) {
+    if (error!.contains('unique constraint') || error!.contains('already exists')) {
       return 'A vehicle with this name already exists.';
     }
-    if (error!.contains('foreign key')) {
+    if (error!.contains('foreign key') || error!.contains('existing fuel entries')) {
       return 'Cannot delete vehicle with existing fuel entries.';
     }
     
@@ -118,29 +112,14 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     return _loadVehicles();
   }
 
-  /// Load all vehicles from the repository
+  /// Load all vehicles from ephemeral storage
   Future<VehicleState> _loadVehicles() async {
     try {
-      // For web platforms, use in-memory storage as temporary workaround
-      if (kIsWeb) {
-        final vehicles = _webVehicleStorage.values.toList();
-        return VehicleState(
-          vehicles: vehicles,
-          isDatabaseReady: true,
-          lastUpdated: DateTime.now(),
-        );
-      }
-      
-      final repository = ref.read(vehicleRepositoryProvider);
-      
-      // Ensure database is ready
-      await repository.ensureDatabaseReady();
-      
-      final vehicles = await repository.getAllVehicles();
-      
+      // Use ephemeral in-memory storage for all platforms
+      final vehicles = _ephemeralVehicleStorage.values.toList();
       return VehicleState(
         vehicles: vehicles,
-        isDatabaseReady: true,
+        isDatabaseReady: true, // Always ready since it's in-memory
         lastUpdated: DateTime.now(),
       );
     } catch (e) {
@@ -170,18 +149,10 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     );
 
     try {
-      late final VehicleModel newVehicle;
-      
-      if (kIsWeb) {
-        // Use in-memory storage for web platforms
-        final id = _getNextWebVehicleId();
-        newVehicle = vehicle.copyWith(id: id);
-        _webVehicleStorage[id] = newVehicle;
-      } else {
-        final repository = ref.read(vehicleRepositoryProvider);
-        final id = await repository.insertVehicle(vehicle);
-        newVehicle = vehicle.copyWith(id: id);
-      }
+      // Use ephemeral in-memory storage for all platforms
+      final id = _getNextEphemeralVehicleId();
+      final newVehicle = vehicle.copyWith(id: id);
+      _ephemeralVehicleStorage[id] = newVehicle;
       
       final currentState = state.valueOrNull ?? const VehicleState();
       final updatedVehicles = [...currentState.vehicles, newVehicle];
@@ -213,39 +184,37 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     }
 
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
-      const VehicleState(isLoading: true)
+      state.valueOrNull?.copyWith(
+        currentOperation: VehicleOperation.updating,
+        error: null,
+      ) ?? const VehicleState(
+        currentOperation: VehicleOperation.updating,
+      )
     );
 
     try {
-      final repository = ref.read(vehicleRepositoryProvider);
-      final success = await repository.updateVehicle(vehicle);
+      // Update in ephemeral storage
+      _ephemeralVehicleStorage[vehicle.id!] = vehicle;
       
-      if (success) {
-        final currentState = state.valueOrNull ?? const VehicleState();
-        final updatedVehicles = currentState.vehicles
-            .map((v) => v.id == vehicle.id ? vehicle : v)
-            .toList();
-        
-        state = AsyncValue.data(
-          currentState.copyWith(
-            vehicles: updatedVehicles,
-            isLoading: false,
-            error: null,
-          )
-        );
-      } else {
-        throw DatabaseExceptionHandler.handleException(
-          Exception('Failed to update vehicle'),
-          'Vehicle update operation',
-        );
-      }
+      final currentState = state.valueOrNull ?? const VehicleState();
+      final updatedVehicles = currentState.vehicles
+          .map((v) => v.id == vehicle.id ? vehicle : v)
+          .toList();
+      
+      state = AsyncValue.data(
+        currentState.copyWith(
+          vehicles: updatedVehicles,
+          currentOperation: VehicleOperation.none,
+          error: null,
+          lastUpdated: DateTime.now(),
+        )
+      );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
-          isLoading: false,
+          currentOperation: VehicleOperation.none,
           error: errorMessage,
         )
       );
@@ -255,39 +224,37 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Delete a vehicle
   Future<void> deleteVehicle(int vehicleId) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
-      const VehicleState(isLoading: true)
+      state.valueOrNull?.copyWith(
+        currentOperation: VehicleOperation.deleting,
+        error: null,
+      ) ?? const VehicleState(
+        currentOperation: VehicleOperation.deleting,
+      )
     );
 
     try {
-      final repository = ref.read(vehicleRepositoryProvider);
-      final success = await repository.deleteVehicle(vehicleId);
+      // Remove from ephemeral storage
+      _ephemeralVehicleStorage.remove(vehicleId);
       
-      if (success) {
-        final currentState = state.valueOrNull ?? const VehicleState();
-        final updatedVehicles = currentState.vehicles
-            .where((v) => v.id != vehicleId)
-            .toList();
-        
-        state = AsyncValue.data(
-          currentState.copyWith(
-            vehicles: updatedVehicles,
-            isLoading: false,
-            error: null,
-          )
-        );
-      } else {
-        throw DatabaseExceptionHandler.handleException(
-          Exception('Failed to delete vehicle'),
-          'Vehicle delete operation',
-        );
-      }
+      final currentState = state.valueOrNull ?? const VehicleState();
+      final updatedVehicles = currentState.vehicles
+          .where((v) => v.id != vehicleId)
+          .toList();
+      
+      state = AsyncValue.data(
+        currentState.copyWith(
+          vehicles: updatedVehicles,
+          currentOperation: VehicleOperation.none,
+          error: null,
+          lastUpdated: DateTime.now(),
+        )
+      );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
-          isLoading: false,
+          currentOperation: VehicleOperation.none,
           error: errorMessage,
         )
       );
@@ -304,9 +271,6 @@ class VehiclesNotifier extends _$VehiclesNotifier {
 
   /// Convert exception to user-friendly error message
   String _getErrorMessage(dynamic error) {
-    if (error is DatabaseException) {
-      return DatabaseExceptionHandler.getUserFriendlyMessage(error);
-    }
     return 'An unexpected error occurred: ${error.toString()}';
   }
 }
@@ -314,49 +278,57 @@ class VehiclesNotifier extends _$VehiclesNotifier {
 /// Provider for getting a specific vehicle by ID
 @riverpod
 Future<VehicleModel?> vehicle(VehicleRef ref, int vehicleId) async {
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.getVehicleById(vehicleId);
+  // Get from ephemeral storage
+  return _ephemeralVehicleStorage[vehicleId];
 }
 
 /// Provider for checking if a vehicle name exists
 @riverpod
 Future<bool> vehicleNameExists(VehicleNameExistsRef ref, String vehicleName, {int? excludeId}) async {
-  if (kIsWeb) {
-    // Check in-memory storage for web platforms
-    return _webVehicleStorage.values.any((vehicle) => 
-      vehicle.name.toLowerCase() == vehicleName.toLowerCase() && 
-      vehicle.id != excludeId
-    );
-  }
-  
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.vehicleNameExists(vehicleName, excludeId: excludeId);
+  // Check ephemeral storage for all platforms
+  return _ephemeralVehicleStorage.values.any((vehicle) => 
+    vehicle.name.toLowerCase() == vehicleName.toLowerCase() && 
+    vehicle.id != excludeId
+  );
 }
 
 /// Provider for getting vehicle count
 @riverpod
 Future<int> vehicleCount(VehicleCountRef ref) async {
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.getVehicleCount();
+  // Count from ephemeral storage
+  return _ephemeralVehicleStorage.length;
 }
 
 /// Provider for getting vehicle statistics
 @riverpod
 Future<VehicleStatistics> vehicleStatistics(VehicleStatisticsRef ref, int vehicleId) async {
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.getVehicleStatistics(vehicleId);
+  // Return default statistics for ephemeral implementation
+  // This will be enhanced when fuel entries are implemented
+  return VehicleStatistics.empty(vehicleId);
 }
 
 /// Provider for getting vehicles with basic statistics
 @riverpod
 Future<List<Map<String, dynamic>>> vehiclesWithStats(VehiclesWithStatsRef ref) async {
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.getVehiclesWithBasicStats();
+  // Return vehicles with basic stats from ephemeral storage
+  final vehicles = _ephemeralVehicleStorage.values.toList();
+  return vehicles.map((vehicle) => {
+    'id': vehicle.id,
+    'name': vehicle.name,
+    'initialKm': vehicle.initialKm,
+    'entryCount': 0, // Will be enhanced with fuel entries
+    'avgConsumption': 0.0, // Will be enhanced with fuel entries
+  }).toList();
 }
 
-/// Provider for checking database health
+/// Provider for checking ephemeral storage health
 @riverpod
-Future<bool> databaseHealth(DatabaseHealthRef ref) async {
-  final repository = ref.watch(vehicleRepositoryProvider);
-  return repository.checkDatabaseHealth();
+Future<bool> ephemeralStorageHealth(EphemeralStorageHealthRef ref) async {
+  // Ephemeral storage is always healthy if we can access it
+  try {
+    _ephemeralVehicleStorage.length; // Simple access test
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
