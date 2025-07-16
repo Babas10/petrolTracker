@@ -1,9 +1,16 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
-import 'package:petrol_tracker/database/database_exceptions.dart';
-import 'database_providers.dart';
 
 part 'fuel_entry_providers.g.dart';
+
+/// Ephemeral in-memory storage for fuel entries (all platforms)
+final Map<int, FuelEntryModel> _ephemeralFuelEntryStorage = <int, FuelEntryModel>{};
+int _ephemeralFuelEntryIdCounter = 1;
+
+/// Get next available ID for ephemeral fuel entry storage
+int _getNextEphemeralFuelEntryId() {
+  return _ephemeralFuelEntryIdCounter++;
+}
 
 /// State class for fuel entry operations
 class FuelEntryState {
@@ -50,11 +57,12 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     return _loadFuelEntries();
   }
 
-  /// Load all fuel entries from the repository
+  /// Load all fuel entries from ephemeral storage
   Future<FuelEntryState> _loadFuelEntries() async {
     try {
-      final repository = ref.read(fuelEntryRepositoryProvider);
-      final entries = await repository.getAllEntries();
+      final entries = _ephemeralFuelEntryStorage.values.toList();
+      // Sort by date descending (newest first)
+      entries.sort((a, b) => b.date.compareTo(a.date));
       return FuelEntryState(entries: entries);
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
@@ -76,11 +84,10 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     );
 
     try {
-      final repository = ref.read(fuelEntryRepositoryProvider);
-      final id = await repository.insertEntry(entry);
-      
-      // Create the entry with the new ID
+      // Add to ephemeral storage
+      final id = _getNextEphemeralFuelEntryId();
       final newEntry = entry.copyWith(id: id);
+      _ephemeralFuelEntryStorage[id] = newEntry;
       
       final currentState = state.valueOrNull ?? const FuelEntryState();
       final updatedEntries = [newEntry, ...currentState.entries];
@@ -116,28 +123,21 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     );
 
     try {
-      final repository = ref.read(fuelEntryRepositoryProvider);
-      final success = await repository.updateEntry(entry);
+      // Update in ephemeral storage
+      _ephemeralFuelEntryStorage[entry.id!] = entry;
       
-      if (success) {
-        final currentState = state.valueOrNull ?? const FuelEntryState();
-        final updatedEntries = currentState.entries
-            .map((e) => e.id == entry.id ? entry : e)
-            .toList();
-        
-        state = AsyncValue.data(
-          currentState.copyWith(
-            entries: updatedEntries,
-            isLoading: false,
-            error: null,
-          )
-        );
-      } else {
-        throw DatabaseExceptionHandler.handleException(
-          Exception('Failed to update fuel entry'),
-          'Fuel entry update operation',
-        );
-      }
+      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final updatedEntries = currentState.entries
+          .map((e) => e.id == entry.id ? entry : e)
+          .toList();
+      
+      state = AsyncValue.data(
+        currentState.copyWith(
+          entries: updatedEntries,
+          isLoading: false,
+          error: null,
+        )
+      );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const FuelEntryState();
@@ -158,28 +158,21 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     );
 
     try {
-      final repository = ref.read(fuelEntryRepositoryProvider);
-      final success = await repository.deleteEntry(entryId);
+      // Remove from ephemeral storage
+      _ephemeralFuelEntryStorage.remove(entryId);
       
-      if (success) {
-        final currentState = state.valueOrNull ?? const FuelEntryState();
-        final updatedEntries = currentState.entries
-            .where((e) => e.id != entryId)
-            .toList();
-        
-        state = AsyncValue.data(
-          currentState.copyWith(
-            entries: updatedEntries,
-            isLoading: false,
-            error: null,
-          )
-        );
-      } else {
-        throw DatabaseExceptionHandler.handleException(
-          Exception('Failed to delete fuel entry'),
-          'Fuel entry delete operation',
-        );
-      }
+      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final updatedEntries = currentState.entries
+          .where((e) => e.id != entryId)
+          .toList();
+      
+      state = AsyncValue.data(
+        currentState.copyWith(
+          entries: updatedEntries,
+          isLoading: false,
+          error: null,
+        )
+      );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const FuelEntryState();
@@ -202,9 +195,6 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
 
   /// Convert exception to user-friendly error message
   String _getErrorMessage(dynamic error) {
-    if (error is DatabaseException) {
-      return DatabaseExceptionHandler.getUserFriendlyMessage(error);
-    }
     return 'An unexpected error occurred: ${error.toString()}';
   }
 }
@@ -215,8 +205,11 @@ Future<List<FuelEntryModel>> fuelEntriesByVehicle(
   FuelEntriesByVehicleRef ref,
   int vehicleId,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntriesByVehicle(vehicleId);
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final filteredEntries = allEntries.where((entry) => entry.vehicleId == vehicleId).toList();
+  // Sort by date descending (newest first)
+  filteredEntries.sort((a, b) => b.date.compareTo(a.date));
+  return filteredEntries;
 }
 
 /// Provider for getting fuel entries by date range
@@ -226,8 +219,14 @@ Future<List<FuelEntryModel>> fuelEntriesByDateRange(
   DateTime startDate,
   DateTime endDate,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntriesByDateRange(startDate, endDate);
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final filteredEntries = allEntries.where((entry) => 
+    entry.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+    entry.date.isBefore(endDate.add(const Duration(days: 1)))
+  ).toList();
+  // Sort by date descending (newest first)
+  filteredEntries.sort((a, b) => b.date.compareTo(a.date));
+  return filteredEntries;
 }
 
 /// Provider for getting fuel entries by vehicle and date range
@@ -238,8 +237,15 @@ Future<List<FuelEntryModel>> fuelEntriesByVehicleAndDateRange(
   DateTime startDate,
   DateTime endDate,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntriesByVehicleAndDateRange(vehicleId, startDate, endDate);
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final filteredEntries = allEntries.where((entry) => 
+    entry.vehicleId == vehicleId &&
+    entry.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+    entry.date.isBefore(endDate.add(const Duration(days: 1)))
+  ).toList();
+  // Sort by date descending (newest first)
+  filteredEntries.sort((a, b) => b.date.compareTo(a.date));
+  return filteredEntries;
 }
 
 /// Provider for getting the latest fuel entry for a vehicle
@@ -248,22 +254,25 @@ Future<FuelEntryModel?> latestFuelEntryForVehicle(
   LatestFuelEntryForVehicleRef ref,
   int vehicleId,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getLatestEntryForVehicle(vehicleId);
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final vehicleEntries = allEntries.where((entry) => entry.vehicleId == vehicleId).toList();
+  if (vehicleEntries.isEmpty) return null;
+  
+  // Sort by date descending and return the first (latest)
+  vehicleEntries.sort((a, b) => b.date.compareTo(a.date));
+  return vehicleEntries.first;
 }
 
 /// Provider for getting a specific fuel entry by ID
 @riverpod
 Future<FuelEntryModel?> fuelEntry(FuelEntryRef ref, int entryId) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntryById(entryId);
+  return _ephemeralFuelEntryStorage[entryId];
 }
 
 /// Provider for getting fuel entry count
 @riverpod
 Future<int> fuelEntryCount(FuelEntryCountRef ref) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntryCount();
+  return _ephemeralFuelEntryStorage.length;
 }
 
 /// Provider for getting fuel entry count for a specific vehicle
@@ -272,8 +281,8 @@ Future<int> fuelEntryCountForVehicle(
   FuelEntryCountForVehicleRef ref,
   int vehicleId,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntryCountForVehicle(vehicleId);
+  final allEntries = _ephemeralFuelEntryStorage.values;
+  return allEntries.where((entry) => entry.vehicleId == vehicleId).length;
 }
 
 /// Provider for getting fuel entries grouped by country
@@ -281,8 +290,23 @@ Future<int> fuelEntryCountForVehicle(
 Future<Map<String, List<FuelEntryModel>>> fuelEntriesGroupedByCountry(
   FuelEntriesGroupedByCountryRef ref,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getEntriesGroupedByCountry();
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final Map<String, List<FuelEntryModel>> groupedEntries = {};
+  
+  for (final entry in allEntries) {
+    final country = entry.country;
+    if (!groupedEntries.containsKey(country)) {
+      groupedEntries[country] = [];
+    }
+    groupedEntries[country]!.add(entry);
+  }
+  
+  // Sort each country's entries by date descending
+  for (final entries in groupedEntries.values) {
+    entries.sort((a, b) => b.date.compareTo(a.date));
+  }
+  
+  return groupedEntries;
 }
 
 /// Provider for getting average consumption for a vehicle
@@ -291,6 +315,16 @@ Future<double?> averageConsumptionForVehicle(
   AverageConsumptionForVehicleRef ref,
   int vehicleId,
 ) async {
-  final repository = ref.watch(fuelEntryRepositoryProvider);
-  return repository.getAverageConsumptionForVehicle(vehicleId);
+  final allEntries = _ephemeralFuelEntryStorage.values.toList();
+  final vehicleEntries = allEntries.where((entry) => 
+    entry.vehicleId == vehicleId && entry.consumption != null
+  ).toList();
+  
+  if (vehicleEntries.isEmpty) return null;
+  
+  final totalConsumption = vehicleEntries
+      .map((entry) => entry.consumption!)
+      .reduce((a, b) => a + b);
+  
+  return totalConsumption / vehicleEntries.length;
 }
