@@ -1,0 +1,292 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #fafafa;
+    color: #333;
+    overflow: hidden;
+}
+
+#chart-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid #4caf50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error state */
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #d32f2f;
+    text-align: center;
+    padding: 20px;
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.error-message {
+    margin-bottom: 16px;
+    font-size: 16px;
+}
+
+.retry-button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.retry-button:hover {
+    background-color: #45a049;
+}
+
+/* Chart container */
+.chart {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Chart-specific styles */
+.chart svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Axis styles */
+.axis {
+    font-size: 12px;
+}
+
+.axis text {
+    fill: #666;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #ddd;
+    shape-rendering: crispEdges;
+}
+
+/* Grid lines */
+.grid line {
+    stroke: #e0e0e0;
+    stroke-dasharray: 2,2;
+    shape-rendering: crispEdges;
+}
+
+.grid path {
+    stroke-width: 0;
+}
+
+/* Line chart styles */
+.line {
+    fill: none;
+    stroke-width: 2;
+}
+
+.line.consumption {
+    stroke: #4caf50;
+}
+
+.line.price {
+    stroke: #2196f3;
+}
+
+.line.cost {
+    stroke: #ff9800;
+}
+
+/* Area chart styles */
+.area {
+    opacity: 0.3;
+}
+
+.area.consumption {
+    fill: #4caf50;
+}
+
+.area.price {
+    fill: #2196f3;
+}
+
+.area.cost {
+    fill: #ff9800;
+}
+
+/* Bar chart styles */
+.bar {
+    transition: opacity 0.2s;
+}
+
+.bar:hover {
+    opacity: 0.8;
+}
+
+.bar.consumption {
+    fill: #4caf50;
+}
+
+.bar.price {
+    fill: #2196f3;
+}
+
+.bar.cost {
+    fill: #ff9800;
+}
+
+/* Dot styles for line charts */
+.dot {
+    r: 4;
+    transition: r 0.2s;
+}
+
+.dot:hover {
+    r: 6;
+}
+
+.dot.consumption {
+    fill: #4caf50;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.dot.price {
+    fill: #2196f3;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.dot.cost {
+    fill: #ff9800;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+/* Legend styles */
+.legend {
+    font-size: 12px;
+}
+
+.legend-item {
+    cursor: pointer;
+}
+
+.legend-item text {
+    fill: #666;
+}
+
+.legend-item.disabled text {
+    fill: #ccc;
+}
+
+.legend-item.disabled rect,
+.legend-item.disabled circle {
+    opacity: 0.3;
+}
+
+/* Chart title */
+.chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .axis {
+        font-size: 10px;
+    }
+    
+    .chart-title {
+        font-size: 14px;
+    }
+    
+    .tooltip {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+}
+
+/* Animation styles */
+.chart-enter {
+    animation: chartFadeIn 0.5s ease-in-out;
+}
+
+@keyframes chartFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
