@@ -320,10 +320,6 @@ class _ChartWebViewState extends State<ChartWebView> {
   }
 
   Widget _buildWebFallback(BuildContext context) {
-    // Debug information
-    debugPrint('WebView Chart - Data length: ${widget.data.length}');
-    debugPrint('WebView Chart - Data: ${widget.data}');
-    
     return Container(
       width: widget.width,
       height: widget.height,
