@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 /// Chart types supported by the WebView
 enum ChartType {
@@ -331,79 +332,370 @@ class _ChartWebViewState extends State<ChartWebView> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.web_asset_off,
-                size: 48,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Interactive Charts Not Available',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Interactive D3.js charts are only available on mobile devices. Use the mobile app for full chart functionality.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              if (widget.data.isNotEmpty) _buildSimpleDataSummary(context),
-            ],
-          ),
-        ),
+        child: widget.data.isNotEmpty
+            ? _buildFlChart(context)
+            : _buildEmptyChart(context),
       ),
     );
   }
 
-  Widget _buildSimpleDataSummary(BuildContext context) {
-    final dataCount = widget.data.length;
-    final hasNumericData = widget.data.isNotEmpty && 
-                          widget.data.first.containsKey('value');
+  Widget _buildFlChart(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.config.title != null) ...[
+            Text(
+              widget.config.title!,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          Expanded(
+            child: _buildChartByType(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartByType(BuildContext context) {
+    switch (widget.config.type) {
+      case ChartType.line:
+        return _buildLineChart(context);
+      case ChartType.bar:
+        return _buildBarChart(context);
+      case ChartType.area:
+        return _buildLineChart(context, isArea: true);
+      case ChartType.multiLine:
+        return _buildMultiLineChart(context);
+    }
+  }
+
+  Widget _buildLineChart(BuildContext context, {bool isArea = false}) {
+    final spots = <FlSpot>[];
     
-    String summary = 'Data points: $dataCount';
+    for (int i = 0; i < widget.data.length; i++) {
+      final item = widget.data[i];
+      final value = item['value'] as double? ?? 0.0;
+      spots.add(FlSpot(i.toDouble(), value));
+    }
+
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            strokeWidth: 1,
+          ),
+          getDrawingVerticalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            strokeWidth: 1,
+          ),
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) => Text(
+                value.toStringAsFixed(1),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < widget.data.length) {
+                  final item = widget.data[index];
+                  String label = '';
+                  
+                  if (item.containsKey('date')) {
+                    final dateStr = item['date'] as String;
+                    final parts = dateStr.split('-');
+                    if (parts.length >= 2) {
+                      label = '${parts[1]}/${parts[2]}';
+                    }
+                  } else if (item.containsKey('label')) {
+                    label = item['label'].toString();
+                  }
+                  
+                  return Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: Theme.of(context).colorScheme.primary,
+            barWidth: 3,
+            belowBarData: isArea
+                ? BarAreaData(
+                    show: true,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  )
+                : BarAreaData(show: false),
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                radius: 4,
+                color: Theme.of(context).colorScheme.primary,
+                strokeWidth: 2,
+                strokeColor: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarChart(BuildContext context) {
+    final barGroups = <BarChartGroupData>[];
     
-    if (hasNumericData) {
-      final values = widget.data
-          .map((d) => d['value'] as double?)
-          .where((v) => v != null)
-          .cast<double>()
-          .toList();
-          
-      if (values.isNotEmpty) {
-        final avg = values.reduce((a, b) => a + b) / values.length;
-        summary += '\nAverage: ${avg.toStringAsFixed(2)}';
-        
-        if (widget.config.unit != null) {
-          summary += ' ${widget.config.unit}';
+    for (int i = 0; i < widget.data.length; i++) {
+      final item = widget.data[i];
+      final value = item['value'] as double? ?? 0.0;
+      
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: value,
+              color: Theme.of(context).colorScheme.primary,
+              width: 16,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: barGroups.isNotEmpty
+            ? barGroups.map((g) => g.barRods.first.toY).reduce((a, b) => a > b ? a : b) * 1.2
+            : 10,
+        gridData: FlGridData(
+          show: true,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            strokeWidth: 1,
+          ),
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) => Text(
+                value.toStringAsFixed(0),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < widget.data.length) {
+                  final item = widget.data[index];
+                  String label = '';
+                  
+                  if (item.containsKey('label')) {
+                    label = item['label'].toString();
+                  } else if (item.containsKey('date')) {
+                    final dateStr = item['date'] as String;
+                    final parts = dateStr.split('-');
+                    if (parts.length >= 2) {
+                      label = '${parts[1]}/${parts[2]}';
+                    }
+                  }
+                  
+                  return Text(
+                    label.length > 8 ? label.substring(0, 8) : label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        barGroups: barGroups,
+      ),
+    );
+  }
+
+  Widget _buildMultiLineChart(BuildContext context) {
+    // Extract all series from the data
+    final Map<String, List<FlSpot>> seriesData = {};
+    final List<Color> colors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.secondary,
+      Theme.of(context).colorScheme.tertiary,
+      Colors.orange,
+      Colors.green,
+    ];
+    
+    for (int i = 0; i < widget.data.length; i++) {
+      final item = widget.data[i];
+      
+      for (final key in item.keys) {
+        if (key != 'date' && key != 'label' && item[key] is double) {
+          seriesData.putIfAbsent(key, () => []);
+          seriesData[key]!.add(FlSpot(i.toDouble(), item[key] as double));
         }
       }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        summary,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+    final lineBarsData = <LineChartBarData>[];
+    int colorIndex = 0;
+    
+    for (final entry in seriesData.entries) {
+      lineBarsData.add(
+        LineChartBarData(
+          spots: entry.value,
+          isCurved: true,
+          color: colors[colorIndex % colors.length],
+          barWidth: 2,
+          belowBarData: BarAreaData(show: false),
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+              radius: 3,
+              color: colors[colorIndex % colors.length],
+              strokeWidth: 1,
+              strokeColor: Theme.of(context).colorScheme.surface,
+            ),
+          ),
         ),
-        textAlign: TextAlign.center,
+      );
+      colorIndex++;
+    }
+
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(
+          show: true,
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            strokeWidth: 1,
+          ),
+          getDrawingVerticalLine: (value) => FlLine(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            strokeWidth: 1,
+          ),
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) => Text(
+                value.toStringAsFixed(1),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < widget.data.length) {
+                  final item = widget.data[index];
+                  String label = '';
+                  
+                  if (item.containsKey('date')) {
+                    final dateStr = item['date'] as String;
+                    final parts = dateStr.split('-');
+                    if (parts.length >= 2) {
+                      label = '${parts[1]}/${parts[2]}';
+                    }
+                  }
+                  
+                  return Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        lineBarsData: lineBarsData,
       ),
     );
   }
+
+  Widget _buildEmptyChart(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.show_chart,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No chart data available',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 /// Helper class for creating chart data points
