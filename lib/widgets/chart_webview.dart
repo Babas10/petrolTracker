@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -78,7 +79,7 @@ class ChartWebView extends StatefulWidget {
 }
 
 class _ChartWebViewState extends State<ChartWebView> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   bool _isLoading = true;
   bool _hasError = false;
   String? _errorMessage;
@@ -87,15 +88,17 @@ class _ChartWebViewState extends State<ChartWebView> {
   @override
   void initState() {
     super.initState();
-    _initializeWebView();
+    if (!kIsWeb) {
+      _initializeWebView();
+    }
   }
 
   @override
   void didUpdateWidget(ChartWebView oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // Update chart if data or config changed
-    if (oldWidget.data != widget.data || oldWidget.config != widget.config) {
+    // Update chart if data or config changed and not on web
+    if (!kIsWeb && (oldWidget.data != widget.data || oldWidget.config != widget.config)) {
       _updateChart();
     }
   }
@@ -162,7 +165,7 @@ class _ChartWebViewState extends State<ChartWebView> {
           ? 'file:///android_asset/flutter_assets/assets/charts/'
           : 'assets/charts/';
       
-      await _controller.loadHtmlString(
+      await _controller!.loadHtmlString(
         htmlContent,
         baseUrl: baseUrl,
       );
@@ -201,8 +204,10 @@ class _ChartWebViewState extends State<ChartWebView> {
   }
 
   void _sendMessageToWebView(Map<String, dynamic> message) {
+    if (_controller == null) return;
+    
     final jsonMessage = jsonEncode(message);
-    _controller.runJavaScript('''
+    _controller!.runJavaScript('''
       if (window.chartManager) {
         window.chartManager.handleFlutterMessage($jsonMessage);
       }
@@ -220,6 +225,11 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   @override
   Widget build(BuildContext context) {
+    // WebView is not supported on web platform
+    if (kIsWeb) {
+      return _buildWebFallback(context);
+    }
+
     Widget content;
 
     if (_hasError) {
@@ -227,7 +237,7 @@ class _ChartWebViewState extends State<ChartWebView> {
     } else if (_isLoading) {
       content = _buildLoadingWidget();
     } else {
-      content = WebViewWidget(controller: _controller);
+      content = WebViewWidget(controller: _controller!);
     }
 
     return Container(
@@ -304,6 +314,93 @@ class _ChartWebViewState extends State<ChartWebView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildWebFallback(BuildContext context) {
+    return Container(
+      width: widget.width,
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.web_asset_off,
+                size: 48,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Interactive Charts Not Available',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Interactive D3.js charts are only available on mobile devices. Use the mobile app for full chart functionality.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              if (widget.data.isNotEmpty) _buildSimpleDataSummary(context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleDataSummary(BuildContext context) {
+    final dataCount = widget.data.length;
+    final hasNumericData = widget.data.isNotEmpty && 
+                          widget.data.first.containsKey('value');
+    
+    String summary = 'Data points: $dataCount';
+    
+    if (hasNumericData) {
+      final values = widget.data
+          .map((d) => d['value'] as double?)
+          .where((v) => v != null)
+          .cast<double>()
+          .toList();
+          
+      if (values.isNotEmpty) {
+        final avg = values.reduce((a, b) => a + b) / values.length;
+        summary += '\nAverage: ${avg.toStringAsFixed(2)}';
+        
+        if (widget.config.unit != null) {
+          summary += ' ${widget.config.unit}';
+        }
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        summary,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
