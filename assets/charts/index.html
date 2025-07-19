@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petrol Tracker Charts</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="chart-container">
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading chart...</p>
+        </div>
+        <div id="error" class="error hidden">
+            <div class="error-icon">⚠️</div>
+            <p class="error-message">Error loading chart</p>
+            <button class="retry-button" onclick="window.chartManager.retryChart()">Retry</button>
+        </div>
+        <div id="chart" class="chart hidden"></div>
+    </div>
+
+    <script src="charts.js"></script>
+    <script>
+        // Initialize chart manager when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            window.chartManager = new ChartManager();
+            
+            // Send ready signal to Flutter
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('onChartReady');
+            } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.chartReady) {
+                window.webkit.messageHandlers.chartReady.postMessage('ready');
+            } else {
+                // Fallback for testing
+                console.log('Chart system ready');
+            }
+        });
+
+        // Listen for messages from Flutter
+        window.addEventListener('message', function(event) {
+            if (event.data && window.chartManager) {
+                window.chartManager.handleFlutterMessage(event.data);
+            }
+        });
+
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Chart error:', event.error);
+            if (window.chartManager) {
+                window.chartManager.showError('An unexpected error occurred');
+            }
+        });
+    </script>
+</body>
+</html>
