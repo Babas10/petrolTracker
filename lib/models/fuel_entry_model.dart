@@ -168,11 +168,13 @@ class FuelEntryModel {
       errors.add('Country name must be less than 50 characters');
     }
 
-    // Price consistency validation
+    // Price consistency validation with tolerance for floating-point precision
     final expectedPrice = fuelAmount * pricePerLiter;
     final priceDifference = (price - expectedPrice).abs();
-    if (priceDifference > 0.01) {
-      errors.add('Price (${price.toStringAsFixed(2)}) does not match fuel amount × price per liter (${expectedPrice.toStringAsFixed(2)})');
+    // Use more generous tolerance (0.05) to handle different input formats and floating-point precision
+    const tolerance = 0.05;
+    if (priceDifference > tolerance) {
+      errors.add('Price (${price.toStringAsFixed(2)}) does not match fuel amount × price per liter (${expectedPrice.toStringAsFixed(2)}). Difference: ${priceDifference.toStringAsFixed(3)}');
     }
 
     return errors;
