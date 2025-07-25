@@ -362,6 +362,49 @@ class _ChartWebViewState extends State<ChartWebView> {
     );
   }
 
+  /// Smart tick selection algorithm for x-axis optimization
+  /// Returns list of indices that should show labels
+  List<int> _getOptimalTickIndices(int dataLength, {int maxTicks = 6}) {
+    if (dataLength <= maxTicks) {
+      // If we have few data points, show all
+      return List.generate(dataLength, (index) => index);
+    }
+
+    final ticks = <int>[];
+    
+    // Always include first and last
+    ticks.add(0);
+    if (dataLength > 1) {
+      ticks.add(dataLength - 1);
+    }
+
+    // Calculate how many intermediate ticks we can fit
+    final intermediateTicks = maxTicks - 2; // Subtract first and last
+    
+    if (intermediateTicks > 0) {
+      // Distribute intermediate ticks evenly
+      for (int i = 1; i <= intermediateTicks; i++) {
+        final position = (dataLength - 1) * i / (intermediateTicks + 1);
+        final index = position.round();
+        
+        // Avoid duplicates with first/last and ensure valid range
+        if (index > 0 && index < dataLength - 1 && !ticks.contains(index)) {
+          ticks.add(index);
+        }
+      }
+    }
+
+    // Sort to ensure proper order
+    ticks.sort();
+    return ticks;
+  }
+
+  /// Check if an index should show a label based on optimal tick selection
+  bool _shouldShowTick(int index, int dataLength) {
+    final optimalTicks = _getOptimalTickIndices(dataLength);
+    return optimalTicks.contains(index);
+  }
+
   Widget _buildChartByType(BuildContext context) {
     switch (widget.config.type) {
       case ChartType.line:
@@ -412,9 +455,12 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
+              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index >= 0 && index < widget.data.length) {
+                
+                // Use smart tick selection for better readability
+                if (index >= 0 && index < widget.data.length && _shouldShowTick(index, widget.data.length)) {
                   final item = widget.data[index];
                   String label = '';
                   
@@ -523,9 +569,12 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
+              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index >= 0 && index < widget.data.length) {
+                
+                // Use smart tick selection for better readability
+                if (index >= 0 && index < widget.data.length && _shouldShowTick(index, widget.data.length)) {
                   final item = widget.data[index];
                   String label = '';
                   
@@ -637,9 +686,12 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
+              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index >= 0 && index < widget.data.length) {
+                
+                // Use smart tick selection for better readability
+                if (index >= 0 && index < widget.data.length && _shouldShowTick(index, widget.data.length)) {
                   final item = widget.data[index];
                   String label = '';
                   
