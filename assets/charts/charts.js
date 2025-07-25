@@ -409,6 +409,52 @@ class ChartManager {
     }
 
     /**
+     * Smart tick selection algorithm for x-axis optimization
+     * Returns array of indices that should show labels
+     */
+    getOptimalTickIndices(dataLength, maxTicks = 6) {
+        if (dataLength <= maxTicks) {
+            // If we have few data points, show all
+            return Array.from({ length: dataLength }, (_, i) => i);
+        }
+
+        const ticks = [];
+        
+        // Always include first and last
+        ticks.push(0);
+        if (dataLength > 1) {
+            ticks.push(dataLength - 1);
+        }
+
+        // Calculate how many intermediate ticks we can fit
+        const intermediateTicks = maxTicks - 2; // Subtract first and last
+        
+        if (intermediateTicks > 0) {
+            // Distribute intermediate ticks evenly
+            for (let i = 1; i <= intermediateTicks; i++) {
+                const position = (dataLength - 1) * i / (intermediateTicks + 1);
+                const index = Math.round(position);
+                
+                // Avoid duplicates with first/last and ensure valid range
+                if (index > 0 && index < dataLength - 1 && !ticks.includes(index)) {
+                    ticks.push(index);
+                }
+            }
+        }
+
+        // Sort to ensure proper order
+        return ticks.sort((a, b) => a - b);
+    }
+
+    /**
+     * Check if an index should show a label based on optimal tick selection
+     */
+    shouldShowTick(index, dataLength) {
+        const optimalTicks = this.getOptimalTickIndices(dataLength);
+        return optimalTicks.includes(index);
+    }
+
+    /**
      * Add grid lines
      */
     addGrid(g, xScale, yScale, width, height, isBandScale = false) {
@@ -433,17 +479,45 @@ class ChartManager {
     }
 
     /**
-     * Add axes
+     * Add axes with smart tick selection
      */
     addAxes(g, xScale, yScale, width, height, options, isBandScale = false) {
-        // X axis
-        const xAxis = isBandScale ? d3.axisBottom(xScale) : d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%d'));
+        // Create X axis with controlled tick count
+        let xAxis;
+        if (isBandScale) {
+            // For bar charts, control number of ticks
+            const domain = xScale.domain();
+            const maxTicks = Math.min(6, domain.length);
+            const optimalTicks = this.getOptimalTickIndices(domain.length, maxTicks);
+            
+            xAxis = d3.axisBottom(xScale)
+                .tickValues(optimalTicks.map(i => domain[i]))
+                .tickFormat(d => d);
+        } else {
+            // For time-based charts, control tick count directly
+            const dataLength = this.currentData ? this.currentData.length : 0;
+            const maxTicks = Math.min(6, dataLength);
+            
+            if (dataLength > 0) {
+                const optimalIndices = this.getOptimalTickIndices(dataLength, maxTicks);
+                const tickValues = optimalIndices.map(i => this.currentData[i].date);
+                
+                xAxis = d3.axisBottom(xScale)
+                    .tickValues(tickValues)
+                    .tickFormat(d3.timeFormat('%m/%d'));
+            } else {
+                xAxis = d3.axisBottom(xScale)
+                    .ticks(maxTicks)
+                    .tickFormat(d3.timeFormat('%m/%d'));
+            }
+        }
+        
         g.append('g')
             .attr('class', 'axis')
             .attr('transform', `translate(0,${height})`)
             .call(xAxis);
 
-        // Y axis
+        // Y axis (unchanged)
         g.append('g')
             .attr('class', 'axis')
             .call(d3.axisLeft(yScale));
