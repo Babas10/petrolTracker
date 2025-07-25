@@ -354,7 +354,95 @@ void main() {
       );
 
       final errors = entry.validate();
-      expect(errors, contains('Price (60.00) does not match fuel amount × price per liter (58.00)'));
+      expect(errors.first, contains('Price (60.00) does not match fuel amount × price per liter (58.00)'));
+      expect(entry.isValid(), isFalse);
+    });
+
+    test('validates correctly - price consistency with integer format (Issue #44)', () {
+      // Test the specific issue: user enters 52 (integer) for 40L fuel
+      // Auto-calculated price per liter: 52 ÷ 40 = 1.3000
+      // Validation should pass as 40 × 1.3000 = 52.0000
+      final entry = FuelEntryModel.create(
+        vehicleId: 1,
+        date: testDate,
+        currentKm: 50200.0,
+        fuelAmount: 40.0,
+        price: 52.0, // Integer input (52)
+        country: 'Canada',
+        pricePerLiter: 1.3000, // Auto-calculated
+      );
+
+      final errors = entry.validate();
+      expect(errors, isEmpty, reason: 'Integer price format should be valid');
+      expect(entry.isValid(), isTrue);
+    });
+
+    test('validates correctly - price consistency with decimal format', () {
+      // Test that decimal format still works
+      final entry = FuelEntryModel.create(
+        vehicleId: 1,
+        date: testDate,
+        currentKm: 50200.0,
+        fuelAmount: 40.0,
+        price: 52.00, // Decimal input
+        country: 'Canada',
+        pricePerLiter: 1.3000,
+      );
+
+      final errors = entry.validate();
+      expect(errors, isEmpty);
+      expect(entry.isValid(), isTrue);
+    });
+
+    test('validates correctly - price consistency with floating point precision', () {
+      // Test floating point precision issues
+      final entry = FuelEntryModel.create(
+        vehicleId: 1,
+        date: testDate,
+        currentKm: 50200.0,
+        fuelAmount: 33.33,
+        price: 50.0,
+        country: 'Canada',
+        pricePerLiter: 1.5000, // 33.33 × 1.5000 = 49.995, close to 50.0
+      );
+
+      final errors = entry.validate();
+      expect(errors, isEmpty, reason: 'Small floating point differences should be tolerated');
+      expect(entry.isValid(), isTrue);
+    });
+
+    test('validates correctly - price consistency tolerance boundary', () {
+      // Test that the tolerance (0.05) works correctly
+      final entry = FuelEntryModel.create(
+        vehicleId: 1,
+        date: testDate,
+        currentKm: 50200.0,
+        fuelAmount: 40.0,
+        price: 52.0,
+        country: 'Canada',
+        pricePerLiter: 1.301, // 40 × 1.301 = 52.04, difference = 0.04 (within tolerance)
+      );
+
+      final errors = entry.validate();
+      expect(errors, isEmpty, reason: 'Difference within tolerance should be valid');
+      expect(entry.isValid(), isTrue);
+    });
+
+    test('validates correctly - price consistency exceeds tolerance', () {
+      // Test that differences exceeding tolerance are still caught
+      final entry = FuelEntryModel.create(
+        vehicleId: 1,
+        date: testDate,
+        currentKm: 50200.0,
+        fuelAmount: 40.0,
+        price: 52.0,
+        country: 'Canada',
+        pricePerLiter: 1.35, // 40 × 1.35 = 54.0, difference = 2.0 (exceeds tolerance)
+      );
+
+      final errors = entry.validate();
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('Price (52.00) does not match fuel amount × price per liter (54.00)'));
       expect(entry.isValid(), isFalse);
     });
 

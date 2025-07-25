@@ -561,7 +561,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       
       if (amount != null && price != null && amount > 0) {
         final pricePerLiter = price / amount;
-        _pricePerLiterController.text = pricePerLiter.toStringAsFixed(3);
+        // Use 4 decimal places for better precision, but round to avoid floating point issues
+        _pricePerLiterController.text = (pricePerLiter).toStringAsFixed(4);
       } else {
         _pricePerLiterController.text = '';
       }
@@ -632,11 +633,11 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
     });
 
     try {
-      // Parse form values
-      final currentKm = double.parse(_kilometersController.text);
-      final fuelAmount = double.parse(_fuelAmountController.text);
-      final price = double.parse(_priceController.text);
-      final pricePerLiter = double.parse(_pricePerLiterController.text);
+      // Parse form values with better error handling
+      final currentKm = double.parse(_kilometersController.text.trim());
+      final fuelAmount = double.parse(_fuelAmountController.text.trim());
+      final price = double.parse(_priceController.text.trim());
+      final pricePerLiter = double.parse(_pricePerLiterController.text.trim());
       
       // Create fuel entry model
       final fuelEntry = FuelEntryModel.create(
