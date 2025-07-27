@@ -138,7 +138,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   }
 
   /// Add a new vehicle
-  Future<void> addVehicle(VehicleModel vehicle) async {
+  Future<VehicleModel> addVehicle(VehicleModel vehicle) async {
     state = AsyncValue.data(
       state.valueOrNull?.copyWith(
         currentOperation: VehicleOperation.adding,
@@ -165,6 +165,8 @@ class VehiclesNotifier extends _$VehiclesNotifier {
           lastUpdated: DateTime.now(),
         )
       );
+      
+      return newVehicle;
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const VehicleState();
@@ -174,6 +176,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
           error: errorMessage,
         )
       );
+      rethrow;
     }
   }
 
@@ -266,6 +269,41 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     final currentState = state.valueOrNull;
     if (currentState != null && currentState.error != null) {
       state = AsyncValue.data(currentState.copyWith(error: null));
+    }
+  }
+
+  /// Clear all vehicles (for testing purposes)
+  Future<void> clearAllVehicles() async {
+    state = AsyncValue.data(
+      state.valueOrNull?.copyWith(
+        currentOperation: VehicleOperation.deleting,
+        error: null,
+      ) ?? const VehicleState(
+        currentOperation: VehicleOperation.deleting,
+      )
+    );
+
+    try {
+      // Clear ephemeral storage
+      _ephemeralVehicleStorage.clear();
+      
+      state = AsyncValue.data(
+        const VehicleState(
+          vehicles: [],
+          isDatabaseReady: true,
+          currentOperation: VehicleOperation.none,
+          lastUpdated: null,
+        )
+      );
+    } catch (e) {
+      final errorMessage = _getErrorMessage(e);
+      final currentState = state.valueOrNull ?? const VehicleState();
+      state = AsyncValue.data(
+        currentState.copyWith(
+          currentOperation: VehicleOperation.none,
+          error: errorMessage,
+        )
+      );
     }
   }
 

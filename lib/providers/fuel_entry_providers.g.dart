@@ -1091,7 +1091,7 @@ class _AverageConsumptionForVehicleProviderElement
 }
 
 String _$fuelEntriesNotifierHash() =>
-    r'ef49126ff64c6587fd194c9e206db61d700a06a4';
+    r'f8ea71485b63028b8481d1cee00e9188cd5b4f04';
 
 /// Notifier for managing fuel entries state
 ///

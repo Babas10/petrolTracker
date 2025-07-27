@@ -1,0 +1,400 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:petrol_tracker/models/vehicle_model.dart';
+import 'package:petrol_tracker/models/fuel_entry_model.dart';
+import 'package:petrol_tracker/providers/vehicle_providers.dart';
+import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
+
+/// Web-compatible data injector for testing
+/// Shows a floating action button that opens a data injection dialog
+class WebDataInjector extends ConsumerWidget {
+  final Widget child;
+
+  const WebDataInjector({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Only show on web and in debug mode
+    if (!kIsWeb || !kDebugMode) {
+      return child;
+    }
+
+    return Stack(
+      children: [
+        child,
+        Positioned(
+          bottom: 80,
+          right: 16,
+          child: FloatingActionButton(
+            onPressed: () => _showDataInjectionDialog(context, ref),
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.api),
+            heroTag: "dataInjector",
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDataInjectionDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => DataInjectionDialog(ref: ref),
+    );
+  }
+}
+
+class DataInjectionDialog extends StatefulWidget {
+  final WidgetRef ref;
+
+  const DataInjectionDialog({
+    super.key,
+    required this.ref,
+  });
+
+  @override
+  State<DataInjectionDialog> createState() => _DataInjectionDialogState();
+}
+
+class _DataInjectionDialogState extends State<DataInjectionDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        width: 500,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.api, color: Colors.orange),
+                const SizedBox(width: 8),
+                Text(
+                  'Web Data Injector',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Quick test data injection for web development',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Quick actions
+            _buildQuickAction(
+              context,
+              'Create Test Vehicle',
+              'Adds a single test vehicle',
+              Icons.directions_car,
+              () => _createTestVehicle(),
+            ),
+            const SizedBox(height: 12),
+            
+            _buildQuickAction(
+              context,
+              'Create Vehicle + 5 Fuel Entries',
+              'Perfect for testing charts',
+              Icons.show_chart,
+              () => _createVehicleWithEntries(),
+            ),
+            const SizedBox(height: 12),
+            
+            _buildQuickAction(
+              context,
+              'Create Large Dataset',
+              'Vehicle + 20 entries for stress testing',
+              Icons.dataset,
+              () => _createLargeDataset(),
+            ),
+            const SizedBox(height: 12),
+            
+            _buildQuickAction(
+              context,
+              'Clear All Data',
+              'Reset to empty state',
+              Icons.delete_sweep,
+              () => _clearAllData(),
+              isDestructive: true,
+            ),
+            
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.blue[700], size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'For full REST API access, run: flutter run -d macos',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAction(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isDestructive ? Colors.red[300]! : Colors.grey[300]!,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isDestructive ? Colors.red[600] : Colors.blue[600],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: isDestructive ? Colors.red[700] : null,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey[400],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createTestVehicle() async {
+    try {
+      final vehicle = VehicleModel.create(
+        name: 'Test Vehicle ${DateTime.now().millisecondsSinceEpoch % 1000}',
+        initialKm: 50000.0,
+      );
+
+      await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Test vehicle created!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _createVehicleWithEntries() async {
+    try {
+      // Create vehicle
+      final vehicle = VehicleModel.create(
+        name: 'Chart Test Vehicle',
+        initialKm: 50000.0,
+      );
+
+      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      
+      // Create 5 fuel entries
+      final baseDate = DateTime.now().subtract(const Duration(days: 35));
+      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      
+      for (int i = 0; i < 5; i++) {
+        final entry = FuelEntryModel.create(
+          vehicleId: createdVehicle.id!,
+          date: baseDate.add(Duration(days: i * 7)),
+          currentKm: 50000.0 + (i * 400.0),
+          fuelAmount: 40.0 + (i * 2.0),
+          price: 58.0 + (i * 1.5),
+          country: 'Canada',
+          pricePerLiter: 1.45,
+          consumption: i == 0 ? null : 10.0 + (i * 0.5), // First entry has no consumption
+        );
+        
+        await fuelNotifier.addFuelEntry(entry);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Vehicle + 5 fuel entries created! Perfect for chart testing.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _createLargeDataset() async {
+    try {
+      // Create vehicle
+      final vehicle = VehicleModel.create(
+        name: 'Stress Test Vehicle',
+        initialKm: 40000.0,
+      );
+
+      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      
+      // Create 20 fuel entries over 6 months
+      final baseDate = DateTime.now().subtract(const Duration(days: 180));
+      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      
+      for (int i = 0; i < 20; i++) {
+        final entry = FuelEntryModel.create(
+          vehicleId: createdVehicle.id!,
+          date: baseDate.add(Duration(days: i * 9)),
+          currentKm: 40000.0 + (i * 350.0),
+          fuelAmount: 35.0 + (i % 10),
+          price: 50.0 + (i * 1.2),
+          country: i % 3 == 0 ? 'USA' : 'Canada',
+          pricePerLiter: 1.40 + (i * 0.02),
+          consumption: i == 0 ? null : 8.5 + (i % 5),
+        );
+        
+        await fuelNotifier.addFuelEntry(entry);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Large dataset created! (1 vehicle + 20 entries)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearAllData() async {
+    try {
+      // Show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Clear All Data'),
+          content: const Text('Are you sure you want to delete all vehicles and fuel entries? This cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete All'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      // Clear fuel entries first (foreign key constraints)
+      await widget.ref.read(fuelEntriesNotifierProvider.notifier).clearAllEntries();
+      
+      // Clear vehicles
+      await widget.ref.read(vehiclesNotifierProvider.notifier).clearAllVehicles();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ All data cleared!'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}

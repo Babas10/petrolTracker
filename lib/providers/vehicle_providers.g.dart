@@ -497,7 +497,7 @@ final ephemeralStorageHealthProvider = AutoDisposeFutureProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef EphemeralStorageHealthRef = AutoDisposeFutureProviderRef<bool>;
-String _$vehiclesNotifierHash() => r'aade0e2a5a71969fab5edcba067c96d0c3cd7b34';
+String _$vehiclesNotifierHash() => r'1f8212c5bd6ae02c269aa088498089713c3d3220';
 
 /// Notifier for managing vehicles state
 ///
