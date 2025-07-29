@@ -93,6 +93,30 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
                 color: Colors.grey[600],
               ),
             ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: Colors.green[700], size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Toyota Hilux 2013 data auto-loads on startup',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
             
             // Quick actions
@@ -111,6 +135,15 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
               'Perfect for testing charts',
               Icons.show_chart,
               () => _createVehicleWithEntries(),
+            ),
+            const SizedBox(height: 12),
+            
+            _buildQuickAction(
+              context,
+              'Create Toyota Hilux 2013',
+              'Real-world dataset with 11 fuel entries',
+              Icons.local_gas_station,
+              () => _createToyotaHiluxDataset(),
             ),
             const SizedBox(height: 12),
             
@@ -295,6 +328,83 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         );
       }
     }
+  }
+
+  Future<void> _createToyotaHiluxDataset() async {
+    try {
+      // Create Toyota Hilux 2013
+      final vehicle = VehicleModel.create(
+        name: 'Toyota Hilux 2013',
+        initialKm: 98510.0,
+      );
+
+      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      
+      // Real fuel entries data (converted from gallons to liters)
+      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      final baseDate = DateTime(2024, 1, 1);
+      
+      final fuelData = <Map<String, double>>[
+        {'km': 98510.0, 'liters': 30.5, 'price': 25.46, 'date': 0},   // 8.06 gal
+        {'km': 99080.0, 'liters': 25.4, 'price': 25.46, 'date': 7},   // 6.7 gal
+        {'km': 99303.0, 'liters': 21.6, 'price': 20.00, 'date': 14},  // 5.7 gal
+        {'km': 99600.0, 'liters': 37.9, 'price': 33.00, 'date': 21},  // 10 gal
+        {'km': 100106.0, 'liters': 43.9, 'price': 37.00, 'date': 28}, // 11.6 gal
+        {'km': 100422.0, 'liters': 41.5, 'price': 38.37, 'date': 35}, // 10.96 gal
+        {'km': 100800.0, 'liters': 41.6, 'price': 34.00, 'date': 42}, // 11 gal
+        {'km': 101379.0, 'liters': 57.2, 'price': 54.90, 'date': 49}, // 15.1 gal
+        {'km': 101921.0, 'liters': 13.2, 'price': 15.86, 'date': 56}, // 3.5 gal
+        {'km': 102405.0, 'liters': 71.2, 'price': 72.64, 'date': 63}, // 18.8 gal
+        {'km': 102960.0, 'liters': 55.6, 'price': 54.31, 'date': 70}, // 14.68 gal
+      ];
+      
+      for (int i = 0; i < fuelData.length; i++) {
+        final data = fuelData[i];
+        final pricePerLiter = data['price']! / data['liters']!;
+        
+        final entry = FuelEntryModel.create(
+          vehicleId: createdVehicle.id!,
+          date: baseDate.add(Duration(days: data['date']!.toInt())),
+          currentKm: data['km']!,
+          fuelAmount: data['liters']!,
+          price: data['price']!,
+          country: 'USA',
+          pricePerLiter: pricePerLiter,
+          consumption: i == 0 ? null : _calculateConsumption(
+            i > 0 ? fuelData[i-1]['km']! : vehicle.initialKm,
+            data['km']!,
+            data['liters']!,
+          ),
+        );
+        
+        await fuelNotifier.addFuelEntry(entry);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Toyota Hilux 2013 created! (Real data: 11 entries, 4,450 km)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  double _calculateConsumption(double previousKm, double currentKm, double fuelAmount) {
+    final distance = currentKm - previousKm;
+    if (distance <= 0) return 0.0;
+    return (fuelAmount / distance) * 100; // L/100km
   }
 
   Future<void> _createLargeDataset() async {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/navigation/app_router.dart';
 import 'package:petrol_tracker/api/rest_api_provider.dart';
 import 'package:petrol_tracker/debug/web_data_injector.dart';
+import 'package:petrol_tracker/debug/web_auto_population.dart';
 
 /// Main entry point for the Petrol Tracker application
 /// 
@@ -35,6 +36,11 @@ class PetrolTrackerApp extends ConsumerWidget {
     // Start REST API server in debug mode on non-web platforms
     if (kDebugMode && !kIsWeb) {
       ref.watch(restApiServerProvider);
+    }
+
+    // Auto-populate data on web platform for development
+    if (kDebugMode && kIsWeb) {
+      ref.watch(webAutoPopulationProvider);
     }
 
     return MaterialApp.router(
