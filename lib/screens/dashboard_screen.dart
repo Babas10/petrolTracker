@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
@@ -215,6 +216,12 @@ class _ChartSection extends ConsumerWidget {
                 Text(
                   'Consumption Charts',
                   style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.go('/consumption-chart'),
+                  icon: const Icon(Icons.open_in_full, size: 16),
+                  label: const Text('View Details'),
                 ),
               ],
             ),
