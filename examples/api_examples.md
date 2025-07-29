@@ -199,3 +199,137 @@ curl -X POST http://localhost:8080/api/bulk/fuel-entries \
 ```
 
 This will create a vehicle with 5 fuel entries, perfect for testing the chart functionality and x-axis optimization.
+
+## Real-World Example: Toyota Hilux 2013
+
+Here's a complete example using real data for a Toyota Hilux 2013 with actual fuel entries:
+
+```bash
+# 1. Create the Toyota Hilux 2013
+curl -X POST http://localhost:8080/api/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Toyota Hilux 2013",
+    "initialKm": 98510.0
+  }'
+
+# 2. Add all fuel entries in one bulk operation
+curl -X POST http://localhost:8080/api/bulk/fuel-entries \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fuelEntries": [
+      {
+        "vehicleId": 1,
+        "date": "2024-01-01",
+        "currentKm": 98510.0,
+        "fuelAmount": 30.5,
+        "price": 25.46,
+        "country": "USA",
+        "pricePerLiter": 0.835
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-01-08",
+        "currentKm": 99080.0,
+        "fuelAmount": 25.4,
+        "price": 25.46,
+        "country": "USA", 
+        "pricePerLiter": 1.003
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-01-15",
+        "currentKm": 99303.0,
+        "fuelAmount": 21.6,
+        "price": 20.00,
+        "country": "USA",
+        "pricePerLiter": 0.926
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-01-22",
+        "currentKm": 99600.0,
+        "fuelAmount": 37.9,
+        "price": 33.00,
+        "country": "USA",
+        "pricePerLiter": 0.871
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-01-29",
+        "currentKm": 100106.0,
+        "fuelAmount": 43.9,
+        "price": 37.00,
+        "country": "USA",
+        "pricePerLiter": 0.843
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-02-05",
+        "currentKm": 100422.0,
+        "fuelAmount": 41.5,
+        "price": 38.37,
+        "country": "USA",
+        "pricePerLiter": 0.925
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-02-12",
+        "currentKm": 100800.0,
+        "fuelAmount": 41.6,
+        "price": 34.00,
+        "country": "USA",
+        "pricePerLiter": 0.817
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-02-19",
+        "currentKm": 101379.0,
+        "fuelAmount": 57.2,
+        "price": 54.90,
+        "country": "USA",
+        "pricePerLiter": 0.960
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-02-26",
+        "currentKm": 101921.0,
+        "fuelAmount": 13.2,
+        "price": 15.86,
+        "country": "USA",
+        "pricePerLiter": 1.201
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-03-05",
+        "currentKm": 102405.0,
+        "fuelAmount": 71.2,
+        "price": 72.64,
+        "country": "USA",
+        "pricePerLiter": 1.020
+      },
+      {
+        "vehicleId": 1,
+        "date": "2024-03-12",
+        "currentKm": 102960.0,
+        "fuelAmount": 55.6,
+        "price": 54.31,
+        "country": "USA",
+        "pricePerLiter": 0.977
+      }
+    ]
+  }'
+```
+
+**Data Details:**
+- Vehicle: Toyota Hilux 2013 starting at 98,510 km
+- 11 fuel entries spanning from 98,510 km to 102,960 km (4,450 km total)
+- Fuel amounts range from 3.5 to 18.8 gallons (converted to liters: 13.2L to 71.2L)
+- Prices from $15.86 to $72.64
+- Price per liter calculated from gallons and total price
+
+This real-world dataset is perfect for testing:
+- Chart display with varying consumption patterns
+- X-axis optimization with realistic odometer readings
+- Consumption calculations over different distances
+- Price trend analysis
