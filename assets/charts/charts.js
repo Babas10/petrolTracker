@@ -412,7 +412,7 @@ class ChartManager {
      * Smart tick selection algorithm for x-axis optimization
      * Returns array of indices that should show labels
      */
-    getOptimalTickIndices(dataLength, maxTicks = 6) {
+    getOptimalTickIndices(dataLength, maxTicks = 10) {
         if (dataLength <= maxTicks) {
             // If we have few data points, show all
             return Array.from({ length: dataLength }, (_, i) => i);
@@ -430,7 +430,7 @@ class ChartManager {
         const intermediateTicks = maxTicks - 2; // Subtract first and last
         
         if (intermediateTicks > 0) {
-            // Distribute intermediate ticks evenly
+            // Distribute intermediate ticks evenly across data points
             for (let i = 1; i <= intermediateTicks; i++) {
                 const position = (dataLength - 1) * i / (intermediateTicks + 1);
                 const index = Math.round(position);
@@ -496,7 +496,7 @@ class ChartManager {
         } else {
             // For time-based charts, control tick count directly
             const dataLength = this.currentData ? this.currentData.length : 0;
-            const maxTicks = Math.min(6, dataLength);
+            const maxTicks = 10; // Always try to show 10 ticks
             
             if (dataLength > 0) {
                 const optimalIndices = this.getOptimalTickIndices(dataLength, maxTicks);
@@ -578,19 +578,16 @@ class ChartManager {
         const formatDate = d3.timeFormat('%B %d, %Y');
         
         let content = '';
+        
+        // Add date on first line
         if (data.date) {
-            content += `<strong>Date:</strong> ${formatDate(data.date)}<br>`;
+            content += `${formatDate(data.date)}<br>`;
         }
-        if (data.label) {
-            content += `<strong>Category:</strong> ${data.label}<br>`;
-        }
-        if (data.series) {
-            content += `<strong>Series:</strong> ${data.series}<br>`;
-        }
-        content += `<strong>Value:</strong> ${formatValue(data)}`;
-        if (options.unit) {
-            content += ` ${options.unit}`;
-        }
+        
+        // Add value with unit on second line
+        const valueText = formatValue(data);
+        const unit = options.unit || '';
+        content += `${valueText}${unit ? ` ${unit}` : ''}`;
 
         this.tooltip
             .html(content)

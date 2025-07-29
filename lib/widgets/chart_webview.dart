@@ -364,7 +364,7 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   /// Smart tick selection algorithm for x-axis optimization
   /// Returns list of indices that should show labels
-  List<int> _getOptimalTickIndices(int dataLength, {int maxTicks = 6}) {
+  List<int> _getOptimalTickIndices(int dataLength, {int maxTicks = 10}) {
     if (dataLength <= maxTicks) {
       // If we have few data points, show all
       return List.generate(dataLength, (index) => index);
@@ -382,7 +382,7 @@ class _ChartWebViewState extends State<ChartWebView> {
     final intermediateTicks = maxTicks - 2; // Subtract first and last
     
     if (intermediateTicks > 0) {
-      // Distribute intermediate ticks evenly
+      // Distribute intermediate ticks evenly across data points
       for (int i = 1; i <= intermediateTicks; i++) {
         final position = (dataLength - 1) * i / (intermediateTicks + 1);
         final index = position.round();
@@ -440,6 +440,48 @@ class _ChartWebViewState extends State<ChartWebView> {
             strokeWidth: 1,
           ),
         ),
+        lineTouchData: LineTouchData(
+          enabled: true,
+          touchTooltipData: LineTouchTooltipData(
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((touchedSpot) {
+                final spotIndex = touchedSpot.spotIndex;
+                final dataItem = widget.data[spotIndex];
+                
+                // Format date
+                String dateText = '';
+                if (dataItem.containsKey('date')) {
+                  final dateStr = dataItem['date'] as String;
+                  final parts = dateStr.split('-');
+                  if (parts.length >= 3) {
+                    dateText = '${parts[1]}/${parts[2]}/${parts[0]}';
+                  }
+                }
+                
+                // Format value with unit
+                final value = touchedSpot.y.toStringAsFixed(2);
+                final unit = widget.config.unit ?? '';
+                final valueWithUnit = '$value${unit.isNotEmpty ? ' $unit' : ''}';
+                
+                // Combine date and value on separate lines
+                final tooltipText = dateText.isNotEmpty 
+                    ? '$dateText\n$valueWithUnit'
+                    : valueWithUnit;
+                
+                return LineTooltipItem(
+                  tooltipText,
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -455,7 +497,7 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
+              interval: widget.data.length > 10 ? (widget.data.length / 10).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 
@@ -554,6 +596,45 @@ class _ChartWebViewState extends State<ChartWebView> {
             strokeWidth: 1,
           ),
         ),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final dataItem = widget.data[groupIndex];
+              
+              // Format date
+              String dateText = '';
+              if (dataItem.containsKey('date')) {
+                final dateStr = dataItem['date'] as String;
+                final parts = dateStr.split('-');
+                if (parts.length >= 3) {
+                  dateText = '${parts[1]}/${parts[2]}/${parts[0]}';
+                }
+              }
+              
+              // Format value with unit
+              final value = rod.toY.toStringAsFixed(2);
+              final unit = widget.config.unit ?? '';
+              final valueWithUnit = '$value${unit.isNotEmpty ? ' $unit' : ''}';
+              
+              // Combine date and value on separate lines
+              final tooltipText = dateText.isNotEmpty 
+                  ? '$dateText\n$valueWithUnit'
+                  : valueWithUnit;
+              
+              return BarTooltipItem(
+                tooltipText,
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              );
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -569,7 +650,7 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
+              interval: widget.data.length > 10 ? (widget.data.length / 10).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 
@@ -671,6 +752,48 @@ class _ChartWebViewState extends State<ChartWebView> {
             strokeWidth: 1,
           ),
         ),
+        lineTouchData: LineTouchData(
+          enabled: true,
+          touchTooltipData: LineTouchTooltipData(
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItems: (touchedSpots) {
+              return touchedSpots.map((touchedSpot) {
+                final spotIndex = touchedSpot.spotIndex;
+                final dataItem = widget.data[spotIndex];
+                
+                // Format date
+                String dateText = '';
+                if (dataItem.containsKey('date')) {
+                  final dateStr = dataItem['date'] as String;
+                  final parts = dateStr.split('-');
+                  if (parts.length >= 3) {
+                    dateText = '${parts[1]}/${parts[2]}/${parts[0]}';
+                  }
+                }
+                
+                // Format value with unit
+                final value = touchedSpot.y.toStringAsFixed(2);
+                final unit = widget.config.unit ?? '';
+                final valueWithUnit = '$value${unit.isNotEmpty ? ' $unit' : ''}';
+                
+                // Combine date and value on separate lines
+                final tooltipText = dateText.isNotEmpty 
+                    ? '$dateText\n$valueWithUnit'
+                    : valueWithUnit;
+                
+                return LineTooltipItem(
+                  tooltipText,
+                  TextStyle(
+                    color: colors[touchedSpot.barIndex % colors.length],
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -686,7 +809,7 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: widget.data.length > 6 ? (widget.data.length / 6).ceilToDouble() : 1,
+              interval: widget.data.length > 10 ? (widget.data.length / 10).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 
