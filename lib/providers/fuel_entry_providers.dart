@@ -77,7 +77,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
   }
 
   /// Add a new fuel entry
-  Future<void> addFuelEntry(FuelEntryModel entry) async {
+  Future<FuelEntryModel> addFuelEntry(FuelEntryModel entry) async {
     state = AsyncValue.data(
       state.valueOrNull?.copyWith(isLoading: true) ?? 
       const FuelEntryState(isLoading: true)
@@ -99,6 +99,8 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
           error: null,
         )
       );
+      
+      return newEntry;
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       final currentState = state.valueOrNull ?? const FuelEntryState();
@@ -108,6 +110,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
           error: errorMessage,
         )
       );
+      rethrow;
     }
   }
 
@@ -190,6 +193,36 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     final currentState = state.valueOrNull;
     if (currentState != null && currentState.error != null) {
       state = AsyncValue.data(currentState.copyWith(error: null));
+    }
+  }
+
+  /// Clear all fuel entries (for testing purposes)
+  Future<void> clearAllEntries() async {
+    state = AsyncValue.data(
+      state.valueOrNull?.copyWith(isLoading: true) ?? 
+      const FuelEntryState(isLoading: true)
+    );
+
+    try {
+      // Clear ephemeral storage
+      _ephemeralFuelEntryStorage.clear();
+      
+      state = AsyncValue.data(
+        const FuelEntryState(
+          entries: [],
+          isLoading: false,
+          error: null,
+        )
+      );
+    } catch (e) {
+      final errorMessage = _getErrorMessage(e);
+      final currentState = state.valueOrNull ?? const FuelEntryState();
+      state = AsyncValue.data(
+        currentState.copyWith(
+          isLoading: false,
+          error: errorMessage,
+        )
+      );
     }
   }
 
