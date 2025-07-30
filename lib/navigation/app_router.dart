@@ -7,6 +7,7 @@ import 'package:petrol_tracker/screens/add_fuel_entry_screen.dart';
 import 'package:petrol_tracker/screens/vehicles_screen.dart';
 import 'package:petrol_tracker/screens/settings_screen.dart';
 import 'package:petrol_tracker/screens/fuel_consumption_chart_screen.dart';
+import 'package:petrol_tracker/screens/average_consumption_chart_screen.dart';
 
 /// Application router configuration using go_router
 /// 
@@ -48,6 +49,11 @@ final appRouter = GoRouter(
           path: '/consumption-chart',
           name: 'consumption-chart',
           builder: (context, state) => const FuelConsumptionChartScreen(),
+        ),
+        GoRoute(
+          path: '/average-consumption-chart',
+          name: 'average-consumption-chart',
+          builder: (context, state) => const AverageConsumptionChartScreen(),
         ),
       ],
     ),
@@ -93,7 +99,8 @@ enum AppRoute {
   addEntry('/add-entry'),
   vehicles('/vehicles'),
   settings('/settings'),
-  consumptionChart('/consumption-chart');
+  consumptionChart('/consumption-chart'),
+  averageConsumptionChart('/average-consumption-chart');
 
   const AppRoute(this.path);
   final String path;
