@@ -202,7 +202,6 @@ class _ChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
-    final vehicleState = ref.watch(vehiclesNotifierProvider);
     
     return Card(
       child: Padding(
@@ -231,22 +230,41 @@ class _ChartSection extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 120,
-              child: vehicleState.when(
+              height: 300,
+              child: fuelEntryState.when(
                 data: (state) {
-                  if (state.vehicles.isEmpty) {
-                    return _buildEmptyVehiclesPlaceholder(context);
+                  if (state.entries.isEmpty) {
+                    return _buildEmptyChartPlaceholder(context);
                   }
                   
-                  // Show statistics for the first vehicle as a preview
-                  final firstVehicle = state.vehicles.first;
-                  if (firstVehicle.id == null) {
-                    return _buildEmptyVehiclesPlaceholder(context);
+                  // Transform data for chart
+                  final chartData = ChartDataService.transformConsumptionData(
+                    state.entries.where((e) => e.consumption != null).toList(),
+                  );
+                  
+                  if (chartData.isEmpty) {
+                    return _buildNoConsumptionDataPlaceholder(context);
                   }
                   
-                  return _buildConsumptionStatisticsPreview(context, ref, firstVehicle.id!);
+                  return ChartWebView(
+                    data: chartData.toChartData(),
+                    config: const ChartConfig(
+                      type: ChartType.line,
+                      title: 'Fuel Consumption Over Time',
+                      xLabel: 'Date',
+                      yLabel: 'Consumption (L/100km)',
+                      unit: 'L/100km',
+                      className: 'consumption',
+                    ),
+                    onChartEvent: (eventType, data) {
+                      _handleChartEvent(context, eventType, data);
+                    },
+                    onError: (error) {
+                      debugPrint('Chart error: $error');
+                    },
+                  );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => _buildLoadingPlaceholder(context),
                 error: (error, stack) => _buildErrorPlaceholder(context, error.toString()),
               ),
             ),
@@ -720,20 +738,20 @@ class _AverageConsumptionSection extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 120,
+              height: 300,
               child: vehicleState.when(
                 data: (state) {
                   if (state.vehicles.isEmpty) {
                     return _buildEmptyVehiclesPlaceholder(context);
                   }
                   
-                  // Show statistics for the first vehicle as a preview
+                  // Show period-based chart for the first vehicle
                   final firstVehicle = state.vehicles.first;
                   if (firstVehicle.id == null) {
                     return _buildEmptyVehiclesPlaceholder(context);
                   }
                   
-                  return _buildAverageConsumptionPreview(context, ref, firstVehicle.id!);
+                  return _buildAverageConsumptionChart(context, ref, firstVehicle.id!);
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => _buildErrorPlaceholder(context),
@@ -745,40 +763,43 @@ class _AverageConsumptionSection extends ConsumerWidget {
     );
   }
   
-  Widget _buildAverageConsumptionPreview(BuildContext context, WidgetRef ref, int vehicleId) {
-    final statisticsAsync = ref.watch(consumptionStatisticsProvider(vehicleId));
+  Widget _buildAverageConsumptionChart(BuildContext context, WidgetRef ref, int vehicleId) {
+    final chartDataAsync = ref.watch(periodAverageConsumptionDataProvider(
+      vehicleId,
+      PeriodType.monthly, // Default to monthly view for dashboard
+    ));
     
-    return statisticsAsync.when(
-      data: (stats) {
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Overall Average',
-                '${stats['average']?.toStringAsFixed(1)} L/100km',
-                Icons.analytics,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Best Efficiency',
-                '${stats['minimum']?.toStringAsFixed(1)} L/100km',
-                Icons.trending_down,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Total Entries',
-                '${stats['count']?.toInt()}',
-                Icons.confirmation_num,
-              ),
-            ),
-          ],
+    return chartDataAsync.when(
+      data: (periodData) {
+        if (periodData.isEmpty) {
+          return _buildEmptyVehiclesPlaceholder(context);
+        }
+
+        // Transform to chart format
+        final chartData = periodData.map((point) => {
+          'date': point.date.toIso8601String().split('T')[0],
+          'value': point.averageConsumption,
+          'label': point.periodLabel,
+          'count': point.entryCount,
+        }).toList();
+
+        return ChartWebView(
+          data: chartData,
+          config: const ChartConfig(
+            type: ChartType.bar,
+            title: 'Average Consumption by Month',
+            xLabel: 'Month',
+            yLabel: 'Average Consumption (L/100km)',
+            unit: 'L/100km',
+            className: 'period-average-chart',
+          ),
+          onChartEvent: (eventType, data) {
+            // Handle chart events if needed
+            debugPrint('Average consumption chart event: $eventType');
+          },
+          onError: (error) {
+            debugPrint('Average consumption chart error: $error');
+          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
