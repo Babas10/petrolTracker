@@ -3,8 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
+import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
+import 'package:petrol_tracker/models/fuel_entry_model.dart';
+
+/// Predefined time periods for analysis
+enum TimePeriod {
+  oneMonth,
+  threeMonths,
+  sixMonths,
+  oneYear,
+  allTime,
+}
 
 /// Dedicated screen for fuel consumption over time visualization
 /// 
@@ -25,6 +36,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   VehicleModel? _selectedVehicle;
   ChartType _selectedChartType = ChartType.line;
   DateTimeRange? _selectedDateRange;
+  TimePeriod _selectedTimePeriod = TimePeriod.allTime;
   bool _showStatistics = true;
   bool _hasInitializedVehicle = false;
 
@@ -79,13 +91,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _buildDateRangeSelector()),
-              const SizedBox(width: 16),
-              _buildActionButtons(),
-            ],
-          ),
+          _buildTimePeriodButtons(),
         ],
       ),
     );
@@ -235,6 +241,63 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
 
+  Widget _buildTimePeriodButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Period of Interest',
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildTimePeriodChip('1 Month', TimePeriod.oneMonth),
+            _buildTimePeriodChip('3 Months', TimePeriod.threeMonths),
+            _buildTimePeriodChip('6 Months', TimePeriod.sixMonths),
+            _buildTimePeriodChip('1 Year', TimePeriod.oneYear),
+            _buildTimePeriodChip('All Time', TimePeriod.allTime),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildActionButtons(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePeriodChip(String label, TimePeriod period) {
+    final isSelected = _selectedTimePeriod == period;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _selectedTimePeriod = period;
+            // Clear date range when using time period buttons
+            _selectedDateRange = null;
+          });
+        }
+      },
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      selectedColor: Theme.of(context).colorScheme.primaryContainer,
+      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+      labelStyle: TextStyle(
+        color: isSelected 
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onSurface,
+        fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+      ),
+    );
+  }
+
   Widget _buildChartContent() {
     if (_selectedVehicle == null) {
       return _buildMultiVehicleChart();
@@ -244,12 +307,28 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildSingleVehicleChart() {
-    final chartDataAsync = ref.watch(consumptionChartDataProvider(
-      _selectedVehicle!.id!,
-      startDate: _selectedDateRange?.start,
-      endDate: _selectedDateRange?.end,
-    ));
-
+    // Get vehicle entries to determine the date range
+    final vehicleEntriesAsync = ref.watch(fuelEntriesByVehicleProvider(_selectedVehicle!.id!));
+    
+    return vehicleEntriesAsync.when(
+      data: (entries) {
+        final dateRange = _getDateRangeFromEntries(_selectedTimePeriod, entries);
+        final effectiveDateRange = _selectedDateRange ?? dateRange;
+        
+        final chartDataAsync = ref.watch(consumptionChartDataProvider(
+          _selectedVehicle!.id!,
+          startDate: effectiveDateRange?.start,
+          endDate: effectiveDateRange?.end,
+        ));
+        
+        return _buildSingleVehicleChartContent(chartDataAsync);
+      },
+      loading: () => _buildLoadingPlaceholder(),
+      error: (error, stack) => _buildErrorPlaceholder(error.toString()),
+    );
+  }
+  
+  Widget _buildSingleVehicleChartContent(AsyncValue<List<ConsumptionDataPoint>> chartDataAsync) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Card(
@@ -435,12 +514,28 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildVehicleStatistics() {
-    final chartDataAsync = ref.watch(consumptionChartDataProvider(
-      _selectedVehicle!.id!,
-      startDate: _selectedDateRange?.start,
-      endDate: _selectedDateRange?.end,
-    ));
-
+    // Get vehicle entries to determine the date range
+    final vehicleEntriesAsync = ref.watch(fuelEntriesByVehicleProvider(_selectedVehicle!.id!));
+    
+    return vehicleEntriesAsync.when(
+      data: (entries) {
+        final dateRange = _getDateRangeFromEntries(_selectedTimePeriod, entries);
+        final effectiveDateRange = _selectedDateRange ?? dateRange;
+        
+        final chartDataAsync = ref.watch(consumptionChartDataProvider(
+          _selectedVehicle!.id!,
+          startDate: effectiveDateRange?.start,
+          endDate: effectiveDateRange?.end,
+        ));
+        
+        return _buildVehicleStatisticsContent(chartDataAsync);
+      },
+      loading: () => const LinearProgressIndicator(),
+      error: (error, stack) => Text('Statistics error: $error'),
+    );
+  }
+  
+  Widget _buildVehicleStatisticsContent(AsyncValue<List<ConsumptionDataPoint>> chartDataAsync) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -739,6 +834,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     setState(() {
       _selectedVehicle = null;
       _selectedDateRange = null;
+      _selectedTimePeriod = TimePeriod.allTime;
       _selectedChartType = ChartType.line;
       _hasInitializedVehicle = false;
     });
@@ -746,5 +842,51 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
+  }
+
+  /// Get date range from selected time period starting from the last fuel entry
+  DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
+    if (period == TimePeriod.allTime) {
+      return null; // No date filtering for all time
+    }
+    
+    DateTime referenceDate;
+    if (entries.isEmpty) {
+      // No entries, use current date as fallback
+      referenceDate = DateTime.now();
+    } else {
+      // Use the date of the most recent entry as the end date
+      referenceDate = entries.first.date;
+    }
+    
+    return _calculateDateRange(period, referenceDate);
+  }
+  
+  /// Calculate date range based on period and reference date
+  DateTimeRange _calculateDateRange(TimePeriod period, DateTime referenceDate) {
+    switch (period) {
+      case TimePeriod.oneMonth:
+        return DateTimeRange(
+          start: DateTime(referenceDate.year, referenceDate.month - 1, referenceDate.day),
+          end: referenceDate,
+        );
+      case TimePeriod.threeMonths:
+        return DateTimeRange(
+          start: DateTime(referenceDate.year, referenceDate.month - 3, referenceDate.day),
+          end: referenceDate,
+        );
+      case TimePeriod.sixMonths:
+        return DateTimeRange(
+          start: DateTime(referenceDate.year, referenceDate.month - 6, referenceDate.day),
+          end: referenceDate,
+        );
+      case TimePeriod.oneYear:
+        return DateTimeRange(
+          start: DateTime(referenceDate.year - 1, referenceDate.month, referenceDate.day),
+          end: referenceDate,
+        );
+      case TimePeriod.allTime:
+        return DateTimeRange(start: DateTime(2020), end: referenceDate);
+    }
   }
 }

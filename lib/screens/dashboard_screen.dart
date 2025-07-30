@@ -202,6 +202,7 @@ class _ChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
+    final vehicleState = ref.watch(vehiclesNotifierProvider);
     
     return Card(
       child: Padding(
@@ -224,47 +225,28 @@ class _ChartSection extends ConsumerWidget {
                 TextButton.icon(
                   onPressed: () => context.go('/consumption-chart'),
                   icon: const Icon(Icons.open_in_full, size: 16),
-                  label: const Text('View Details'),
+                  label: const Text('View Chart'),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 300,
-              child: fuelEntryState.when(
+              height: 120,
+              child: vehicleState.when(
                 data: (state) {
-                  if (state.entries.isEmpty) {
-                    return _buildEmptyChartPlaceholder(context);
+                  if (state.vehicles.isEmpty) {
+                    return _buildEmptyVehiclesPlaceholder(context);
                   }
                   
-                  // Transform data for chart
-                  final chartData = ChartDataService.transformConsumptionData(
-                    state.entries.where((e) => e.consumption != null).toList(),
-                  );
-                  
-                  if (chartData.isEmpty) {
-                    return _buildNoConsumptionDataPlaceholder(context);
+                  // Show statistics for the first vehicle as a preview
+                  final firstVehicle = state.vehicles.first;
+                  if (firstVehicle.id == null) {
+                    return _buildEmptyVehiclesPlaceholder(context);
                   }
                   
-                  return ChartWebView(
-                    data: chartData.toChartData(),
-                    config: const ChartConfig(
-                      type: ChartType.line,
-                      title: 'Fuel Consumption Over Time',
-                      xLabel: 'Date',
-                      yLabel: 'Consumption (L/100km)',
-                      unit: 'L/100km',
-                      className: 'consumption',
-                    ),
-                    onChartEvent: (eventType, data) {
-                      _handleChartEvent(context, eventType, data);
-                    },
-                    onError: (error) {
-                      debugPrint('Chart error: $error');
-                    },
-                  );
+                  return _buildConsumptionStatisticsPreview(context, ref, firstVehicle.id!);
                 },
-                loading: () => _buildLoadingPlaceholder(context),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => _buildErrorPlaceholder(context, error.toString()),
               ),
             ),
@@ -432,6 +414,118 @@ class _ChartSection extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildConsumptionStatisticsPreview(BuildContext context, WidgetRef ref, int vehicleId) {
+    final statisticsAsync = ref.watch(consumptionStatisticsProvider(vehicleId));
+    
+    return statisticsAsync.when(
+      data: (stats) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Overall Average',
+                '${stats['average']?.toStringAsFixed(1)} L/100km',
+                Icons.analytics,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Best Efficiency',
+                '${stats['minimum']?.toStringAsFixed(1)} L/100km',
+                Icons.trending_down,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Total Entries',
+                '${stats['count']?.toInt()}',
+                Icons.confirmation_num,
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => _buildErrorPlaceholder(context, 'Error loading statistics'),
+    );
+  }
+  
+  Widget _buildStatPreviewCard(BuildContext context, String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyVehiclesPlaceholder(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car,
+            size: 32,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No vehicles available',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         ],
       ),
@@ -620,7 +714,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
                 TextButton.icon(
                   onPressed: () => context.go('/average-consumption-chart'),
                   icon: const Icon(Icons.open_in_full, size: 16),
-                  label: const Text('View Details'),
+                  label: const Text('Period Analysis'),
                 ),
               ],
             ),
