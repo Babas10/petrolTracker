@@ -6,34 +6,53 @@ import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 
-/// Dedicated screen for fuel consumption over time visualization
-/// 
-/// Features:
-/// - Interactive consumption charts with D3.js/fl_chart
-/// - Vehicle selection and date range filtering  
-/// - Statistical analysis and insights
-/// - Multiple chart types (line, area, bar)
-/// - Export and sharing capabilities
-class FuelConsumptionChartScreen extends ConsumerStatefulWidget {
-  const FuelConsumptionChartScreen({super.key});
-
-  @override
-  ConsumerState<FuelConsumptionChartScreen> createState() => _FuelConsumptionChartScreenState();
+/// Predefined time periods for analysis
+enum TimePeriod {
+  oneMonth,
+  threeMonths,
+  sixMonths,
+  oneYear,
+  allTime,
 }
 
-class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChartScreen> {
+/// Dedicated screen for average consumption by period visualization
+/// 
+/// Features:
+/// - Period-based average consumption analysis (weekly, monthly, yearly)
+/// - Vehicle selection and predefined time period filtering
+/// - Numeric statistics display with visual charts
+/// - Period comparison and trend analysis
+/// - Interactive charts with period-specific insights
+class AverageConsumptionChartScreen extends ConsumerStatefulWidget {
+  const AverageConsumptionChartScreen({super.key});
+
+  @override
+  ConsumerState<AverageConsumptionChartScreen> createState() => _AverageConsumptionChartScreenState();
+}
+
+class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumptionChartScreen> {
   VehicleModel? _selectedVehicle;
-  ChartType _selectedChartType = ChartType.line;
-  DateTimeRange? _selectedDateRange;
+  PeriodType _selectedPeriodType = PeriodType.monthly;
+  TimePeriod _selectedTimePeriod = TimePeriod.allTime;
   bool _showStatistics = true;
+  bool _showNumericView = false;
   bool _hasInitializedVehicle = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: NavAppBar(
-        title: 'Fuel Consumption Analysis',
+        title: 'Average Consumption by Period',
         actions: [
+          IconButton(
+            icon: Icon(_showNumericView ? Icons.bar_chart : Icons.grid_view),
+            onPressed: () {
+              setState(() {
+                _showNumericView = !_showNumericView;
+              });
+            },
+            tooltip: _showNumericView ? 'Show Chart View' : 'Show Numeric View',
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: _showChartSettings,
@@ -50,7 +69,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         children: [
           _buildControlPanel(),
           Expanded(
-            child: _buildChartContent(),
+            child: _showNumericView ? _buildNumericView() : _buildChartView(),
           ),
           if (_showStatistics) _buildStatisticsPanel(),
         ],
@@ -75,17 +94,11 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
             children: [
               Expanded(child: _buildVehicleSelector()),
               const SizedBox(width: 16),
-              Expanded(child: _buildChartTypeSelector()),
+              Expanded(child: _buildPeriodTypeSelector()),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _buildDateRangeSelector()),
-              const SizedBox(width: 16),
-              _buildActionButtons(),
-            ],
-          ),
+          _buildTimePeriodButtons(),
         ],
       ),
     );
@@ -125,16 +138,10 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
             border: OutlineInputBorder(),
             isDense: true,
           ),
-          items: [
-            const DropdownMenuItem<VehicleModel>(
-              value: null,
-              child: Text('All Vehicles'),
-            ),
-            ...vehicles.map((vehicle) => DropdownMenuItem<VehicleModel>(
-              value: vehicle,
-              child: Text(vehicle.name),
-            )),
-          ],
+          items: vehicles.map((vehicle) => DropdownMenuItem<VehicleModel>(
+            value: vehicle,
+            child: Text(vehicle.name),
+          )).toList(),
           onChanged: (vehicle) {
             setState(() {
               _selectedVehicle = vehicle;
@@ -147,68 +154,107 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
 
-  Widget _buildChartTypeSelector() {
-    return DropdownButtonFormField<ChartType>(
-      value: _selectedChartType,
+  Widget _buildPeriodTypeSelector() {
+    return DropdownButtonFormField<PeriodType>(
+      value: _selectedPeriodType,
       decoration: const InputDecoration(
-        labelText: 'Chart Type',
+        labelText: 'Period Type',
         border: OutlineInputBorder(),
         isDense: true,
       ),
       items: const [
         DropdownMenuItem(
-          value: ChartType.line,
+          value: PeriodType.weekly,
           child: Row(
             children: [
-              Icon(Icons.show_chart, size: 16),
+              Icon(Icons.view_week, size: 16),
               SizedBox(width: 8),
-              Text('Line Chart'),
+              Text('Weekly'),
             ],
           ),
         ),
         DropdownMenuItem(
-          value: ChartType.area,
+          value: PeriodType.monthly,
           child: Row(
             children: [
-              Icon(Icons.area_chart, size: 16),
+              Icon(Icons.calendar_month, size: 16),
               SizedBox(width: 8),
-              Text('Area Chart'),
+              Text('Monthly'),
             ],
           ),
         ),
         DropdownMenuItem(
-          value: ChartType.bar,
+          value: PeriodType.yearly,
           child: Row(
             children: [
-              Icon(Icons.bar_chart, size: 16),
+              Icon(Icons.calendar_today, size: 16),
               SizedBox(width: 8),
-              Text('Bar Chart'),
+              Text('Yearly'),
             ],
           ),
         ),
       ],
-      onChanged: (chartType) {
-        if (chartType != null) {
+      onChanged: (periodType) {
+        if (periodType != null) {
           setState(() {
-            _selectedChartType = chartType;
+            _selectedPeriodType = periodType;
           });
         }
       },
     );
   }
 
-  Widget _buildDateRangeSelector() {
-    return OutlinedButton.icon(
-      onPressed: _selectDateRange,
-      icon: const Icon(Icons.date_range, size: 16),
-      label: Text(
-        _selectedDateRange == null
-            ? 'All Time'
-            : '${_formatDate(_selectedDateRange!.start)} - ${_formatDate(_selectedDateRange!.end)}',
-      ),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: const Size(0, 40),
+  Widget _buildTimePeriodButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Period of Interest',
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildTimePeriodChip('1 Month', TimePeriod.oneMonth),
+            _buildTimePeriodChip('3 Months', TimePeriod.threeMonths),
+            _buildTimePeriodChip('6 Months', TimePeriod.sixMonths),
+            _buildTimePeriodChip('1 Year', TimePeriod.oneYear),
+            _buildTimePeriodChip('All Time', TimePeriod.allTime),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildActionButtons(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePeriodChip(String label, TimePeriod period) {
+    final isSelected = _selectedTimePeriod == period;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _selectedTimePeriod = period;
+          });
+        }
+      },
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      selectedColor: Theme.of(context).colorScheme.primaryContainer,
+      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+      labelStyle: TextStyle(
+        color: isSelected 
+            ? Theme.of(context).colorScheme.onPrimaryContainer
+            : Theme.of(context).colorScheme.onSurface,
+        fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
       ),
     );
   }
@@ -218,9 +264,9 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          onPressed: _clearFilters,
-          icon: const Icon(Icons.clear),
-          tooltip: 'Clear Filters',
+          onPressed: _resetFilters,
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Reset Filters',
         ),
         IconButton(
           onPressed: () {
@@ -235,19 +281,17 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
 
-  Widget _buildChartContent() {
+  Widget _buildChartView() {
     if (_selectedVehicle == null) {
-      return _buildMultiVehicleChart();
-    } else {
-      return _buildSingleVehicleChart();
+      return _buildLoadingPlaceholder();
     }
-  }
 
-  Widget _buildSingleVehicleChart() {
-    final chartDataAsync = ref.watch(consumptionChartDataProvider(
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final chartDataAsync = ref.watch(periodAverageConsumptionDataProvider(
       _selectedVehicle!.id!,
-      startDate: _selectedDateRange?.start,
-      endDate: _selectedDateRange?.end,
+      _selectedPeriodType,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
     ));
 
     return Padding(
@@ -261,12 +305,12 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
               Row(
                 children: [
                   Icon(
-                    Icons.timeline,
+                    Icons.trending_up,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Consumption Over Time - ${_selectedVehicle!.name}',
+                    'Average Consumption by ${_getPeriodDisplayName()} - ${_selectedVehicle!.name}',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -274,27 +318,28 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
               const SizedBox(height: 16),
               Expanded(
                 child: chartDataAsync.when(
-                  data: (consumptionData) {
-                    if (consumptionData.isEmpty) {
+                  data: (periodData) {
+                    if (periodData.isEmpty) {
                       return _buildEmptyChartPlaceholder();
                     }
 
                     // Transform to chart format
-                    final chartData = consumptionData.map((point) => {
+                    final chartData = periodData.map((point) => {
                       'date': point.date.toIso8601String().split('T')[0],
-                      'value': point.consumption,
-                      'km': point.kilometers,
+                      'value': point.averageConsumption,
+                      'label': point.periodLabel,
+                      'count': point.entryCount,
                     }).toList();
 
                     return ChartWebView(
                       data: chartData,
                       config: ChartConfig(
-                        type: _selectedChartType,
-                        title: 'Fuel Consumption Trend',
-                        xLabel: 'Date',
-                        yLabel: 'Consumption (L/100km)',
+                        type: ChartType.bar,
+                        title: 'Average Consumption Trends',
+                        xLabel: _getPeriodDisplayName(),
+                        yLabel: 'Average Consumption (L/100km)',
                         unit: 'L/100km',
-                        className: 'consumption-chart',
+                        className: 'period-average-chart',
                       ),
                       onChartEvent: _handleChartEvent,
                       onError: (error) {
@@ -313,132 +358,116 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
 
-  Widget _buildMultiVehicleChart() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
-    
-    return vehiclesState.when(
-      data: (vehicleState) {
-        if (vehicleState.vehicles.isEmpty) {
-          return _buildNoVehiclesPlaceholder();
-        }
+  Widget _buildNumericView() {
+    if (_selectedVehicle == null) {
+      return _buildLoadingPlaceholder();
+    }
 
-        return Padding(
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final chartDataAsync = ref.watch(periodAverageConsumptionDataProvider(
+      _selectedVehicle!.id!,
+      _selectedPeriodType,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+    ));
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Card(
+        child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.compare,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Vehicle Consumption Comparison',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
+                  Icon(
+                    Icons.grid_view,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _buildVehicleComparisonChart(vehicleState.vehicles),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Numeric View - ${_selectedVehicle!.name}',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-      loading: () => _buildLoadingPlaceholder(),
-      error: (error, stack) => _buildErrorPlaceholder(error.toString()),
-    );
-  }
+              const SizedBox(height: 16),
+              Expanded(
+                child: chartDataAsync.when(
+                  data: (periodData) {
+                    if (periodData.isEmpty) {
+                      return _buildEmptyChartPlaceholder();
+                    }
 
-  Widget _buildVehicleComparisonChart(List<VehicleModel> vehicles) {
-    // For now, show individual charts for each vehicle
-    // TODO: Implement multi-series chart when provider supports it
-    return ListView.separated(
-      itemCount: vehicles.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final vehicle = vehicles[index];
-        if (vehicle.id == null) return const SizedBox();
-        
-        final chartDataAsync = ref.watch(consumptionChartDataProvider(
-          vehicle.id!,
-          startDate: _selectedDateRange?.start,
-          endDate: _selectedDateRange?.end,
-        ));
-
-        return SizedBox(
-          height: 200,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    vehicle.name,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: chartDataAsync.when(
-                      data: (consumptionData) {
-                        if (consumptionData.isEmpty) {
-                          return _buildMiniEmptyPlaceholder();
-                        }
-
-                        final chartData = consumptionData.map((point) => {
-                          'date': point.date.toIso8601String().split('T')[0],
-                          'value': point.consumption,
-                        }).toList();
-
-                        return ChartWebView(
-                          data: chartData,
-                          config: ChartConfig(
-                            type: ChartType.line,
-                            xLabel: 'Date',
-                            yLabel: 'L/100km',
-                            unit: 'L/100km',
-                            className: 'mini-consumption-chart',
+                    return ListView.separated(
+                      itemCount: periodData.length,
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final data = periodData[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                            child: Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                          height: 150,
+                          title: Text(
+                            data.periodLabel,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          subtitle: Text(
+                            '${data.entryCount} fuel ${data.entryCount == 1 ? 'entry' : 'entries'}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${data.averageConsumption.toStringAsFixed(2)} L/100km',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Average',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (error, stack) => Center(
-                        child: Text('Error: ${error.toString()}'),
-                      ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                  loading: () => _buildLoadingPlaceholder(),
+                  error: (error, stack) => _buildErrorPlaceholder(error.toString()),
+                ),
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildStatisticsPanel() {
     if (_selectedVehicle == null) {
       return _buildOverallStatistics();
-    } else {
-      return _buildVehicleStatistics();
     }
-  }
 
-  Widget _buildVehicleStatistics() {
-    final chartDataAsync = ref.watch(consumptionChartDataProvider(
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final statisticsAsync = ref.watch(consumptionStatisticsProvider(
       _selectedVehicle!.id!,
-      startDate: _selectedDateRange?.start,
-      endDate: _selectedDateRange?.end,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
     ));
 
     return Container(
@@ -451,39 +480,22 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           ),
         ),
       ),
-      child: chartDataAsync.when(
-        data: (consumptionData) {
-          if (consumptionData.isEmpty) {
-            return Text(
-              'No consumption data available for statistics',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            );
-          }
-
-          final consumptions = consumptionData.map((d) => d.consumption).toList();
-          final average = consumptions.reduce((a, b) => a + b) / consumptions.length;
-          final minConsumption = consumptions.reduce((a, b) => a < b ? a : b);
-          final maxConsumption = consumptions.reduce((a, b) => a > b ? a : b);
-          final totalDistance = consumptionData.isNotEmpty 
-              ? consumptionData.last.kilometers - consumptionData.first.kilometers
-              : 0.0;
-
+      child: statisticsAsync.when(
+        data: (stats) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Consumption Statistics',
+                'Overall Statistics',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
-                  _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
-                  _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
-                  _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
+                  _buildStatCard('Average', '${stats['average']?.toStringAsFixed(1)} L/100km', Icons.analytics),
+                  _buildStatCard('Best', '${stats['minimum']?.toStringAsFixed(1)} L/100km', Icons.trending_down),
+                  _buildStatCard('Worst', '${stats['maximum']?.toStringAsFixed(1)} L/100km', Icons.trending_up),
+                  _buildStatCard('Total Entries', '${stats['count']?.toInt()}', Icons.confirmation_num),
                 ],
               ),
             ],
@@ -515,7 +527,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           ),
           const SizedBox(height: 8),
           Text(
-            'Select a specific vehicle to see detailed consumption statistics',
+            'Select a vehicle to see detailed consumption statistics',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -552,6 +564,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   // Placeholder widgets
+
   Widget _buildEmptyChartPlaceholder() {
     return Center(
       child: Column(
@@ -571,47 +584,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           ),
           const SizedBox(height: 8),
           Text(
-            'Add more fuel entries to see consumption trends',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniEmptyPlaceholder() {
-    return Center(
-      child: Text(
-        'No data',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.outline,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoVehiclesPlaceholder() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.directions_car,
-            size: 48,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No vehicles found',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add a vehicle first to track fuel consumption',
+            'Add more fuel entries to see period averages',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -628,7 +601,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Loading chart data...'),
+          Text('Loading period data...'),
         ],
       ),
     );
@@ -646,7 +619,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           ),
           const SizedBox(height: 16),
           Text(
-            'Error loading chart',
+            'Error loading data',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),
@@ -670,7 +643,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         // Show detailed tooltip
         break;
       case 'click':
-        // Navigate to detailed entry view
+        // Navigate to detailed period view
         break;
       default:
         debugPrint('Unhandled chart event: $eventType');
@@ -695,6 +668,16 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                 Navigator.of(context).pop();
               },
             ),
+            SwitchListTile(
+              title: const Text('Show Numeric View'),
+              value: _showNumericView,
+              onChanged: (value) {
+                setState(() {
+                  _showNumericView = value;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
           ],
         ),
         actions: [
@@ -709,42 +692,57 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
   void _refreshData() {
     ref.invalidate(vehiclesNotifierProvider);
-    ref.invalidate(consumptionChartDataProvider);
+    ref.invalidate(periodAverageConsumptionDataProvider);
+    ref.invalidate(consumptionStatisticsProvider);
   }
 
-  Future<void> _selectDateRange() async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: _selectedDateRange,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme,
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        _selectedDateRange = picked;
-      });
-    }
-  }
-
-  void _clearFilters() {
+  void _resetFilters() {
     setState(() {
       _selectedVehicle = null;
-      _selectedDateRange = null;
-      _selectedChartType = ChartType.line;
+      _selectedTimePeriod = TimePeriod.allTime;
+      _selectedPeriodType = PeriodType.monthly;
       _hasInitializedVehicle = false;
     });
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+  /// Get date range from selected time period
+  DateTimeRange? _getDateRangeFromPeriod(TimePeriod period) {
+    final now = DateTime.now();
+    
+    switch (period) {
+      case TimePeriod.oneMonth:
+        return DateTimeRange(
+          start: DateTime(now.year, now.month - 1, now.day),
+          end: now,
+        );
+      case TimePeriod.threeMonths:
+        return DateTimeRange(
+          start: DateTime(now.year, now.month - 3, now.day),
+          end: now,
+        );
+      case TimePeriod.sixMonths:
+        return DateTimeRange(
+          start: DateTime(now.year, now.month - 6, now.day),
+          end: now,
+        );
+      case TimePeriod.oneYear:
+        return DateTimeRange(
+          start: DateTime(now.year - 1, now.month, now.day),
+          end: now,
+        );
+      case TimePeriod.allTime:
+        return null; // No date filtering
+    }
+  }
+
+  String _getPeriodDisplayName() {
+    switch (_selectedPeriodType) {
+      case PeriodType.weekly:
+        return 'Week';
+      case PeriodType.monthly:
+        return 'Month';
+      case PeriodType.yearly:
+        return 'Year';
+    }
   }
 }

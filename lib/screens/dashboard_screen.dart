@@ -6,6 +6,7 @@ import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/services/chart_data_service.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
+import 'package:petrol_tracker/providers/chart_providers.dart';
 
 /// Dashboard screen displaying charts overview and key metrics
 /// 
@@ -43,6 +44,8 @@ class DashboardScreen extends ConsumerWidget {
             _QuickStatsRow(ref: ref),
             const SizedBox(height: 16),
             _ChartSection(ref: ref),
+            const SizedBox(height: 16),
+            _AverageConsumptionSection(ref: ref),
             const SizedBox(height: 16),
             _RecentEntriesSection(ref: ref),
           ],
@@ -576,6 +579,210 @@ class _RecentEntriesSection extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Error loading entries',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Average consumption section showing period-based statistics
+class _AverageConsumptionSection extends ConsumerWidget {
+  final WidgetRef ref;
+  
+  const _AverageConsumptionSection({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vehicleState = ref.watch(vehiclesNotifierProvider);
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.trending_up,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Average Consumption by Period',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.go('/average-consumption-chart'),
+                  icon: const Icon(Icons.open_in_full, size: 16),
+                  label: const Text('View Details'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 120,
+              child: vehicleState.when(
+                data: (state) {
+                  if (state.vehicles.isEmpty) {
+                    return _buildEmptyVehiclesPlaceholder(context);
+                  }
+                  
+                  // Show statistics for the first vehicle as a preview
+                  final firstVehicle = state.vehicles.first;
+                  if (firstVehicle.id == null) {
+                    return _buildEmptyVehiclesPlaceholder(context);
+                  }
+                  
+                  return _buildAverageConsumptionPreview(context, ref, firstVehicle.id!);
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => _buildErrorPlaceholder(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildAverageConsumptionPreview(BuildContext context, WidgetRef ref, int vehicleId) {
+    final statisticsAsync = ref.watch(consumptionStatisticsProvider(vehicleId));
+    
+    return statisticsAsync.when(
+      data: (stats) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Overall Average',
+                '${stats['average']?.toStringAsFixed(1)} L/100km',
+                Icons.analytics,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Best Efficiency',
+                '${stats['minimum']?.toStringAsFixed(1)} L/100km',
+                Icons.trending_down,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatPreviewCard(
+                context,
+                'Total Entries',
+                '${stats['count']?.toInt()}',
+                Icons.confirmation_num,
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => _buildErrorPlaceholder(context),
+    );
+  }
+  
+  Widget _buildStatPreviewCard(BuildContext context, String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyVehiclesPlaceholder(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car,
+            size: 32,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'No vehicles available',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildErrorPlaceholder(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 32,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Error loading statistics',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.error,
             ),

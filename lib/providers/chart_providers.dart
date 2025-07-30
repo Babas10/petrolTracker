@@ -248,3 +248,225 @@ Future<Map<String, double>> countryPriceComparison(
 
   return countryAverages;
 }
+
+/// Enum for different period types
+enum PeriodType {
+  weekly,
+  monthly,
+  yearly,
+}
+
+/// Data point for period-based average consumption
+class PeriodAverageDataPoint {
+  final DateTime date;
+  final double averageConsumption;
+  final int entryCount;
+  final String periodLabel;
+  final PeriodType periodType;
+
+  const PeriodAverageDataPoint({
+    required this.date,
+    required this.averageConsumption,
+    required this.entryCount,
+    required this.periodLabel,
+    required this.periodType,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PeriodAverageDataPoint &&
+        other.date == date &&
+        other.averageConsumption == averageConsumption &&
+        other.entryCount == entryCount &&
+        other.periodLabel == periodLabel &&
+        other.periodType == periodType;
+  }
+
+  @override
+  int get hashCode => Object.hash(date, averageConsumption, entryCount, periodLabel, periodType);
+
+  @override
+  String toString() {
+    return 'PeriodAverageDataPoint(date: $date, averageConsumption: $averageConsumption, entryCount: $entryCount, periodLabel: $periodLabel, periodType: $periodType)';
+  }
+}
+
+/// Provider for period-based average consumption data
+@riverpod
+Future<List<PeriodAverageDataPoint>> periodAverageConsumptionData(
+  PeriodAverageConsumptionDataRef ref,
+  int vehicleId,
+  PeriodType periodType, {
+  DateTime? startDate,
+  DateTime? endDate,
+}) async {
+  // Get fuel entries for the vehicle
+  List<FuelEntryModel> entries;
+  
+  if (startDate != null && endDate != null) {
+    entries = await ref.watch(
+      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
+    );
+  } else {
+    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Filter entries with consumption data
+  final entriesWithConsumption = entries
+      .where((entry) => entry.consumption != null)
+      .toList();
+
+  if (entriesWithConsumption.isEmpty) {
+    return [];
+  }
+
+  // Group entries by period
+  final periodData = <String, List<FuelEntryModel>>{};
+  
+  for (final entry in entriesWithConsumption) {
+    final periodKey = _getPeriodKey(entry.date, periodType);
+    periodData.putIfAbsent(periodKey, () => []).add(entry);
+  }
+
+  // Calculate averages for each period
+  final result = <PeriodAverageDataPoint>[];
+  final sortedPeriods = periodData.keys.toList()..sort();
+
+  for (final periodKey in sortedPeriods) {
+    final periodEntries = periodData[periodKey]!;
+    final consumptions = periodEntries
+        .where((e) => e.consumption != null)
+        .map((e) => e.consumption!)
+        .toList();
+    
+    if (consumptions.isNotEmpty) {
+      final average = consumptions.reduce((a, b) => a + b) / consumptions.length;
+      final periodDate = _getPeriodDate(periodKey, periodType);
+      final periodLabel = _getPeriodLabel(periodKey, periodType);
+      
+      result.add(PeriodAverageDataPoint(
+        date: periodDate,
+        averageConsumption: average,
+        entryCount: consumptions.length,
+        periodLabel: periodLabel,
+        periodType: periodType,
+      ));
+    }
+  }
+
+  return result;
+}
+
+/// Helper function to get period key for grouping
+String _getPeriodKey(DateTime date, PeriodType periodType) {
+  switch (periodType) {
+    case PeriodType.weekly:
+      // Get the Monday of the week
+      final monday = date.subtract(Duration(days: date.weekday - 1));
+      return '${monday.year}-W${_getWeekOfYear(monday).toString().padLeft(2, '0')}';
+    case PeriodType.monthly:
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+    case PeriodType.yearly:
+      return date.year.toString();
+  }
+}
+
+/// Helper function to get period date from key
+DateTime _getPeriodDate(String periodKey, PeriodType periodType) {
+  switch (periodType) {
+    case PeriodType.weekly:
+      // Parse week format: 2023-W52
+      final parts = periodKey.split('-W');
+      final year = int.parse(parts[0]);
+      final week = int.parse(parts[1]);
+      return _getDateFromWeek(year, week);
+    case PeriodType.monthly:
+      // Parse month format: 2023-12
+      final parts = periodKey.split('-');
+      return DateTime(int.parse(parts[0]), int.parse(parts[1]), 1);
+    case PeriodType.yearly:
+      return DateTime(int.parse(periodKey), 1, 1);
+  }
+}
+
+/// Helper function to get period label for display
+String _getPeriodLabel(String periodKey, PeriodType periodType) {
+  switch (periodType) {
+    case PeriodType.weekly:
+      final parts = periodKey.split('-W');
+      return 'Week ${parts[1]}, ${parts[0]}';
+    case PeriodType.monthly:
+      final date = _getPeriodDate(periodKey, periodType);
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      return '${months[date.month - 1]} ${date.year}';
+    case PeriodType.yearly:
+      return periodKey;
+  }
+}
+
+/// Helper function to get week of year
+int _getWeekOfYear(DateTime date) {
+  final startOfYear = DateTime(date.year, 1, 1);
+  final difference = date.difference(startOfYear).inDays;
+  return (difference / 7).ceil();
+}
+
+/// Helper function to get date from year and week
+DateTime _getDateFromWeek(int year, int week) {
+  final jan1 = DateTime(year, 1, 1);
+  final daysFromJan1 = (week - 1) * 7;
+  return jan1.add(Duration(days: daysFromJan1));
+}
+
+/// Provider for overall consumption statistics
+@riverpod
+Future<Map<String, double>> consumptionStatistics(
+  ConsumptionStatisticsRef ref,
+  int vehicleId, {
+  DateTime? startDate,
+  DateTime? endDate,
+}) async {
+  // Get fuel entries for the vehicle
+  List<FuelEntryModel> entries;
+  
+  if (startDate != null && endDate != null) {
+    entries = await ref.watch(
+      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
+    );
+  } else {
+    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Filter entries with consumption data
+  final entriesWithConsumption = entries
+      .where((entry) => entry.consumption != null)
+      .toList();
+
+  if (entriesWithConsumption.isEmpty) {
+    return {
+      'average': 0.0,
+      'minimum': 0.0,
+      'maximum': 0.0,
+      'total': 0.0,
+      'count': 0.0,
+    };
+  }
+
+  final consumptions = entriesWithConsumption
+      .map((e) => e.consumption!)
+      .toList();
+
+  consumptions.sort();
+
+  return {
+    'average': consumptions.reduce((a, b) => a + b) / consumptions.length,
+    'minimum': consumptions.first,
+    'maximum': consumptions.last,
+    'total': consumptions.reduce((a, b) => a + b),
+    'count': consumptions.length.toDouble(),
+  };
+}
