@@ -874,6 +874,769 @@ class _CountryPriceComparisonProviderElement
   DateTime? get endDate => (origin as CountryPriceComparisonProvider).endDate;
 }
 
+String _$monthlySpendingDataHash() =>
+    r'ebf947e213c8cee60e816d69758c74b3c87b303f';
+
+/// Provider for monthly spending data (Issue #11)
+///
+/// Copied from [monthlySpendingData].
+@ProviderFor(monthlySpendingData)
+const monthlySpendingDataProvider = MonthlySpendingDataFamily();
+
+/// Provider for monthly spending data (Issue #11)
+///
+/// Copied from [monthlySpendingData].
+class MonthlySpendingDataFamily
+    extends Family<AsyncValue<List<SpendingDataPoint>>> {
+  /// Provider for monthly spending data (Issue #11)
+  ///
+  /// Copied from [monthlySpendingData].
+  const MonthlySpendingDataFamily();
+
+  /// Provider for monthly spending data (Issue #11)
+  ///
+  /// Copied from [monthlySpendingData].
+  MonthlySpendingDataProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) {
+    return MonthlySpendingDataProvider(
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+      countryFilter: countryFilter,
+    );
+  }
+
+  @override
+  MonthlySpendingDataProvider getProviderOverride(
+    covariant MonthlySpendingDataProvider provider,
+  ) {
+    return call(
+      provider.vehicleId,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'monthlySpendingDataProvider';
+}
+
+/// Provider for monthly spending data (Issue #11)
+///
+/// Copied from [monthlySpendingData].
+class MonthlySpendingDataProvider
+    extends AutoDisposeFutureProvider<List<SpendingDataPoint>> {
+  /// Provider for monthly spending data (Issue #11)
+  ///
+  /// Copied from [monthlySpendingData].
+  MonthlySpendingDataProvider(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) : this._internal(
+         (ref) => monthlySpendingData(
+           ref as MonthlySpendingDataRef,
+           vehicleId,
+           startDate: startDate,
+           endDate: endDate,
+           countryFilter: countryFilter,
+         ),
+         from: monthlySpendingDataProvider,
+         name: r'monthlySpendingDataProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$monthlySpendingDataHash,
+         dependencies: MonthlySpendingDataFamily._dependencies,
+         allTransitiveDependencies:
+             MonthlySpendingDataFamily._allTransitiveDependencies,
+         vehicleId: vehicleId,
+         startDate: startDate,
+         endDate: endDate,
+         countryFilter: countryFilter,
+       );
+
+  MonthlySpendingDataProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.vehicleId,
+    required this.startDate,
+    required this.endDate,
+    required this.countryFilter,
+  }) : super.internal();
+
+  final int vehicleId;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? countryFilter;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<SpendingDataPoint>> Function(MonthlySpendingDataRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: MonthlySpendingDataProvider._internal(
+        (ref) => create(ref as MonthlySpendingDataRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        vehicleId: vehicleId,
+        startDate: startDate,
+        endDate: endDate,
+        countryFilter: countryFilter,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<SpendingDataPoint>> createElement() {
+    return _MonthlySpendingDataProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MonthlySpendingDataProvider &&
+        other.vehicleId == vehicleId &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, vehicleId.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin MonthlySpendingDataRef
+    on AutoDisposeFutureProviderRef<List<SpendingDataPoint>> {
+  /// The parameter `vehicleId` of this provider.
+  int get vehicleId;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
+}
+
+class _MonthlySpendingDataProviderElement
+    extends AutoDisposeFutureProviderElement<List<SpendingDataPoint>>
+    with MonthlySpendingDataRef {
+  _MonthlySpendingDataProviderElement(super.provider);
+
+  @override
+  int get vehicleId => (origin as MonthlySpendingDataProvider).vehicleId;
+  @override
+  DateTime? get startDate => (origin as MonthlySpendingDataProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as MonthlySpendingDataProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as MonthlySpendingDataProvider).countryFilter;
+}
+
+String _$countrySpendingComparisonHash() =>
+    r'd06c93cd3572220e0ca050795daea952d4e278b9';
+
+/// Provider for country spending comparison (Issues #10, #11)
+///
+/// Copied from [countrySpendingComparison].
+@ProviderFor(countrySpendingComparison)
+const countrySpendingComparisonProvider = CountrySpendingComparisonFamily();
+
+/// Provider for country spending comparison (Issues #10, #11)
+///
+/// Copied from [countrySpendingComparison].
+class CountrySpendingComparisonFamily
+    extends Family<AsyncValue<List<CountrySpendingDataPoint>>> {
+  /// Provider for country spending comparison (Issues #10, #11)
+  ///
+  /// Copied from [countrySpendingComparison].
+  const CountrySpendingComparisonFamily();
+
+  /// Provider for country spending comparison (Issues #10, #11)
+  ///
+  /// Copied from [countrySpendingComparison].
+  CountrySpendingComparisonProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    return CountrySpendingComparisonProvider(
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  @override
+  CountrySpendingComparisonProvider getProviderOverride(
+    covariant CountrySpendingComparisonProvider provider,
+  ) {
+    return call(
+      provider.vehicleId,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'countrySpendingComparisonProvider';
+}
+
+/// Provider for country spending comparison (Issues #10, #11)
+///
+/// Copied from [countrySpendingComparison].
+class CountrySpendingComparisonProvider
+    extends AutoDisposeFutureProvider<List<CountrySpendingDataPoint>> {
+  /// Provider for country spending comparison (Issues #10, #11)
+  ///
+  /// Copied from [countrySpendingComparison].
+  CountrySpendingComparisonProvider(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) : this._internal(
+         (ref) => countrySpendingComparison(
+           ref as CountrySpendingComparisonRef,
+           vehicleId,
+           startDate: startDate,
+           endDate: endDate,
+         ),
+         from: countrySpendingComparisonProvider,
+         name: r'countrySpendingComparisonProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$countrySpendingComparisonHash,
+         dependencies: CountrySpendingComparisonFamily._dependencies,
+         allTransitiveDependencies:
+             CountrySpendingComparisonFamily._allTransitiveDependencies,
+         vehicleId: vehicleId,
+         startDate: startDate,
+         endDate: endDate,
+       );
+
+  CountrySpendingComparisonProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.vehicleId,
+    required this.startDate,
+    required this.endDate,
+  }) : super.internal();
+
+  final int vehicleId;
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<CountrySpendingDataPoint>> Function(
+      CountrySpendingComparisonRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: CountrySpendingComparisonProvider._internal(
+        (ref) => create(ref as CountrySpendingComparisonRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        vehicleId: vehicleId,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<CountrySpendingDataPoint>>
+  createElement() {
+    return _CountrySpendingComparisonProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CountrySpendingComparisonProvider &&
+        other.vehicleId == vehicleId &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, vehicleId.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin CountrySpendingComparisonRef
+    on AutoDisposeFutureProviderRef<List<CountrySpendingDataPoint>> {
+  /// The parameter `vehicleId` of this provider.
+  int get vehicleId;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+}
+
+class _CountrySpendingComparisonProviderElement
+    extends AutoDisposeFutureProviderElement<List<CountrySpendingDataPoint>>
+    with CountrySpendingComparisonRef {
+  _CountrySpendingComparisonProviderElement(super.provider);
+
+  @override
+  int get vehicleId => (origin as CountrySpendingComparisonProvider).vehicleId;
+  @override
+  DateTime? get startDate =>
+      (origin as CountrySpendingComparisonProvider).startDate;
+  @override
+  DateTime? get endDate =>
+      (origin as CountrySpendingComparisonProvider).endDate;
+}
+
+String _$priceTrendsByCountryHash() =>
+    r'8f24b139ee6e578d265f263c1f72dda25c5b1d4b';
+
+/// Provider for price trends by country over time (Issue #10)
+///
+/// Copied from [priceTrendsByCountry].
+@ProviderFor(priceTrendsByCountry)
+const priceTrendsByCountryProvider = PriceTrendsByCountryFamily();
+
+/// Provider for price trends by country over time (Issue #10)
+///
+/// Copied from [priceTrendsByCountry].
+class PriceTrendsByCountryFamily
+    extends Family<AsyncValue<Map<String, List<PriceTrendDataPoint>>>> {
+  /// Provider for price trends by country over time (Issue #10)
+  ///
+  /// Copied from [priceTrendsByCountry].
+  const PriceTrendsByCountryFamily();
+
+  /// Provider for price trends by country over time (Issue #10)
+  ///
+  /// Copied from [priceTrendsByCountry].
+  PriceTrendsByCountryProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    return PriceTrendsByCountryProvider(
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  @override
+  PriceTrendsByCountryProvider getProviderOverride(
+    covariant PriceTrendsByCountryProvider provider,
+  ) {
+    return call(
+      provider.vehicleId,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'priceTrendsByCountryProvider';
+}
+
+/// Provider for price trends by country over time (Issue #10)
+///
+/// Copied from [priceTrendsByCountry].
+class PriceTrendsByCountryProvider
+    extends AutoDisposeFutureProvider<Map<String, List<PriceTrendDataPoint>>> {
+  /// Provider for price trends by country over time (Issue #10)
+  ///
+  /// Copied from [priceTrendsByCountry].
+  PriceTrendsByCountryProvider(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) : this._internal(
+         (ref) => priceTrendsByCountry(
+           ref as PriceTrendsByCountryRef,
+           vehicleId,
+           startDate: startDate,
+           endDate: endDate,
+         ),
+         from: priceTrendsByCountryProvider,
+         name: r'priceTrendsByCountryProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$priceTrendsByCountryHash,
+         dependencies: PriceTrendsByCountryFamily._dependencies,
+         allTransitiveDependencies:
+             PriceTrendsByCountryFamily._allTransitiveDependencies,
+         vehicleId: vehicleId,
+         startDate: startDate,
+         endDate: endDate,
+       );
+
+  PriceTrendsByCountryProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.vehicleId,
+    required this.startDate,
+    required this.endDate,
+  }) : super.internal();
+
+  final int vehicleId;
+  final DateTime? startDate;
+  final DateTime? endDate;
+
+  @override
+  Override overrideWith(
+    FutureOr<Map<String, List<PriceTrendDataPoint>>> Function(
+      PriceTrendsByCountryRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PriceTrendsByCountryProvider._internal(
+        (ref) => create(ref as PriceTrendsByCountryRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        vehicleId: vehicleId,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Map<String, List<PriceTrendDataPoint>>>
+  createElement() {
+    return _PriceTrendsByCountryProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PriceTrendsByCountryProvider &&
+        other.vehicleId == vehicleId &&
+        other.startDate == startDate &&
+        other.endDate == endDate;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, vehicleId.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PriceTrendsByCountryRef
+    on AutoDisposeFutureProviderRef<Map<String, List<PriceTrendDataPoint>>> {
+  /// The parameter `vehicleId` of this provider.
+  int get vehicleId;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+}
+
+class _PriceTrendsByCountryProviderElement
+    extends
+        AutoDisposeFutureProviderElement<Map<String, List<PriceTrendDataPoint>>>
+    with PriceTrendsByCountryRef {
+  _PriceTrendsByCountryProviderElement(super.provider);
+
+  @override
+  int get vehicleId => (origin as PriceTrendsByCountryProvider).vehicleId;
+  @override
+  DateTime? get startDate => (origin as PriceTrendsByCountryProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as PriceTrendsByCountryProvider).endDate;
+}
+
+String _$spendingStatisticsHash() =>
+    r'088980444cad1c2b1a667a8453e56a703e4c6dde';
+
+/// Provider for comprehensive spending statistics (Issue #14)
+///
+/// Copied from [spendingStatistics].
+@ProviderFor(spendingStatistics)
+const spendingStatisticsProvider = SpendingStatisticsFamily();
+
+/// Provider for comprehensive spending statistics (Issue #14)
+///
+/// Copied from [spendingStatistics].
+class SpendingStatisticsFamily
+    extends Family<AsyncValue<Map<String, dynamic>>> {
+  /// Provider for comprehensive spending statistics (Issue #14)
+  ///
+  /// Copied from [spendingStatistics].
+  const SpendingStatisticsFamily();
+
+  /// Provider for comprehensive spending statistics (Issue #14)
+  ///
+  /// Copied from [spendingStatistics].
+  SpendingStatisticsProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) {
+    return SpendingStatisticsProvider(
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+      countryFilter: countryFilter,
+    );
+  }
+
+  @override
+  SpendingStatisticsProvider getProviderOverride(
+    covariant SpendingStatisticsProvider provider,
+  ) {
+    return call(
+      provider.vehicleId,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'spendingStatisticsProvider';
+}
+
+/// Provider for comprehensive spending statistics (Issue #14)
+///
+/// Copied from [spendingStatistics].
+class SpendingStatisticsProvider
+    extends AutoDisposeFutureProvider<Map<String, dynamic>> {
+  /// Provider for comprehensive spending statistics (Issue #14)
+  ///
+  /// Copied from [spendingStatistics].
+  SpendingStatisticsProvider(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) : this._internal(
+         (ref) => spendingStatistics(
+           ref as SpendingStatisticsRef,
+           vehicleId,
+           startDate: startDate,
+           endDate: endDate,
+           countryFilter: countryFilter,
+         ),
+         from: spendingStatisticsProvider,
+         name: r'spendingStatisticsProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$spendingStatisticsHash,
+         dependencies: SpendingStatisticsFamily._dependencies,
+         allTransitiveDependencies:
+             SpendingStatisticsFamily._allTransitiveDependencies,
+         vehicleId: vehicleId,
+         startDate: startDate,
+         endDate: endDate,
+         countryFilter: countryFilter,
+       );
+
+  SpendingStatisticsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.vehicleId,
+    required this.startDate,
+    required this.endDate,
+    required this.countryFilter,
+  }) : super.internal();
+
+  final int vehicleId;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? countryFilter;
+
+  @override
+  Override overrideWith(
+    FutureOr<Map<String, dynamic>> Function(SpendingStatisticsRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: SpendingStatisticsProvider._internal(
+        (ref) => create(ref as SpendingStatisticsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        vehicleId: vehicleId,
+        startDate: startDate,
+        endDate: endDate,
+        countryFilter: countryFilter,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Map<String, dynamic>> createElement() {
+    return _SpendingStatisticsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpendingStatisticsProvider &&
+        other.vehicleId == vehicleId &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, vehicleId.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin SpendingStatisticsRef
+    on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
+  /// The parameter `vehicleId` of this provider.
+  int get vehicleId;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
+}
+
+class _SpendingStatisticsProviderElement
+    extends AutoDisposeFutureProviderElement<Map<String, dynamic>>
+    with SpendingStatisticsRef {
+  _SpendingStatisticsProviderElement(super.provider);
+
+  @override
+  int get vehicleId => (origin as SpendingStatisticsProvider).vehicleId;
+  @override
+  DateTime? get startDate => (origin as SpendingStatisticsProvider).startDate;
+  @override
+  DateTime? get endDate => (origin as SpendingStatisticsProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as SpendingStatisticsProvider).countryFilter;
+}
+
 String _$periodAverageConsumptionDataHash() =>
     r'0a056aeac40477cf83867f87d15f14fe9e4eacf0';
 
