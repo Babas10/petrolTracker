@@ -439,7 +439,10 @@ class _ChartSection extends ConsumerWidget {
   }
   
   Widget _buildConsumptionStatisticsPreview(BuildContext context, WidgetRef ref, int vehicleId) {
-    final statisticsAsync = ref.watch(consumptionStatisticsProvider(vehicleId));
+    final statisticsAsync = ref.watch(consumptionStatisticsProvider(
+      vehicleId,
+      countryFilter: null, // Show all countries on dashboard
+    ));
     
     return statisticsAsync.when(
       data: (stats) {
@@ -767,6 +770,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
     final chartDataAsync = ref.watch(periodAverageConsumptionDataProvider(
       vehicleId,
       PeriodType.monthly, // Default to monthly view for dashboard
+      countryFilter: null, // Show all countries on dashboard
     ));
     
     return chartDataAsync.when(

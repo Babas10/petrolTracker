@@ -71,6 +71,7 @@ Future<List<ConsumptionDataPoint>> consumptionChartData(
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
+  String? countryFilter,
 }) async {
   // Get fuel entries for the vehicle
   List<FuelEntryModel> entries;
@@ -81,6 +82,11 @@ Future<List<ConsumptionDataPoint>> consumptionChartData(
     );
   } else {
     entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Apply country filter if specified
+  if (countryFilter != null) {
+    entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
   // Convert to chart data points, filtering out entries without consumption
@@ -300,6 +306,7 @@ Future<List<PeriodAverageDataPoint>> periodAverageConsumptionData(
   PeriodType periodType, {
   DateTime? startDate,
   DateTime? endDate,
+  String? countryFilter,
 }) async {
   // Get fuel entries for the vehicle
   List<FuelEntryModel> entries;
@@ -310,6 +317,11 @@ Future<List<PeriodAverageDataPoint>> periodAverageConsumptionData(
     );
   } else {
     entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Apply country filter if specified
+  if (countryFilter != null) {
+    entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
   // Filter entries with consumption data
@@ -429,6 +441,7 @@ Future<Map<String, double>> consumptionStatistics(
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
+  String? countryFilter,
 }) async {
   // Get fuel entries for the vehicle
   List<FuelEntryModel> entries;
@@ -439,6 +452,11 @@ Future<Map<String, double>> consumptionStatistics(
     );
   } else {
     entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Apply country filter if specified
+  if (countryFilter != null) {
+    entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
   // Filter entries with consumption data

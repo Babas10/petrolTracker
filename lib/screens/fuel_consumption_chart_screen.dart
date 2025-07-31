@@ -5,6 +5,7 @@ import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
+import 'package:petrol_tracker/widgets/country_selection_widget.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 
@@ -37,6 +38,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   ChartType _selectedChartType = ChartType.line;
   DateTimeRange? _selectedDateRange;
   TimePeriod _selectedTimePeriod = TimePeriod.allTime;
+  String? _selectedCountry;
   bool _showStatistics = true;
   bool _hasInitializedVehicle = false;
 
@@ -90,6 +92,8 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
               Expanded(child: _buildChartTypeSelector()),
             ],
           ),
+          const SizedBox(height: 12),
+          _buildCountryFilter(),
           const SizedBox(height: 12),
           _buildTimePeriodButtons(),
         ],
@@ -200,6 +204,48 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           });
         }
       },
+    );
+  }
+
+  Widget _buildCountryFilter() {
+    if (_selectedVehicle == null) {
+      return const SizedBox.shrink(); // Don't show country filter if no vehicle selected
+    }
+
+    final entriesState = ref.watch(fuelEntriesByVehicleProvider(_selectedVehicle!.id!));
+    
+    return entriesState.when(
+      data: (entries) {
+        // Get unique countries from the selected vehicle's entries
+        final countries = entries
+            .map((entry) => entry.country)
+            .toSet()
+            .toList();
+        
+        if (countries.length <= 1) {
+          return const SizedBox.shrink(); // Don't show filter if only one country
+        }
+
+        // Calculate entry counts per country
+        final entryCounts = <String, int>{};
+        for (final entry in entries) {
+          entryCounts[entry.country] = (entryCounts[entry.country] ?? 0) + 1;
+        }
+
+        return CountryFilterWidget(
+          selectedCountry: _selectedCountry,
+          onCountryChanged: (country) {
+            setState(() {
+              _selectedCountry = country;
+            });
+          },
+          availableCountries: countries,
+          entryCounts: entryCounts,
+          showEntryCounts: true,
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 
@@ -319,6 +365,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           _selectedVehicle!.id!,
           startDate: effectiveDateRange?.start,
           endDate: effectiveDateRange?.end,
+          countryFilter: _selectedCountry,
         ));
         
         return _buildSingleVehicleChartContent(chartDataAsync);
@@ -451,6 +498,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           vehicle.id!,
           startDate: _selectedDateRange?.start,
           endDate: _selectedDateRange?.end,
+          countryFilter: _selectedCountry,
         ));
 
         return SizedBox(
@@ -526,6 +574,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           _selectedVehicle!.id!,
           startDate: effectiveDateRange?.start,
           endDate: effectiveDateRange?.end,
+          countryFilter: _selectedCountry,
         ));
         
         return _buildVehicleStatisticsContent(chartDataAsync);
