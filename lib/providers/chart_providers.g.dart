@@ -7,7 +7,7 @@ part of 'chart_providers.dart';
 // **************************************************************************
 
 String _$consumptionChartDataHash() =>
-    r'63f9d5349dee50617471556410f7028ffbaf7fcf';
+    r'473bb4d1f0afe3e1d9524ecacf6dcce9f08f4c17';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -53,11 +53,13 @@ class ConsumptionChartDataFamily
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) {
     return ConsumptionChartDataProvider(
       vehicleId,
       startDate: startDate,
       endDate: endDate,
+      countryFilter: countryFilter,
     );
   }
 
@@ -69,6 +71,7 @@ class ConsumptionChartDataFamily
       provider.vehicleId,
       startDate: provider.startDate,
       endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
     );
   }
 
@@ -99,12 +102,14 @@ class ConsumptionChartDataProvider
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) : this._internal(
          (ref) => consumptionChartData(
            ref as ConsumptionChartDataRef,
            vehicleId,
            startDate: startDate,
            endDate: endDate,
+           countryFilter: countryFilter,
          ),
          from: consumptionChartDataProvider,
          name: r'consumptionChartDataProvider',
@@ -117,6 +122,7 @@ class ConsumptionChartDataProvider
          vehicleId: vehicleId,
          startDate: startDate,
          endDate: endDate,
+         countryFilter: countryFilter,
        );
 
   ConsumptionChartDataProvider._internal(
@@ -129,11 +135,13 @@ class ConsumptionChartDataProvider
     required this.vehicleId,
     required this.startDate,
     required this.endDate,
+    required this.countryFilter,
   }) : super.internal();
 
   final int vehicleId;
   final DateTime? startDate;
   final DateTime? endDate;
+  final String? countryFilter;
 
   @override
   Override overrideWith(
@@ -154,6 +162,7 @@ class ConsumptionChartDataProvider
         vehicleId: vehicleId,
         startDate: startDate,
         endDate: endDate,
+        countryFilter: countryFilter,
       ),
     );
   }
@@ -168,7 +177,8 @@ class ConsumptionChartDataProvider
     return other is ConsumptionChartDataProvider &&
         other.vehicleId == vehicleId &&
         other.startDate == startDate &&
-        other.endDate == endDate;
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
   }
 
   @override
@@ -177,6 +187,7 @@ class ConsumptionChartDataProvider
     hash = _SystemHash.combine(hash, vehicleId.hashCode);
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -194,6 +205,9 @@ mixin ConsumptionChartDataRef
 
   /// The parameter `endDate` of this provider.
   DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
 }
 
 class _ConsumptionChartDataProviderElement
@@ -207,6 +221,9 @@ class _ConsumptionChartDataProviderElement
   DateTime? get startDate => (origin as ConsumptionChartDataProvider).startDate;
   @override
   DateTime? get endDate => (origin as ConsumptionChartDataProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as ConsumptionChartDataProvider).countryFilter;
 }
 
 String _$priceTrendChartDataHash() =>
@@ -858,7 +875,7 @@ class _CountryPriceComparisonProviderElement
 }
 
 String _$periodAverageConsumptionDataHash() =>
-    r'b092dc671ecece5327648be05d6fb67e1ea86d09';
+    r'0a056aeac40477cf83867f87d15f14fe9e4eacf0';
 
 /// Provider for period-based average consumption data
 ///
@@ -885,12 +902,14 @@ class PeriodAverageConsumptionDataFamily
     PeriodType periodType, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) {
     return PeriodAverageConsumptionDataProvider(
       vehicleId,
       periodType,
       startDate: startDate,
       endDate: endDate,
+      countryFilter: countryFilter,
     );
   }
 
@@ -903,6 +922,7 @@ class PeriodAverageConsumptionDataFamily
       provider.periodType,
       startDate: provider.startDate,
       endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
     );
   }
 
@@ -934,6 +954,7 @@ class PeriodAverageConsumptionDataProvider
     PeriodType periodType, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) : this._internal(
          (ref) => periodAverageConsumptionData(
            ref as PeriodAverageConsumptionDataRef,
@@ -941,6 +962,7 @@ class PeriodAverageConsumptionDataProvider
            periodType,
            startDate: startDate,
            endDate: endDate,
+           countryFilter: countryFilter,
          ),
          from: periodAverageConsumptionDataProvider,
          name: r'periodAverageConsumptionDataProvider',
@@ -954,6 +976,7 @@ class PeriodAverageConsumptionDataProvider
          periodType: periodType,
          startDate: startDate,
          endDate: endDate,
+         countryFilter: countryFilter,
        );
 
   PeriodAverageConsumptionDataProvider._internal(
@@ -967,12 +990,14 @@ class PeriodAverageConsumptionDataProvider
     required this.periodType,
     required this.startDate,
     required this.endDate,
+    required this.countryFilter,
   }) : super.internal();
 
   final int vehicleId;
   final PeriodType periodType;
   final DateTime? startDate;
   final DateTime? endDate;
+  final String? countryFilter;
 
   @override
   Override overrideWith(
@@ -994,6 +1019,7 @@ class PeriodAverageConsumptionDataProvider
         periodType: periodType,
         startDate: startDate,
         endDate: endDate,
+        countryFilter: countryFilter,
       ),
     );
   }
@@ -1010,7 +1036,8 @@ class PeriodAverageConsumptionDataProvider
         other.vehicleId == vehicleId &&
         other.periodType == periodType &&
         other.startDate == startDate &&
-        other.endDate == endDate;
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
   }
 
   @override
@@ -1020,6 +1047,7 @@ class PeriodAverageConsumptionDataProvider
     hash = _SystemHash.combine(hash, periodType.hashCode);
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -1040,6 +1068,9 @@ mixin PeriodAverageConsumptionDataRef
 
   /// The parameter `endDate` of this provider.
   DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
 }
 
 class _PeriodAverageConsumptionDataProviderElement
@@ -1059,10 +1090,13 @@ class _PeriodAverageConsumptionDataProviderElement
   @override
   DateTime? get endDate =>
       (origin as PeriodAverageConsumptionDataProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as PeriodAverageConsumptionDataProvider).countryFilter;
 }
 
 String _$consumptionStatisticsHash() =>
-    r'83011b8eafe024880870f2ee412873dcfd56917b';
+    r'8d440d9f6844a129ba185490099cb1ab2475b852';
 
 /// Provider for overall consumption statistics
 ///
@@ -1087,11 +1121,13 @@ class ConsumptionStatisticsFamily
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) {
     return ConsumptionStatisticsProvider(
       vehicleId,
       startDate: startDate,
       endDate: endDate,
+      countryFilter: countryFilter,
     );
   }
 
@@ -1103,6 +1139,7 @@ class ConsumptionStatisticsFamily
       provider.vehicleId,
       startDate: provider.startDate,
       endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
     );
   }
 
@@ -1133,12 +1170,14 @@ class ConsumptionStatisticsProvider
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
+    String? countryFilter,
   }) : this._internal(
          (ref) => consumptionStatistics(
            ref as ConsumptionStatisticsRef,
            vehicleId,
            startDate: startDate,
            endDate: endDate,
+           countryFilter: countryFilter,
          ),
          from: consumptionStatisticsProvider,
          name: r'consumptionStatisticsProvider',
@@ -1151,6 +1190,7 @@ class ConsumptionStatisticsProvider
          vehicleId: vehicleId,
          startDate: startDate,
          endDate: endDate,
+         countryFilter: countryFilter,
        );
 
   ConsumptionStatisticsProvider._internal(
@@ -1163,11 +1203,13 @@ class ConsumptionStatisticsProvider
     required this.vehicleId,
     required this.startDate,
     required this.endDate,
+    required this.countryFilter,
   }) : super.internal();
 
   final int vehicleId;
   final DateTime? startDate;
   final DateTime? endDate;
+  final String? countryFilter;
 
   @override
   Override overrideWith(
@@ -1186,6 +1228,7 @@ class ConsumptionStatisticsProvider
         vehicleId: vehicleId,
         startDate: startDate,
         endDate: endDate,
+        countryFilter: countryFilter,
       ),
     );
   }
@@ -1200,7 +1243,8 @@ class ConsumptionStatisticsProvider
     return other is ConsumptionStatisticsProvider &&
         other.vehicleId == vehicleId &&
         other.startDate == startDate &&
-        other.endDate == endDate;
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
   }
 
   @override
@@ -1209,6 +1253,7 @@ class ConsumptionStatisticsProvider
     hash = _SystemHash.combine(hash, vehicleId.hashCode);
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -1226,6 +1271,9 @@ mixin ConsumptionStatisticsRef
 
   /// The parameter `endDate` of this provider.
   DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
 }
 
 class _ConsumptionStatisticsProviderElement
@@ -1240,6 +1288,9 @@ class _ConsumptionStatisticsProviderElement
       (origin as ConsumptionStatisticsProvider).startDate;
   @override
   DateTime? get endDate => (origin as ConsumptionStatisticsProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as ConsumptionStatisticsProvider).countryFilter;
 }
 
 // ignore_for_file: type=lint
