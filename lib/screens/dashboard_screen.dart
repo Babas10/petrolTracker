@@ -7,6 +7,7 @@ import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/services/chart_data_service.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
+import 'package:petrol_tracker/models/vehicle_model.dart';
 
 /// Dashboard screen displaying charts overview and key metrics
 /// 
@@ -46,6 +47,8 @@ class DashboardScreen extends ConsumerWidget {
             _ChartSection(ref: ref),
             const SizedBox(height: 16),
             _AverageConsumptionSection(ref: ref),
+            const SizedBox(height: 16),
+            _CostAnalysisSection(ref: ref),
             const SizedBox(height: 16),
             _RecentEntriesSection(ref: ref),
           ],
@@ -907,6 +910,252 @@ class _AverageConsumptionSection extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Cost analysis section showing spending overview and quick access
+class _CostAnalysisSection extends ConsumerWidget {
+  final WidgetRef ref;
+  
+  const _CostAnalysisSection({required this.ref});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vehicleState = ref.watch(vehiclesNotifierProvider);
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.attach_money,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Cost Analysis',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.go('/cost-analysis'),
+                  icon: const Icon(Icons.analytics, size: 16),
+                  label: const Text('Full Analysis'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            vehicleState.when(
+              data: (vehicleData) {
+                final vehicles = vehicleData.vehicles;
+                
+                if (vehicles.isEmpty) {
+                  return _buildNoVehiclesMessage(context);
+                }
+                
+                return _buildCostPreview(context, ref, vehicles.first);
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => _buildCostErrorPlaceholder(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCostPreview(BuildContext context, WidgetRef ref, VehicleModel vehicle) {
+    final statisticsAsync = ref.watch(spendingStatisticsProvider(vehicle.id!));
+    
+    return statisticsAsync.when(
+      data: (stats) {
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _buildCostStatCard(
+                    context,
+                    'Total Spent',
+                    '\$${stats['totalSpent'].toStringAsFixed(0)}',
+                    Icons.payments,
+                    Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCostStatCard(
+                    context,
+                    'Avg per Fill-up',
+                    '\$${stats['averagePerFillUp'].toStringAsFixed(0)}',
+                    Icons.local_gas_station,
+                    Colors.blue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildCostStatCard(
+                    context,
+                    'Monthly Avg',
+                    '\$${stats['averagePerMonth'].toStringAsFixed(0)}',
+                    Icons.calendar_month,
+                    Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCostStatCard(
+                    context,
+                    'Countries',
+                    '${stats['totalCountries']}',
+                    Icons.public,
+                    Colors.purple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Most Expensive: ${stats['mostExpensiveCountry']}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      Text(
+                        'Cheapest: ${stats['cheapestCountry']}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Based on ${stats['totalFillUps']} fill-ups',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => _buildCostErrorPlaceholder(context),
+    );
+  }
+
+  Widget _buildCostStatCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoVehiclesMessage(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.directions_car_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Add a vehicle to see cost analysis',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCostErrorPlaceholder(BuildContext context) {
+    return Container(
+      height: 100,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 24,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Error loading cost data',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

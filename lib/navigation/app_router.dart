@@ -8,6 +8,7 @@ import 'package:petrol_tracker/screens/vehicles_screen.dart';
 import 'package:petrol_tracker/screens/settings_screen.dart';
 import 'package:petrol_tracker/screens/fuel_consumption_chart_screen.dart';
 import 'package:petrol_tracker/screens/average_consumption_chart_screen.dart';
+import 'package:petrol_tracker/screens/cost_analysis_dashboard_screen.dart';
 
 /// Application router configuration using go_router
 /// 
@@ -54,6 +55,11 @@ final appRouter = GoRouter(
           path: '/average-consumption-chart',
           name: 'average-consumption-chart',
           builder: (context, state) => const AverageConsumptionChartScreen(),
+        ),
+        GoRoute(
+          path: '/cost-analysis',
+          name: 'cost-analysis',
+          builder: (context, state) => const CostAnalysisDashboardScreen(),
         ),
       ],
     ),
