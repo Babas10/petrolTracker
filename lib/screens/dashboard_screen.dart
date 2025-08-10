@@ -241,13 +241,19 @@ class _ChartSection extends ConsumerWidget {
                   }
                   
                   // Transform data for chart
-                  final chartData = ChartDataService.transformConsumptionData(
+                  final rawChartData = ChartDataService.transformConsumptionData(
                     state.entries.where((e) => e.consumption != null).toList(),
                   );
                   
-                  if (chartData.isEmpty) {
+                  if (rawChartData.isEmpty) {
                     return _buildNoConsumptionDataPlaceholder(context);
                   }
+                  
+                  // Optimize for dashboard display (max 5 points)
+                  final chartData = ChartDataService.optimizeForDashboard(
+                    rawChartData,
+                    maxPoints: 5,
+                  );
                   
                   return ChartWebView(
                     data: chartData.toChartData(),
@@ -730,15 +736,19 @@ class _AverageConsumptionSection extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Average Consumption by Period',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    'Average Consumption by Period',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
-                TextButton.icon(
+                IconButton(
                   onPressed: () => context.go('/average-consumption-chart'),
-                  icon: const Icon(Icons.open_in_full, size: 16),
-                  label: const Text('Period Analysis'),
+                  icon: const Icon(Icons.open_in_full, size: 18),
+                  tooltip: 'Period Analysis',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),
               ],
             ),
@@ -782,8 +792,13 @@ class _AverageConsumptionSection extends ConsumerWidget {
           return _buildEmptyVehiclesPlaceholder(context);
         }
 
+        // Optimize data for dashboard display (max 6 monthly points to avoid label overlap)
+        final optimizedPeriodData = periodData.length > 6
+            ? _optimizePeriodData(periodData, maxPoints: 6)
+            : periodData;
+
         // Transform to chart format
-        final chartData = periodData.map((point) => {
+        final chartData = optimizedPeriodData.map((point) => {
           'date': point.date.toIso8601String().split('T')[0],
           'value': point.averageConsumption,
           'label': point.periodLabel,
@@ -812,6 +827,19 @@ class _AverageConsumptionSection extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => _buildErrorPlaceholder(context),
     );
+  }
+
+  /// Optimize period data for dashboard display by showing the most recent periods
+  List<dynamic> _optimizePeriodData(List<dynamic> data, {required int maxPoints}) {
+    if (data.length <= maxPoints) {
+      return data;
+    }
+
+    // For dashboard display, show the most recent periods (months)
+    // This gives users the latest trend which is most relevant for dashboard
+    return data.length > maxPoints
+        ? data.sublist(data.length - maxPoints)
+        : data;
   }
   
   Widget _buildStatPreviewCard(BuildContext context, String title, String value, IconData icon) {

@@ -728,9 +728,12 @@ class _FuelEntryCard extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.outline,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    DateFormat('MMM d, yyyy').format(entry.date),
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Flexible(
+                    child: Text(
+                      DateFormat('MMM d, yyyy').format(entry.date),
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Icon(
@@ -739,9 +742,12 @@ class _FuelEntryCard extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.outline,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    entry.country,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Flexible(
+                    child: Text(
+                      entry.country,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -765,30 +771,39 @@ class _FuelEntryCard extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.outline,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    '\$${entry.price.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      '\$${entry.price.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const Spacer(),
                   if (entry.consumption != null)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.speed,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.speed,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.outline,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '${entry.consumption!.toStringAsFixed(1)} L/100km',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
