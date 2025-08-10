@@ -38,8 +38,8 @@ class PetrolTrackerApp extends ConsumerWidget {
       ref.watch(restApiServerProvider);
     }
 
-    // Auto-populate data on web platform for development
-    if (kDebugMode && kIsWeb) {
+    // Auto-populate data for development (all platforms in debug mode)
+    if (kDebugMode) {
       ref.watch(webAutoPopulationProvider);
     }
 

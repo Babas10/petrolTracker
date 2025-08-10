@@ -12,10 +12,10 @@ class WebAutoPopulation {
   static const bool _enableAutoPopulation = true; // Set to false to disable
   static final Random _random = Random(42); // Fixed seed for consistent data
 
-  /// Auto-populate comprehensive test data on web platform startup
+  /// Auto-populate comprehensive test data on startup (web and mobile in debug mode)
   static Future<void> autoPopulateIfNeeded(Ref ref) async {
-    // Only run on web platform in debug mode
-    if (!kIsWeb || !kDebugMode || !_enableAutoPopulation) {
+    // Run on any platform in debug mode (web, iOS, Android)
+    if (!kDebugMode || !_enableAutoPopulation) {
       return;
     }
 
@@ -23,18 +23,26 @@ class WebAutoPopulation {
       // Check if data already exists
       final vehicleState = await ref.read(vehiclesNotifierProvider.future);
       if (vehicleState.vehicles.isNotEmpty) {
-        return; // Data already exists, don't auto-populate
+        // Check if Tesla Model 3 already exists
+        final hasTestla = vehicleState.vehicles.any((v) => v.name.contains('Tesla Model 3'));
+        if (!hasTestla) {
+          print('🚗 Adding Tesla Model 3 for year-spanning test...');
+          await _createTeslaModel3(ref);
+          print('✅ Added Tesla Model 3 with year-spanning entries');
+        }
+        return; // Data already exists, don't auto-populate other vehicles
       }
 
-      print('🚗 Auto-populating comprehensive test data with 5 diverse vehicles...');
+      print('🚗 Auto-populating comprehensive test data with 6 diverse vehicles...');
       
       await _createHondaCivic(ref);
       await _createToyotaHilux(ref);
       await _createBMW320i(ref);
       await _createToyotaPrius(ref);
       await _createMazdaMX5(ref);
+      await _createTeslaModel3(ref); // New vehicle for year-spanning test
       
-      print('✅ Auto-populated 5 vehicles with 120+ comprehensive fuel entries');
+      print('✅ Auto-populated 6 vehicles with 150+ comprehensive fuel entries');
     } catch (e) {
       print('❌ Failed to auto-populate data: $e');
     }
@@ -174,6 +182,91 @@ class WebAutoPopulation {
       currencies: ['AUD', 'JPY', 'CAD'],
       basePrices: [1.80, 165.0, 1.62], // AUD, JPY, CAD per liter
     );
+  }
+
+  /// Create Tesla Model 3 2023 - Electric vehicle with year-spanning data for testing
+  static Future<void> _createTeslaModel3(Ref ref) async {
+    final vehicle = VehicleModel.create(
+      name: 'Tesla Model 3 2023',
+      initialKm: 25680.0,
+    );
+
+    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    
+    // Generate entries spanning from October 2024 to March 2025 for year transition testing
+    await _generateYearSpanningEntries(
+      fuelNotifier,
+      createdVehicle.id!,
+      vehicle.initialKm,
+      vehicleName: 'Tesla Model 3',
+    );
+  }
+
+  /// Generate fuel entries specifically designed to span across years
+  static Future<void> _generateYearSpanningEntries(
+    FuelEntriesNotifier fuelNotifier,
+    int vehicleId,
+    double initialKm, {
+    required String vehicleName,
+  }) async {
+    // Create entries from October 2024 to March 2025
+    final months = [
+      {'year': 2024, 'month': 10, 'name': 'Oct'},  // 2024 months
+      {'year': 2024, 'month': 11, 'name': 'Nov'},
+      {'year': 2024, 'month': 12, 'name': 'Dec'},
+      {'year': 2025, 'month': 1, 'name': 'Jan'},   // 2025 months
+      {'year': 2025, 'month': 2, 'name': 'Feb'},
+      {'year': 2025, 'month': 3, 'name': 'Mar'},
+    ];
+    
+    double currentKm = initialKm;
+    double? previousKm;
+    
+    for (int i = 0; i < months.length; i++) {
+      final monthData = months[i];
+      
+      // Create entry for mid-month
+      final entryDate = DateTime(monthData['year'] as int, monthData['month'] as int, 15);
+      
+      // Tesla-like efficiency (very low consumption equivalent)
+      final baseConsumption = 2.5; // kWh/100km equivalent to L/100km for comparison
+      final consumption = baseConsumption + (_random.nextDouble() * 1.0 - 0.5); // 2.0-3.0 range
+      
+      // Calculate realistic distance and "fuel" amount (electricity cost)
+      final distance = 350 + _random.nextDouble() * 200; // 350-550 km per month
+      currentKm += distance;
+      
+      final fuelAmount = (consumption / 100) * distance; // Equivalent energy in kWh
+      
+      // Electric charging costs (per kWh equivalent)
+      final pricePerLiter = 0.25 + _random.nextDouble() * 0.15; // $0.25-$0.40 per kWh
+      final totalPrice = fuelAmount * pricePerLiter;
+      
+      // Calculate actual consumption (null for first entry)
+      double? actualConsumption;
+      if (previousKm != null) {
+        actualConsumption = _calculateConsumption(previousKm, currentKm, fuelAmount);
+      }
+      
+      final entry = FuelEntryModel.create(
+        vehicleId: vehicleId,
+        date: entryDate,
+        currentKm: currentKm,
+        fuelAmount: fuelAmount,
+        price: totalPrice,
+        country: 'Canada',
+        pricePerLiter: pricePerLiter,
+        consumption: actualConsumption,
+      );
+      
+      await fuelNotifier.addFuelEntry(entry);
+      previousKm = currentKm;
+      
+      print('Created ${monthData['name']} ${monthData['year']} entry for Tesla Model 3');
+    }
+    
+    print('✅ Created $vehicleName with ${months.length} entries spanning 2024-2025');
   }
 
   /// Generate comprehensive fuel entries for a vehicle

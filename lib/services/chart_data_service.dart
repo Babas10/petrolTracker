@@ -312,4 +312,127 @@ class ChartDataService {
             point.date.isBefore(endDate.add(const Duration(days: 1))))
         .toList();
   }
+
+  /// Optimize chart data for dashboard display by showing the most recent data points
+  /// This gives users the latest trend which is most relevant for dashboard view
+  static List<ChartDataPoint> optimizeForDashboard(
+    List<ChartDataPoint> data, {
+    int maxPoints = 5,
+  }) {
+    if (data.length <= maxPoints) {
+      return data;
+    }
+
+    // Sort by date to ensure chronological order
+    final sortedData = List<ChartDataPoint>.from(data);
+    sortedData.sort((a, b) {
+      if (a.date == null && b.date == null) return 0;
+      if (a.date == null) return -1;
+      if (b.date == null) return 1;
+      return a.date!.compareTo(b.date!);
+    });
+    
+    // Return the last N data points (most recent)
+    return sortedData.length > maxPoints
+        ? sortedData.sublist(sortedData.length - maxPoints)
+        : sortedData;
+  }
+
+  /// Optimize chart data for full chart view with distributed points
+  /// Keeps first, last, and evenly distributed points in between for historical overview
+  static List<ChartDataPoint> optimizeForFullChart(
+    List<ChartDataPoint> data, {
+    int maxPoints = 20,
+  }) {
+    if (data.length <= maxPoints) {
+      return data;
+    }
+
+    final optimized = <ChartDataPoint>[];
+    
+    // Always include first point
+    optimized.add(data.first);
+    
+    // Always include last point if we have more than 1 point
+    if (data.length > 1) {
+      optimized.add(data.last);
+    }
+    
+    // Add intermediate points evenly distributed
+    final intermediateCount = maxPoints - 2; // Subtract first and last
+    if (intermediateCount > 0 && data.length > 2) {
+      for (int i = 1; i <= intermediateCount; i++) {
+        final position = (data.length - 1) * i / (intermediateCount + 1);
+        final index = position.round();
+        
+        // Avoid duplicates with first/last and ensure valid range
+        if (index > 0 && index < data.length - 1) {
+          final point = data[index];
+          if (!optimized.any((p) => p.date == point.date)) {
+            optimized.add(point);
+          }
+        }
+      }
+    }
+    
+    // Sort by date to maintain chronological order
+    optimized.sort((a, b) {
+      if (a.date == null && b.date == null) return 0;
+      if (a.date == null) return -1;
+      if (b.date == null) return 1;
+      return a.date!.compareTo(b.date!);
+    });
+    
+    return optimized;
+  }
+
+  /// Optimize monthly data for dashboard display by showing the most recent months
+  static List<ChartDataPoint> optimizeMonthlyForDashboard(
+    List<ChartDataPoint> data, {
+    int maxPoints = 6,
+  }) {
+    if (data.length <= maxPoints) {
+      return data;
+    }
+
+    // Sort by date to ensure chronological order
+    final sortedData = List<ChartDataPoint>.from(data);
+    sortedData.sort((a, b) {
+      if (a.date == null && b.date == null) return 0;
+      if (a.date == null) return -1;
+      if (b.date == null) return 1;
+      return a.date!.compareTo(b.date!);
+    });
+    
+    // Return the last N months (most recent)
+    return sortedData.length > maxPoints
+        ? sortedData.sublist(sortedData.length - maxPoints)
+        : sortedData;
+  }
+
+  /// Optimize monthly data for full chart view with distributed months
+  static List<ChartDataPoint> optimizeMonthlyForFullChart(
+    List<ChartDataPoint> data, {
+    int maxPoints = 12,
+  }) {
+    if (data.length <= maxPoints) {
+      return data;
+    }
+
+    final optimized = <ChartDataPoint>[];
+    
+    // For monthly data, we want to show evenly spaced months
+    final step = (data.length / maxPoints).ceil();
+    
+    for (int i = 0; i < data.length; i += step) {
+      optimized.add(data[i]);
+    }
+    
+    // Ensure we include the last data point if not already included
+    if (optimized.isNotEmpty && optimized.last != data.last) {
+      optimized.add(data.last);
+    }
+    
+    return optimized;
+  }
 }

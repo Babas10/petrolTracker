@@ -226,36 +226,8 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   @override
   Widget build(BuildContext context) {
-    // WebView is not supported on web platform
-    if (kIsWeb) {
-      return _buildWebFallback(context);
-    }
-
-    Widget content;
-
-    if (_hasError) {
-      content = _buildErrorWidget();
-    } else if (_isLoading) {
-      content = _buildLoadingWidget();
-    } else {
-      content = WebViewWidget(controller: _controller!);
-    }
-
-    return Container(
-      width: widget.width,
-      height: widget.height,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: content,
-      ),
-    );
+    // Use fl_chart fallback for web and mobile platforms (WebView doesn't work reliably on mobile)
+    return _buildWebFallback(context);
   }
 
   Widget _buildLoadingWidget() {
@@ -405,6 +377,205 @@ class _ChartWebViewState extends State<ChartWebView> {
     return optimalTicks.contains(index);
   }
 
+  /// Check if year should be displayed for this index (first occurrence of a year)
+  bool _shouldShowYear(int index) {
+    if (widget.data.isEmpty || index >= widget.data.length) return false;
+    
+    // Always show year for first item
+    if (index == 0) return true;
+    
+    final currentItem = widget.data[index];
+    final previousItem = widget.data[index - 1];
+    
+    // Show year if it's different from previous item's year
+    final currentYear = _getYearForIndex(index);
+    final previousYear = _getYearForIndex(index - 1);
+    
+    return currentYear != previousYear;
+  }
+
+  /// Check if year should be displayed at center position for better alignment
+  bool _shouldShowYearAtCenter(int index) {
+    if (widget.data.isEmpty || index >= widget.data.length) return false;
+    
+    // Group data by year and find center positions
+    final yearGroups = <String, List<int>>{};
+    
+    for (int i = 0; i < widget.data.length; i++) {
+      final year = _getYearForIndex(i);
+      if (year.isNotEmpty) {
+        yearGroups.putIfAbsent(year, () => []).add(i);
+      }
+    }
+    
+    // Check if this index is the center of its year group
+    final currentYear = _getYearForIndex(index);
+    if (currentYear.isEmpty) return false;
+    
+    final yearIndices = yearGroups[currentYear];
+    if (yearIndices == null || yearIndices.isEmpty) return false;
+    
+    // Calculate center index for this year group
+    final centerIndex = yearIndices[yearIndices.length ~/ 2];
+    
+    return index == centerIndex;
+  }
+
+  /// Get year string for given index
+  String _getYearForIndex(int index) {
+    if (widget.data.isEmpty || index >= widget.data.length) return '';
+    
+    final item = widget.data[index];
+    if (item.containsKey('date')) {
+      final dateStr = item['date'] as String;
+      final parts = dateStr.split('-');
+      if (parts.length >= 1) {
+        return parts[0]; // Return year
+      }
+    }
+    
+    return '';
+  }
+
+  /// Build year labels positioned between months for proper centering
+  List<Widget> _buildYearLabels(int index) {
+    final yearRanges = _getYearRanges();
+    final labels = <Widget>[];
+    
+    for (final yearRange in yearRanges) {
+      // Check if this index should show the year label (at the center position)
+      if (index == yearRange['centerIndex']) {
+        // Calculate the horizontal offset to center between first and last month of the year
+        final firstIndex = yearRange['firstIndex'] as int;
+        final lastIndex = yearRange['lastIndex'] as int;
+        final centerPosition = (firstIndex + lastIndex) / 2;
+        final currentPosition = index.toDouble();
+        
+        // Calculate offset in chart units (approximate)
+        final offset = (centerPosition - currentPosition) * 40.0; // 40px per chart unit (approximate)
+        
+        labels.add(
+          Positioned(
+            top: 25, // Lower position for better visual separation
+            left: offset - 15, // Center the text (approximate text width / 2)
+            child: Text(
+              yearRange['year'] as String,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: Theme.of(context).colorScheme.outline,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    return labels;
+  }
+
+  /// Calculate year ranges and their center positions
+  List<Map<String, dynamic>> _getYearRanges() {
+    if (widget.data.isEmpty) return [];
+    
+    final yearGroups = <String, List<int>>{};
+    
+    // Group indices by year
+    for (int i = 0; i < widget.data.length; i++) {
+      final year = _getYearForIndex(i);
+      if (year.isNotEmpty) {
+        yearGroups.putIfAbsent(year, () => []).add(i);
+      }
+    }
+    
+    final yearRanges = <Map<String, dynamic>>[];
+    
+    for (final entry in yearGroups.entries) {
+      final indices = entry.value;
+      indices.sort();
+      
+      final firstIndex = indices.first;
+      final lastIndex = indices.last;
+      final centerIndex = indices[indices.length ~/ 2]; // Middle index for positioning
+      
+      yearRanges.add({
+        'year': entry.key,
+        'firstIndex': firstIndex,
+        'lastIndex': lastIndex,
+        'centerIndex': centerIndex,
+        'count': indices.length,
+      });
+    }
+    
+    return yearRanges;
+  }
+
+  /// Calculate comprehensive Y-axis configuration for clean display
+  Map<String, double> _calculateYAxisConfig() {
+    if (widget.data.isEmpty) {
+      return {'minY': 0.0, 'maxY': 10.0, 'interval': 2.0};
+    }
+    
+    // Find actual min and max values in the data
+    final values = widget.data
+        .map((item) => item['value'] as double? ?? 0.0)
+        .toList();
+    
+    if (values.isEmpty) {
+      return {'minY': 0.0, 'maxY': 10.0, 'interval': 2.0};
+    }
+    
+    final dataMin = values.reduce((a, b) => a < b ? a : b);
+    final dataMax = values.reduce((a, b) => a > b ? a : b);
+    final dataRange = dataMax - dataMin;
+    
+    if (dataRange <= 0) {
+      // If all values are the same, create a small range around the value
+      final center = dataMin;
+      return {
+        'minY': center - 2.0,
+        'maxY': center + 2.0,
+        'interval': 1.0
+      };
+    }
+    
+    // Calculate nice interval (target 4-5 ticks)
+    double interval = dataRange / 4;
+    
+    // Round to nice numbers - more precise logic
+    if (interval <= 0.5) {
+      interval = 0.5;
+    } else if (interval <= 1) {
+      interval = 1.0;
+    } else if (interval <= 1.5) {
+      interval = 1.0;
+    } else if (interval <= 2.5) {
+      interval = 2.0;
+    } else if (interval <= 4) {
+      interval = 2.0;  // Use 2.0 instead of jumping to 5.0
+    } else if (interval <= 7) {
+      interval = 5.0;
+    } else if (interval <= 12) {
+      interval = 10.0;
+    } else {
+      interval = (interval / 10).ceil() * 10.0;
+    }
+    
+    // Calculate nice bounds that include all data
+    final minY = (dataMin / interval).floor() * interval;
+    final maxY = (dataMax / interval).ceil() * interval;
+    
+    // Ensure we have at least some range
+    final finalMinY = minY;
+    final finalMaxY = maxY > minY ? maxY : minY + interval * 2;
+    
+    return {
+      'minY': finalMinY,
+      'maxY': finalMaxY,
+      'interval': interval
+    };
+  }
+
   Widget _buildChartByType(BuildContext context) {
     switch (widget.config.type) {
       case ChartType.line:
@@ -427,8 +598,13 @@ class _ChartWebViewState extends State<ChartWebView> {
       spots.add(FlSpot(i.toDouble(), value));
     }
 
+    // Calculate Y-axis bounds and interval
+    final yAxisConfig = _calculateYAxisConfig();
+
     return LineChart(
       LineChartData(
+        minY: yAxisConfig['minY'],
+        maxY: yAxisConfig['maxY'],
         gridData: FlGridData(
           show: true,
           getDrawingHorizontalLine: (value) => FlLine(
@@ -487,8 +663,9 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
+              interval: yAxisConfig['interval'],
               getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(1),
+                value.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -583,12 +760,14 @@ class _ChartWebViewState extends State<ChartWebView> {
       );
     }
 
+    // Calculate Y-axis bounds and interval
+    final yAxisConfig = _calculateYAxisConfig();
+
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: barGroups.isNotEmpty
-            ? barGroups.map((g) => g.barRods.first.toY).reduce((a, b) => a > b ? a : b) * 1.2
-            : 10,
+        minY: yAxisConfig['minY'],
+        maxY: yAxisConfig['maxY'],
         gridData: FlGridData(
           show: true,
           getDrawingHorizontalLine: (value) => FlLine(
@@ -640,38 +819,67 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              interval: yAxisConfig['interval'],
+              getTitlesWidget: (value, meta) {
+                // Only show ticks that align with our calculated interval
+                final interval = yAxisConfig['interval']!;
+                final minY = yAxisConfig['minY']!;
+                
+                // Check if this value is at a valid interval position
+                final relativeValue = value - minY;
+                final isValidTick = (relativeValue % interval).abs() < 0.01; // Allow small floating point errors
+                
+                if (isValidTick) {
+                  return Text(
+                    value.toStringAsFixed(value % 1 == 0 ? 0 : 1), // Show decimals only when needed
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink(); // Hide invalid ticks
+              },
             ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
-              interval: widget.data.length > 10 ? (widget.data.length / 10).ceilToDouble() : 1,
+              reservedSize: 60, // Increased for month names + year headers with better spacing
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 
-                // Use smart tick selection for better readability
-                if (index >= 0 && index < widget.data.length && _shouldShowTick(index, widget.data.length)) {
+                if (index >= 0 && index < widget.data.length) {
                   final item = widget.data[index];
-                  String label = '';
                   
-                  if (item.containsKey('label')) {
-                    label = item['label'].toString();
-                  } else if (item.containsKey('date')) {
+                  // Extract month name from date or label
+                  String monthLabel = '';
+                  if (item.containsKey('date')) {
                     final dateStr = item['date'] as String;
                     final parts = dateStr.split('-');
                     if (parts.length >= 2) {
-                      label = '${parts[1]}/${parts[2]}';
+                      final month = int.tryParse(parts[1]);
+                      if (month != null && month >= 1 && month <= 12) {
+                        final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        monthLabel = monthNames[month - 1];
+                      }
+                    }
+                  } else if (item.containsKey('label')) {
+                    monthLabel = item['label'].toString();
+                    if (monthLabel.length > 3) {
+                      monthLabel = monthLabel.substring(0, 3);
                     }
                   }
                   
-                  return Text(
-                    label.length > 8 ? label.substring(0, 8) : label,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Month label at top
+                      Text(
+                        monthLabel,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      // Year label positioned between months (if needed)
+                      ..._buildYearLabels(index),
+                    ],
                   );
                 }
                 return const SizedBox.shrink();
@@ -739,8 +947,13 @@ class _ChartWebViewState extends State<ChartWebView> {
       colorIndex++;
     }
 
+    // Calculate Y-axis bounds and interval
+    final yAxisConfig = _calculateYAxisConfig();
+
     return LineChart(
       LineChartData(
+        minY: yAxisConfig['minY'],
+        maxY: yAxisConfig['maxY'],
         gridData: FlGridData(
           show: true,
           getDrawingHorizontalLine: (value) => FlLine(
@@ -799,8 +1012,9 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
+              interval: yAxisConfig['interval'],
               getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(1),
+                value.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
