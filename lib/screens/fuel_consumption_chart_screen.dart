@@ -63,7 +63,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
               child: Column(
                 children: [
                   SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.5, // Give chart a good height
+                    height: MediaQuery.of(context).size.height * 0.4, // Reduced by 20% (0.5 → 0.4)
                     child: _buildChartContent(),
                   ),
                   if (_showStatistics) _buildStatisticsPanel(),
@@ -531,14 +531,23 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              Row(
                 children: [
-                  _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
-                  _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
-                  _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
-                  _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
+                  Expanded(
+                    child: _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
+                  ),
                 ],
               ),
             ],
@@ -581,36 +590,47 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildStatCard(String label, String value, IconData icon) {
-    return SizedBox(
-      width: 110, // Fixed width to prevent overflow in Wrap
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize: 11,
-                ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                  fontSize: 10,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
         ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 12, // Slightly smaller to ensure fitting
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+              fontSize: 10, // Smaller to ensure fitting
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
