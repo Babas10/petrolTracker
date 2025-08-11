@@ -59,14 +59,18 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         children: [
           _buildControlPanel(),
           Expanded(
-            flex: 3, // Give more space to chart
-            child: _buildChartContent(),
-          ),
-          if (_showStatistics)
-            Expanded(
-              flex: 1, // Less space for statistics, positioned lower
-              child: _buildStatisticsPanel(),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5, // Give chart a good height
+                    child: _buildChartContent(),
+                  ),
+                  if (_showStatistics) _buildStatisticsPanel(),
+                ],
+              ),
             ),
+          ),
         ],
       ),
     );
@@ -277,66 +281,70 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
   
   Widget _buildSingleVehicleChartContent(AsyncValue<List<ConsumptionDataPoint>> chartDataAsync) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Chart title with minimal padding
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.timeline,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Consumption Over Time - ${_selectedVehicle!.name}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
+              Icon(
+                Icons.timeline,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(width: 8),
               Expanded(
-                child: chartDataAsync.when(
-                  data: (consumptionData) {
-                    if (consumptionData.isEmpty) {
-                      return _buildEmptyChartPlaceholder();
-                    }
-
-                    // Transform to chart format
-                    final chartData = consumptionData.map((point) => {
-                      'date': point.date.toIso8601String().split('T')[0],
-                      'value': point.consumption,
-                      'km': point.kilometers,
-                    }).toList();
-
-                    return ChartWebView(
-                      data: chartData,
-                      config: ChartConfig(
-                        type: _selectedChartType,
-                        title: 'Fuel Consumption Trend',
-                        xLabel: 'Date',
-                        yLabel: 'Consumption (L/100km)',
-                        unit: 'L/100km',
-                        className: 'consumption-chart',
-                      ),
-                      onChartEvent: _handleChartEvent,
-                      onError: (error) {
-                        debugPrint('Chart error: $error');
-                      },
-                    );
-                  },
-                  loading: () => _buildLoadingPlaceholder(),
-                  error: (error, stack) => _buildErrorPlaceholder(error.toString()),
+                child: Text(
+                  'Consumption Over Time',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ),
-      ),
+        // Chart takes full width with minimal padding
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: chartDataAsync.when(
+              data: (consumptionData) {
+                if (consumptionData.isEmpty) {
+                  return _buildEmptyChartPlaceholder();
+                }
+
+                // Transform to chart format
+                final chartData = consumptionData.map((point) => {
+                  'date': point.date.toIso8601String().split('T')[0],
+                  'value': point.consumption,
+                  'km': point.kilometers,
+                }).toList();
+
+                return ChartWebView(
+                  data: chartData,
+                  config: ChartConfig(
+                    type: _selectedChartType,
+                    title: null, // Remove title since we have it above
+                    xLabel: 'Date',
+                    yLabel: 'Consumption (L/100km)',
+                    unit: 'L/100km',
+                    className: 'consumption-chart',
+                  ),
+                  onChartEvent: _handleChartEvent,
+                  onError: (error) {
+                    debugPrint('Chart error: $error');
+                  },
+                );
+              },
+              loading: () => _buildLoadingPlaceholder(),
+              error: (error, stack) => _buildErrorPlaceholder(error.toString()),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -574,7 +582,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
   Widget _buildStatCard(String label, String value, IconData icon) {
     return SizedBox(
-      width: 110, // Fixed width to prevent overflow
+      width: 110, // Fixed width to prevent overflow in Wrap
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8),
@@ -739,33 +747,8 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     ref.invalidate(consumptionChartDataProvider);
   }
 
-  Future<void> _selectDateRange() async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: _selectedDateRange,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme,
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        _selectedDateRange = picked;
-      });
-    }
-  }
 
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
 
   /// Get date range from selected time period starting from the last fuel entry
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
