@@ -622,13 +622,40 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
-                  _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
-                  _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
-                  _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Use available width to determine how many cards per row
+                  final cardWidth = 120.0;
+                  final spacing = 8.0;
+                  final availableWidth = constraints.maxWidth;
+                  final cardsPerRow = ((availableWidth + spacing) / (cardWidth + spacing)).floor();
+                  
+                  if (cardsPerRow >= 4) {
+                    // All 4 cards in one row
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
+                        _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
+                        _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
+                        _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
+                      ],
+                    );
+                  } else {
+                    // Use wrap for better mobile layout
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _buildStatCard('Average', '${average.toStringAsFixed(1)} L/100km', Icons.analytics),
+                        _buildStatCard('Best', '${minConsumption.toStringAsFixed(1)} L/100km', Icons.trending_down),
+                        _buildStatCard('Worst', '${maxConsumption.toStringAsFixed(1)} L/100km', Icons.trending_up),
+                        _buildStatCard('Distance', '${totalDistance.toStringAsFixed(0)} km', Icons.route),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           );
@@ -670,23 +697,32 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildStatCard(String label, String value, IconData icon) {
-    return Expanded(
+    return SizedBox(
+      width: 120, // Fixed width to ensure consistent sizing
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize: 11, // Slightly smaller to fit better
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
+                  fontSize: 10,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
