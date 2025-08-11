@@ -377,6 +377,7 @@ class _ChartWebViewState extends State<ChartWebView> {
     return optimalTicks.contains(index);
   }
 
+
   /// Check if year should be displayed for this index (first occurrence of a year)
   bool _shouldShowYear(int index) {
     if (widget.data.isEmpty || index >= widget.data.length) return false;
@@ -436,6 +437,7 @@ class _ChartWebViewState extends State<ChartWebView> {
     
     return '';
   }
+
 
   /// Build year labels positioned between months for proper centering
   List<Widget> _buildYearLabels(int index) {
@@ -529,18 +531,13 @@ class _ChartWebViewState extends State<ChartWebView> {
     final dataMax = values.reduce((a, b) => a > b ? a : b);
     final dataRange = dataMax - dataMin;
     
-    if (dataRange <= 0) {
-      // If all values are the same, create a small range around the value
-      final center = dataMin;
-      return {
-        'minY': center - 2.0,
-        'maxY': center + 2.0,
-        'interval': 1.0
-      };
-    }
+    // If dataRange is too small (single point or very close values), artificially expand it
+    final effectiveDataRange = dataRange < 1.0 ? 1.0 : dataRange;
+    final effectiveDataMin = dataRange < 1.0 ? dataMin - 0.5 : dataMin;
+    final effectiveDataMax = dataRange < 1.0 ? dataMax + 0.5 : dataMax;
     
-    // Calculate nice interval (target 4-5 ticks)
-    double interval = dataRange / 4;
+    // Calculate nice interval (target 5 ticks = 4 intervals)
+    double interval = effectiveDataRange / 4;
     
     // Round to nice numbers - more precise logic
     if (interval <= 0.5) {
@@ -562,12 +559,15 @@ class _ChartWebViewState extends State<ChartWebView> {
     }
     
     // Calculate nice bounds that include all data
-    final minY = (dataMin / interval).floor() * interval;
-    final maxY = (dataMax / interval).ceil() * interval;
+    final minY = (effectiveDataMin / interval).floor() * interval;
+    final maxY = (effectiveDataMax / interval).ceil() * interval;
     
-    // Ensure we have at least some range
+    // Ensure we have exactly 4 intervals (5 ticks) minimum
+    final actualRange = maxY - minY;
+    final neededRange = interval * 4; // 4 intervals = 5 ticks
+    
     final finalMinY = minY;
-    final finalMaxY = maxY > minY ? maxY : minY + interval * 2;
+    final finalMaxY = maxY >= minY + neededRange ? maxY : minY + neededRange;
     
     return {
       'minY': finalMinY,
@@ -664,10 +664,23 @@ class _ChartWebViewState extends State<ChartWebView> {
               showTitles: true,
               reservedSize: 40,
               interval: yAxisConfig['interval'],
-              getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              getTitlesWidget: (value, meta) {
+                // Only show ticks that align with our calculated interval
+                final interval = yAxisConfig['interval']!;
+                final minY = yAxisConfig['minY']!;
+                
+                // Check if this value is at a valid interval position
+                final relativeValue = value - minY;
+                final isValidTick = (relativeValue % interval).abs() < 0.01; // Allow small floating point errors
+                
+                if (isValidTick) {
+                  return Text(
+                    value.toStringAsFixed(value % 1 == 0 ? 0 : 1), // Show decimals only when needed
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink(); // Hide invalid ticks
+              },
             ),
           ),
           bottomTitles: AxisTitles(
@@ -1013,10 +1026,23 @@ class _ChartWebViewState extends State<ChartWebView> {
               showTitles: true,
               reservedSize: 40,
               interval: yAxisConfig['interval'],
-              getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              getTitlesWidget: (value, meta) {
+                // Only show ticks that align with our calculated interval
+                final interval = yAxisConfig['interval']!;
+                final minY = yAxisConfig['minY']!;
+                
+                // Check if this value is at a valid interval position
+                final relativeValue = value - minY;
+                final isValidTick = (relativeValue % interval).abs() < 0.01; // Allow small floating point errors
+                
+                if (isValidTick) {
+                  return Text(
+                    value.toStringAsFixed(value % 1 == 0 ? 0 : 1), // Show decimals only when needed
+                    style: Theme.of(context).textTheme.bodySmall,
+                  );
+                }
+                return const SizedBox.shrink(); // Hide invalid ticks
+              },
             ),
           ),
           bottomTitles: AxisTitles(
@@ -1038,6 +1064,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                     if (parts.length >= 2) {
                       label = '${parts[1]}/${parts[2]}';
                     }
+                  } else if (item.containsKey('label')) {
+                    label = item['label'].toString();
                   }
                   
                   return Text(
