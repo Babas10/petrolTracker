@@ -337,32 +337,27 @@ class _ChartWebViewState extends State<ChartWebView> {
   /// Smart tick selection algorithm for x-axis optimization
   /// Returns list of indices that should show labels
   List<int> _getOptimalTickIndices(int dataLength, {int maxTicks = 10}) {
-    if (dataLength <= maxTicks) {
-      // If we have few data points, show all
+    // Issue #70: Smart X-axis labeling
+    if (dataLength <= 5) {
+      // ≤5 data points: Show all actual data point labels
       return List.generate(dataLength, (index) => index);
     }
 
+    // >5 data points: Show exactly 5 equidistant labels
     final ticks = <int>[];
     
     // Always include first and last
     ticks.add(0);
-    if (dataLength > 1) {
-      ticks.add(dataLength - 1);
-    }
-
-    // Calculate how many intermediate ticks we can fit
-    final intermediateTicks = maxTicks - 2; // Subtract first and last
+    ticks.add(dataLength - 1);
     
-    if (intermediateTicks > 0) {
-      // Distribute intermediate ticks evenly across data points
-      for (int i = 1; i <= intermediateTicks; i++) {
-        final position = (dataLength - 1) * i / (intermediateTicks + 1);
-        final index = position.round();
-        
-        // Avoid duplicates with first/last and ensure valid range
-        if (index > 0 && index < dataLength - 1 && !ticks.contains(index)) {
-          ticks.add(index);
-        }
+    // Add 3 intermediate points evenly distributed
+    for (int i = 1; i <= 3; i++) {
+      final position = (dataLength - 1) * i / 4; // Divide into 4 equal sections
+      final index = position.round();
+      
+      // Avoid duplicates and ensure valid range
+      if (index > 0 && index < dataLength - 1 && !ticks.contains(index)) {
+        ticks.add(index);
       }
     }
 
