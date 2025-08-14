@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -511,16 +512,21 @@ class _ChartWebViewState extends State<ChartWebView> {
   }
 
   /// Calculate comprehensive Y-axis configuration for clean display
+  /// Calculate comprehensive Y-axis configuration for clean chart display
+  /// Handles all edge cases: 0 data points, 1 data point, identical values, and large datasets
   Map<String, double> _calculateYAxisConfig() {
+    // Handle empty data - show a meaningful default range
     if (widget.data.isEmpty) {
       return {'minY': 0.0, 'maxY': 10.0, 'interval': 2.0};
     }
     
-    // Find actual min and max values in the data
+    // Extract all numeric values from data
     final values = widget.data
         .map((item) => item['value'] as double? ?? 0.0)
+        .where((value) => value.isFinite) // Filter out NaN and infinity
         .toList();
     
+    // Handle case where no valid values exist
     if (values.isEmpty) {
       return {'minY': 0.0, 'maxY': 10.0, 'interval': 2.0};
     }
@@ -529,51 +535,100 @@ class _ChartWebViewState extends State<ChartWebView> {
     final dataMax = values.reduce((a, b) => a > b ? a : b);
     final dataRange = dataMax - dataMin;
     
-    if (dataRange <= 0) {
-      // If all values are the same, create a small range around the value
+    // Handle identical values (single point or all same values)
+    if (dataRange <= 0.001) { // Use small epsilon for floating point comparison
       final center = dataMin;
-      return {
-        'minY': center - 2.0,
-        'maxY': center + 2.0,
-        'interval': 1.0
-      };
+      
+      // Create appropriate range based on the magnitude of the value
+      if (center.abs() < 1.0) {
+        // For small values (< 1), use 0.5 interval
+        return {
+          'minY': center - 1.0,
+          'maxY': center + 1.0,
+          'interval': 0.5
+        };
+      } else if (center.abs() < 10.0) {
+        // For medium values (1-10), use 1.0 interval
+        return {
+          'minY': center - 2.0,
+          'maxY': center + 2.0,
+          'interval': 1.0
+        };
+      } else {
+        // For larger values (>10), use 20% range with nice interval
+        final range = center.abs() * 0.2;
+        final interval = _calculateNiceInterval(range / 4);
+        return {
+          'minY': center - interval * 2,
+          'maxY': center + interval * 2,
+          'interval': interval
+        };
+      }
     }
     
-    // Calculate nice interval (target 4-5 ticks)
-    double interval = dataRange / 4;
+    // Simple approach: Calculate nice interval and ensure exactly 5 ticks
+    double rawInterval = dataRange / 4; // 4 intervals = 5 ticks
+    double interval = _calculateNiceInterval(rawInterval);
     
-    // Round to nice numbers - more precise logic
-    if (interval <= 0.5) {
-      interval = 0.5;
-    } else if (interval <= 1) {
-      interval = 1.0;
-    } else if (interval <= 1.5) {
-      interval = 1.0;
-    } else if (interval <= 2.5) {
-      interval = 2.0;
-    } else if (interval <= 4) {
-      interval = 2.0;  // Use 2.0 instead of jumping to 5.0
-    } else if (interval <= 7) {
-      interval = 5.0;
-    } else if (interval <= 12) {
-      interval = 10.0;
-    } else {
-      interval = (interval / 10).ceil() * 10.0;
+    // Calculate bounds that encompass all data with some padding
+    double minY = (dataMin / interval).floor() * interval;
+    double maxY = (dataMax / interval).ceil() * interval;
+    
+    // If we don't have exactly 5 ticks, adjust the max bound
+    double currentRange = maxY - minY;
+    int currentTicks = (currentRange / interval).round() + 1;
+    
+    if (currentTicks != 5) {
+      // Force exactly 5 ticks by adjusting maxY
+      maxY = minY + (4 * interval);
+      
+      // If this cuts off data at the top, extend upward
+      if (maxY < dataMax) {
+        int extensionSteps = ((dataMax - maxY) / interval).ceil();
+        maxY += extensionSteps * interval;
+        minY = maxY - (4 * interval);
+      }
+      
+      // If this cuts off data at the bottom, extend downward  
+      if (minY > dataMin) {
+        int extensionSteps = ((minY - dataMin) / interval).ceil();
+        minY -= extensionSteps * interval;
+        maxY = minY + (4 * interval);
+      }
     }
     
-    // Calculate nice bounds that include all data
-    final minY = (dataMin / interval).floor() * interval;
-    final maxY = (dataMax / interval).ceil() * interval;
-    
-    // Ensure we have at least some range
     final finalMinY = minY;
-    final finalMaxY = maxY > minY ? maxY : minY + interval * 2;
+    final finalMaxY = maxY;
+    
     
     return {
       'minY': finalMinY,
       'maxY': finalMaxY,
       'interval': interval
     };
+  }
+  
+  /// Calculate nice interval using proper nice number algorithm
+  double _calculateNiceInterval(double rawInterval) {
+    if (rawInterval <= 0) return 1.0;
+    
+    // Find the power of 10 that contains the interval
+    final magnitude = (math.log(rawInterval) / math.ln10).floor();
+    final normalizedInterval = rawInterval / math.pow(10, magnitude);
+    
+    // Choose nice number: 1, 2, 5, or 10
+    double niceNormalizedInterval;
+    if (normalizedInterval <= 1.0) {
+      niceNormalizedInterval = 1.0;
+    } else if (normalizedInterval <= 2.0) {
+      niceNormalizedInterval = 2.0;
+    } else if (normalizedInterval <= 5.0) {
+      niceNormalizedInterval = 5.0;
+    } else {
+      niceNormalizedInterval = 10.0;
+    }
+    
+    return niceNormalizedInterval * math.pow(10, magnitude);
   }
 
   Widget _buildChartByType(BuildContext context) {
@@ -607,6 +662,7 @@ class _ChartWebViewState extends State<ChartWebView> {
         maxY: yAxisConfig['maxY'],
         gridData: FlGridData(
           show: true,
+          horizontalInterval: yAxisConfig['interval'], // Force grid to use our interval
           getDrawingHorizontalLine: (value) => FlLine(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
             strokeWidth: 1,
@@ -663,11 +719,14 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'],
-              getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
+              getTitlesWidget: (value, meta) {
+                // Simplified approach - just show all ticks that fl_chart provides
+                return Text(
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
           ),
           bottomTitles: AxisTitles(
@@ -819,23 +878,13 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'],
+              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
               getTitlesWidget: (value, meta) {
-                // Only show ticks that align with our calculated interval
-                final interval = yAxisConfig['interval']!;
-                final minY = yAxisConfig['minY']!;
-                
-                // Check if this value is at a valid interval position
-                final relativeValue = value - minY;
-                final isValidTick = (relativeValue % interval).abs() < 0.01; // Allow small floating point errors
-                
-                if (isValidTick) {
-                  return Text(
-                    value.toStringAsFixed(value % 1 == 0 ? 0 : 1), // Show decimals only when needed
-                    style: Theme.of(context).textTheme.bodySmall,
-                  );
-                }
-                return const SizedBox.shrink(); // Hide invalid ticks
+                // Simplified approach - just show all ticks that fl_chart provides
+                return Text(
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
               },
             ),
           ),
@@ -956,6 +1005,7 @@ class _ChartWebViewState extends State<ChartWebView> {
         maxY: yAxisConfig['maxY'],
         gridData: FlGridData(
           show: true,
+          horizontalInterval: yAxisConfig['interval'], // Force grid to use our interval
           getDrawingHorizontalLine: (value) => FlLine(
             color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
             strokeWidth: 1,
@@ -1012,11 +1062,14 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'],
-              getTitlesWidget: (value, meta) => Text(
-                value.toStringAsFixed(0),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
+              getTitlesWidget: (value, meta) {
+                // Simplified approach - just show all ticks that fl_chart provides
+                return Text(
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
             ),
           ),
           bottomTitles: AxisTitles(
