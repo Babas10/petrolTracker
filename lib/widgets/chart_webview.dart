@@ -422,7 +422,10 @@ class _ChartWebViewState extends State<ChartWebView> {
                           .tickValues(yTickValues)
                           .tickSize(-width)
                           .tickFormat('')
-                      );
+                      )
+                      .selectAll('line')
+                      .style('stroke-dasharray', 'none')
+                      .style('stroke', outlineColor);
                   console.log('Horizontal grid lines added');
                   
                   // Add visible vertical grid lines
@@ -435,7 +438,10 @@ class _ChartWebViewState extends State<ChartWebView> {
                           .tickValues(xTickValues)
                           .tickSize(-height)
                           .tickFormat('')
-                      );
+                      )
+                      .selectAll('line')
+                      .style('stroke-dasharray', 'none')
+                      .style('stroke', outlineColor);
                   console.log('Vertical grid lines added');
                   
                   // Add X axis with exactly 5 ticks and system font
