@@ -359,20 +359,50 @@ class _ChartWebViewState extends State<ChartWebView> {
                   
                   console.log('Starting X-axis tick calculation...');
                   
-                  // Create exactly 5 X-axis ticks for better readability
-                  const xTickValues = [];
-                  const totalDataPoints = data.length;
-                  if (totalDataPoints <= 5) {
-                      // Show all data points if 5 or fewer
-                      data.forEach(d => xTickValues.push(d.date));
-                  } else {
-                      // Show exactly 5 evenly distributed dates
-                      for (let i = 0; i < 5; i++) {
-                          const index = Math.round(i * (totalDataPoints - 1) / 4);
-                          xTickValues.push(data[index].date);
+                  // Function to calculate time-based evenly distributed X-labels
+                  function calculateTimeBasedXLabels(data, labelCount = 5) {
+                      if (data.length <= labelCount) {
+                          // Show all actual data points if 5 or fewer
+                          console.log('≤5 data points: using actual data point dates');
+                          return data.map(d => d.date);
                       }
+                      
+                      // Get first and last dates for time range calculation
+                      const firstDate = data[0].date;
+                      const lastDate = data[data.length - 1].date;
+                      
+                      console.log('Time range calculation:', {
+                          firstDate: firstDate.toISOString().split('T')[0],
+                          lastDate: lastDate.toISOString().split('T')[0],
+                          totalDataPoints: data.length
+                      });
+                      
+                      // Calculate total time span and interval
+                      const totalTimeSpan = lastDate.getTime() - firstDate.getTime(); // milliseconds
+                      const timeInterval = totalTimeSpan / (labelCount - 1);
+                      
+                      console.log('Time calculation:', {
+                          totalTimeSpanDays: Math.round(totalTimeSpan / (1000 * 60 * 60 * 24)),
+                          intervalDays: Math.round(timeInterval / (1000 * 60 * 60 * 24))
+                      });
+                      
+                      // Generate evenly spaced dates in time
+                      const timeBasedLabels = [];
+                      for (let i = 0; i < labelCount; i++) {
+                          const calculatedDate = new Date(firstDate.getTime() + (i * timeInterval));
+                          timeBasedLabels.push(calculatedDate);
+                      }
+                      
+                      console.log('Generated time-based labels:', 
+                          timeBasedLabels.map(d => d.toISOString().split('T')[0])
+                      );
+                      
+                      return timeBasedLabels;
                   }
-                  console.log('X-axis ticks calculated');
+                  
+                  // Create exactly 5 time-based X-axis ticks for optimal readability
+                  const xTickValues = calculateTimeBasedXLabels(data, 5);
+                  console.log('X-axis ticks calculated using time-based distribution');
                   
                   // Create exactly 5 Y-axis ticks
                   const yTickValues = [];
