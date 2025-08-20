@@ -284,32 +284,10 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chart title with minimal padding
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Row(
-            children: [
-              Icon(
-                Icons.timeline,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Consumption Over Time',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Chart takes full width with minimal padding
+        // Chart takes full available space with no margins
         Expanded(
           child: Container(
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: chartDataAsync.when(
               data: (consumptionData) {
                 if (consumptionData.isEmpty) {

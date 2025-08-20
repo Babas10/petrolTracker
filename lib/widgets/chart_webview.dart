@@ -203,10 +203,21 @@ class _ChartWebViewState extends State<ChartWebView> {
           <style>
               $cssContent
               
-              /* Ensure chart container fills available space */
-              #chart-container {
+              /* Remove all default margins and padding to eliminate white gaps */
+              html, body {
+                  margin: 0 !important;
+                  padding: 0 !important;
                   width: 100%;
                   height: 100%;
+                  overflow: hidden;
+              }
+              
+              /* Ensure chart container fills ALL available space with no gaps */
+              #chart-container {
+                  width: 100%;
+                  height: 100vh;
+                  margin: 0;
+                  padding: 0;
                   display: flex;
                   flex-direction: column;
               }
@@ -216,11 +227,14 @@ class _ChartWebViewState extends State<ChartWebView> {
                   width: 100%;
                   height: 100%;
                   min-height: 200px;
+                  margin: 0;
+                  padding: 0;
               }
               
               #chart svg {
                   width: 100% !important;
                   height: 100% !important;
+                  display: block;
               }
           </style>
       </head>
@@ -295,9 +309,10 @@ class _ChartWebViewState extends State<ChartWebView> {
                       return;
                   }
                   
-                  // Optimize margins for better space usage (increased bottom for year labels)
-                  const margin = { top: 20, right: 20, bottom: 90, left: 70 };
+                  // Optimize margins for maximum chart space usage (shifted down 3px)
+                  const margin = { top: 38, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
+                  // Use full container height for maximum chart space
                   const height = containerHeight - margin.top - margin.bottom;
                   
                   console.log('Chart dimensions:', { containerWidth, containerHeight, width, height });
@@ -306,16 +321,19 @@ class _ChartWebViewState extends State<ChartWebView> {
                   // Clear any existing content first
                   container.selectAll('*').remove();
                   
-                  // Set the container to fill available space with app background color
+                  // Set the container to fill ALL available space with app surface color
                   container
                       .style('width', '100%')
                       .style('height', '100%')
+                      .style('min-height', '100%')
                       .style('background-color', surfaceColor)
                       .style('position', 'relative')
-                      .style('overflow', 'visible'); // Allow content to extend beyond container if needed
+                      .style('overflow', 'visible')
+                      .style('margin', '0')
+                      .style('padding', '0'); // Ensure no gaps
                   
-                  // Calculate SVG height to include year labels (add extra space for year labels)
-                  const svgHeight = containerHeight + 20; // Extra 20px to ensure year labels are visible
+                  // Use full container height - no extra space calculation needed
+                  const svgHeight = containerHeight;
                   
                   const svg = container.append('svg')
                       .attr('width', containerWidth)
@@ -395,17 +413,30 @@ class _ChartWebViewState extends State<ChartWebView> {
                       .curve(d3.curveMonotoneX);
                   console.log('Generators created');
                   
-                  // Add light grid lines first (behind everything)
-                  console.log('Adding grid lines...');
+                  // Add visible horizontal grid lines first (behind everything)
+                  console.log('Adding horizontal grid lines...');
                   g.append('g')
-                      .attr('class', 'grid')
-                      .attr('opacity', 0.3)
+                      .attr('class', 'grid horizontal-grid')
+                      .attr('opacity', 0.5)
                       .call(d3.axisLeft(yScale)
                           .tickValues(yTickValues)
                           .tickSize(-width)
                           .tickFormat('')
                       );
-                  console.log('Grid lines added');
+                  console.log('Horizontal grid lines added');
+                  
+                  // Add visible vertical grid lines
+                  console.log('Adding vertical grid lines...');
+                  g.append('g')
+                      .attr('class', 'grid vertical-grid')
+                      .attr('opacity', 0.5)
+                      .attr('transform', 'translate(0,' + height + ')')
+                      .call(d3.axisBottom(xScale)
+                          .tickValues(xTickValues)
+                          .tickSize(-height)
+                          .tickFormat('')
+                      );
+                  console.log('Vertical grid lines added');
                   
                   // Add X axis with exactly 5 ticks and system font
                   console.log('Adding X-axis...');
@@ -565,20 +596,19 @@ class _ChartWebViewState extends State<ChartWebView> {
                           tooltip.transition().duration(200).style('opacity', 0);
                       });
                   
-                  // Remove X-axis title to save space for year labels
-                  // (Date title removed to make room for year labels)
-                  
-                  g.append('text')
-                      .attr('class', 'y-label')
-                      .attr('transform', 'rotate(-90)')
-                      .attr('x', -height / 2)
-                      .attr('y', -55)
+                  // Add centered chart title with titleMedium styling (h2/h3 level)
+                  svg.append('text')
+                      .attr('class', 'chart-title')
+                      .attr('x', containerWidth / 2)
+                      .attr('y', 25)
                       .style('text-anchor', 'middle')
-                      .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                      .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
                       .style('font-size', '16px')
-                      .style('font-weight', '600')
+                      .style('font-weight', '500')
+                      .style('line-height', '24px')
+                      .style('letter-spacing', '0.15px')
                       .style('fill', onSurfaceColor)
-                      .text(options.yLabel || 'Consumption (L/100km)');
+                      .text('Consumption (L/100km) Over Time');
                   
                       // Add year axis directly here with access to all variables
                       console.log('Adding year axis with main chart context...');
