@@ -284,6 +284,73 @@ class _ChartWebViewState extends State<ChartWebView> {
                           .style('z-index', 1000);
                   }
                   
+                  // Smart tooltip positioning function
+                  function getSmartTooltipPosition(event, d, containerElement) {
+                      // Get chart container dimensions and position
+                      const chartRect = containerElement.getBoundingClientRect();
+                      const chartWidth = chartRect.width;
+                      const chartMidpoint = chartWidth / 2;
+                      
+                      // Get cursor position relative to chart
+                      const cursorX = event.clientX - chartRect.left;
+                      
+                      // Determine which side of chart we're on
+                      const isRightSide = cursorX >= chartMidpoint;
+                      
+                      // Estimate tooltip dimensions (approximate)
+                      const tooltipWidth = 140; // Approximate width based on content
+                      const tooltipHeight = 40; // Approximate height for 2 lines
+                      
+                      let tooltipX, tooltipY;
+                      
+                      if (isRightSide) {
+                          // Position tooltip to the LEFT of cursor
+                          tooltipX = event.pageX - tooltipWidth - 15; // 15px padding from cursor
+                          console.log('Right side positioning: tooltip to the left');
+                      } else {
+                          // Position tooltip to the RIGHT of cursor (current behavior)
+                          tooltipX = event.pageX + 15; // 15px padding from cursor
+                          console.log('Left side positioning: tooltip to the right');
+                      }
+                      
+                      // Always position tooltip above the cursor
+                      tooltipY = event.pageY - 15;
+                      
+                      // Boundary checking to ensure tooltip stays on screen
+                      const windowWidth = window.innerWidth;
+                      const windowHeight = window.innerHeight;
+                      
+                      // Adjust for right boundary
+                      if (tooltipX + tooltipWidth > windowWidth) {
+                          tooltipX = windowWidth - tooltipWidth - 10;
+                      }
+                      
+                      // Adjust for left boundary
+                      if (tooltipX < 10) {
+                          tooltipX = 10;
+                      }
+                      
+                      // Adjust for top boundary
+                      if (tooltipY < 10) {
+                          tooltipY = event.pageY + 25; // Position below cursor instead
+                      }
+                      
+                      // Adjust for bottom boundary
+                      if (tooltipY + tooltipHeight > windowHeight) {
+                          tooltipY = windowHeight - tooltipHeight - 10;
+                      }
+                      
+                      console.log('Smart tooltip position:', {
+                          cursorX: cursorX,
+                          chartMidpoint: chartMidpoint,
+                          isRightSide: isRightSide,
+                          finalX: tooltipX,
+                          finalY: tooltipY
+                      });
+                      
+                      return { x: tooltipX, y: tooltipY };
+                  }
+                  
                   // Get theme colors with fallbacks
                   const primaryColor = (options.theme && options.theme.primaryColor) || '#10b981'; // Default green
                   const surfaceColor = (options.theme && options.theme.surfaceColor) || '#f7fbf1'; // Light green background
@@ -612,11 +679,14 @@ class _ChartWebViewState extends State<ChartWebView> {
                           const valueText = d.value.toFixed(2);
                           const valueWithUnit = unit ? valueText + ' ' + unit : valueText;
                           
-                          // Show tooltip
+                          // Show tooltip with smart positioning
+                          const chartContainer = document.querySelector('#chart');
+                          const smartPosition = getSmartTooltipPosition(event, d, chartContainer);
+                          
                           tooltip.transition().duration(200).style('opacity', 1);
                           tooltip.html(dateText + '<br/>' + valueWithUnit)
-                              .style('left', (event.pageX + 10) + 'px')
-                              .style('top', (event.pageY - 10) + 'px');
+                              .style('left', smartPosition.x + 'px')
+                              .style('top', smartPosition.y + 'px');
                       })
                       .on('mouseout', function(event, d) {
                           // Reset data point size
