@@ -295,8 +295,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                       return;
                   }
                   
-                  // Optimize margins for better space usage (increased bottom for year labels)
-                  const margin = { top: 20, right: 20, bottom: 90, left: 70 };
+                  // Optimize margins for better space usage (reduced left margin, added top for title)
+                  const margin = { top: 50, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
                   const height = containerHeight - margin.top - margin.bottom;
                   
@@ -565,20 +565,17 @@ class _ChartWebViewState extends State<ChartWebView> {
                           tooltip.transition().duration(200).style('opacity', 0);
                       });
                   
-                  // Remove X-axis title to save space for year labels
-                  // (Date title removed to make room for year labels)
-                  
-                  g.append('text')
-                      .attr('class', 'y-label')
-                      .attr('transform', 'rotate(-90)')
-                      .attr('x', -height / 2)
-                      .attr('y', -55)
+                  // Add centered chart title
+                  svg.append('text')
+                      .attr('class', 'chart-title')
+                      .attr('x', containerWidth / 2)
+                      .attr('y', 25)
                       .style('text-anchor', 'middle')
                       .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
-                      .style('font-size', '16px')
+                      .style('font-size', '18px')
                       .style('font-weight', '600')
                       .style('fill', onSurfaceColor)
-                      .text(options.yLabel || 'Consumption (L/100km)');
+                      .text('Consumption (L/100km) Over Time');
                   
                       // Add year axis directly here with access to all variables
                       console.log('Adding year axis with main chart context...');
