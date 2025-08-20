@@ -309,8 +309,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                       return;
                   }
                   
-                  // Optimize margins for maximum chart space usage
-                  const margin = { top: 35, right: 20, bottom: 90, left: 50 };
+                  // Optimize margins for maximum chart space usage (shifted down 3px)
+                  const margin = { top: 38, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
                   // Use full container height for maximum chart space
                   const height = containerHeight - margin.top - margin.bottom;
@@ -583,15 +583,17 @@ class _ChartWebViewState extends State<ChartWebView> {
                           tooltip.transition().duration(200).style('opacity', 0);
                       });
                   
-                  // Add centered chart title (adjusted position for optimized margins)
+                  // Add centered chart title with app-consistent styling (adjusted for 3px shift)
                   svg.append('text')
                       .attr('class', 'chart-title')
                       .attr('x', containerWidth / 2)
-                      .attr('y', 22)
+                      .attr('y', 25)
                       .style('text-anchor', 'middle')
-                      .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
-                      .style('font-size', '18px')
-                      .style('font-weight', '600')
+                      .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
+                      .style('font-size', '22px')
+                      .style('font-weight', '400')
+                      .style('line-height', '28px')
+                      .style('letter-spacing', '0px')
                       .style('fill', onSurfaceColor)
                       .text('Consumption (L/100km) Over Time');
                   
