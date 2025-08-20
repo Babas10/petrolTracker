@@ -295,8 +295,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                       return;
                   }
                   
-                  // Optimize margins for better space usage (reduced left margin, added top for title)
-                  const margin = { top: 50, right: 20, bottom: 90, left: 50 };
+                  // Optimize margins for better space usage (reduced left margin, minimal top for centered title)
+                  const margin = { top: 40, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
                   const height = containerHeight - margin.top - margin.bottom;
                   
