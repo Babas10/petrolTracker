@@ -203,10 +203,21 @@ class _ChartWebViewState extends State<ChartWebView> {
           <style>
               $cssContent
               
-              /* Ensure chart container fills available space */
-              #chart-container {
+              /* Remove all default margins and padding to eliminate white gaps */
+              html, body {
+                  margin: 0 !important;
+                  padding: 0 !important;
                   width: 100%;
                   height: 100%;
+                  overflow: hidden;
+              }
+              
+              /* Ensure chart container fills ALL available space with no gaps */
+              #chart-container {
+                  width: 100%;
+                  height: 100vh;
+                  margin: 0;
+                  padding: 0;
                   display: flex;
                   flex-direction: column;
               }
@@ -216,11 +227,14 @@ class _ChartWebViewState extends State<ChartWebView> {
                   width: 100%;
                   height: 100%;
                   min-height: 200px;
+                  margin: 0;
+                  padding: 0;
               }
               
               #chart svg {
                   width: 100% !important;
                   height: 100% !important;
+                  display: block;
               }
           </style>
       </head>
@@ -298,8 +312,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                   // Optimize margins for maximum chart space usage
                   const margin = { top: 35, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
-                  // Use extra space for taller chart with longer Y-axis
-                  const height = (containerHeight + 15) - margin.top - margin.bottom;
+                  // Use full container height for maximum chart space
+                  const height = containerHeight - margin.top - margin.bottom;
                   
                   console.log('Chart dimensions:', { containerWidth, containerHeight, width, height });
                   console.log('Parent dimensions:', { parentWidth: parentElement.clientWidth, parentHeight: parentElement.clientHeight });
@@ -307,16 +321,19 @@ class _ChartWebViewState extends State<ChartWebView> {
                   // Clear any existing content first
                   container.selectAll('*').remove();
                   
-                  // Set the container to fill available space with app background color
+                  // Set the container to fill ALL available space with app surface color
                   container
                       .style('width', '100%')
                       .style('height', '100%')
+                      .style('min-height', '100%')
                       .style('background-color', surfaceColor)
                       .style('position', 'relative')
-                      .style('overflow', 'visible'); // Allow content to extend beyond container if needed
+                      .style('overflow', 'visible')
+                      .style('margin', '0')
+                      .style('padding', '0'); // Ensure no gaps
                   
-                  // Expand SVG height to use all available space including the white strip area
-                  const svgHeight = containerHeight + 35; // Extra space to use the white area below chart
+                  // Use full container height - no extra space calculation needed
+                  const svgHeight = containerHeight;
                   
                   const svg = container.append('svg')
                       .attr('width', containerWidth)

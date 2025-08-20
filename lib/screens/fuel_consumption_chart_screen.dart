@@ -284,11 +284,10 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Chart takes full width with minimal padding
+        // Chart takes full available space with no margins
         Expanded(
           child: Container(
             width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: chartDataAsync.when(
               data: (consumptionData) {
                 if (consumptionData.isEmpty) {
