@@ -241,7 +241,7 @@ class ChartManager {
 
         const svg = container.append('svg')
             .attr('width', containerRect.width)
-            .attr('height', containerRect.height);
+            .attr('height', containerRect.height + 70); // Extra height for year axis
 
         const g = svg.append('g')
             .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
@@ -304,6 +304,105 @@ class ChartManager {
             .on('mouseover', (event, d) => this.showTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
+
+        // Add year axis functionality
+        try {
+            // AGGRESSIVE DOM CLEARING - find all possible year elements
+            console.log('D3.js: Before clearing - existing elements:');
+            console.log('- .year-axis:', document.querySelectorAll('.year-axis').length);
+            console.log('- .year-label:', document.querySelectorAll('.year-label').length);
+            console.log('- .year-label-test:', document.querySelectorAll('.year-label-test').length);
+            console.log('- All text elements:', document.querySelectorAll('svg text').length);
+            
+            // Clear using multiple methods
+            d3.selectAll('.year-axis').remove();
+            d3.selectAll('.year-label').remove();
+            d3.selectAll('.year-label-test').remove();
+            
+            // Also clear any text elements that might contain years
+            document.querySelectorAll('svg text').forEach(text => {
+                if (text.textContent && /^\d{4}$/.test(text.textContent.trim())) {
+                    console.log('Found and removing year text element:', text.textContent, text);
+                    text.remove();
+                }
+            });
+            
+            console.log('D3.js: After clearing - remaining text elements:', document.querySelectorAll('svg text').length);
+            
+            // Extract unique years from data
+            const years = [...new Set(data.map(d => d.date.getFullYear()))].sort();
+            console.log('D3.js: Adding year axis with years:', years);
+            console.log('D3.js: Current timestamp for cache busting:', Date.now());
+            
+            if (years.length > 0) {
+                // Calculate year positions
+                let yearData;
+                if (years.length === 1) {
+                    yearData = [{ year: years[0], position: width / 2 }];
+                } else {
+                    const intervalWidth = width / years.length;
+                    yearData = years.map((year, index) => ({
+                        year: year,
+                        position: (index * intervalWidth) + (intervalWidth / 2)
+                    }));
+                }
+                
+                // Position year axis below the main x-axis
+                const yearAxisY = height + 50; // Below x-axis labels
+                
+                // Create year axis group
+                const yearAxisGroup = g.append('g')
+                    .attr('class', 'year-axis')
+                    .attr('transform', `translate(0,${yearAxisY})`);
+                
+                console.log('D3.js: TESTING - NOT creating new year labels to test clearing');
+                console.log('D3.js: If you still see year labels, they are old cached elements');
+                
+                // TEMPORARILY COMMENTED OUT - uncomment after testing clearing
+                /*
+                // Add year labels with direct DOM manipulation for testing
+                const yearLabels = yearAxisGroup.selectAll('.year-label')
+                    .data(yearData)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'year-label-test')
+                    .attr('x', d => d.position)
+                    .attr('y', 0)
+                    .attr('dy', '0.35em')
+                    .text(d => d.year);
+                
+                // Force styles with direct DOM manipulation
+                yearLabels.each(function() {
+                    const element = this;
+                    element.style.setProperty('text-anchor', 'middle', 'important');
+                    element.style.setProperty('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', 'important');
+                    element.style.setProperty('font-size', '20px', 'important');
+                    element.style.setProperty('font-weight', 'bold', 'important');
+                    element.style.setProperty('fill', 'green', 'important');
+                    element.style.setProperty('color', 'green', 'important');
+                });
+                
+                console.log('D3.js: Year axis added with forced DOM styling');
+                */
+                
+                // Debug: Log actual computed styles after a brief delay
+                setTimeout(() => {
+                    const yearLabels = document.querySelectorAll('.year-label-test');
+                    yearLabels.forEach((label, i) => {
+                        const computedStyle = window.getComputedStyle(label);
+                        console.log(`Year label ${i} computed styles:`, {
+                            color: computedStyle.color,
+                            fontSize: computedStyle.fontSize,
+                            fontWeight: computedStyle.fontWeight,
+                            fill: label.style.fill,
+                            position: label.getBoundingClientRect()
+                        });
+                    });
+                }, 100);
+            }
+        } catch (yearError) {
+            console.error('D3.js: Error adding year axis:', yearError);
+        }
 
         // Add title
         if (options.title) {
