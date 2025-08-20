@@ -295,10 +295,11 @@ class _ChartWebViewState extends State<ChartWebView> {
                       return;
                   }
                   
-                  // Optimize margins for better space usage (reduced left margin, minimal top for centered title)
-                  const margin = { top: 40, right: 20, bottom: 90, left: 50 };
+                  // Optimize margins for maximum chart space usage
+                  const margin = { top: 35, right: 20, bottom: 90, left: 50 };
                   const width = containerWidth - margin.left - margin.right;
-                  const height = containerHeight - margin.top - margin.bottom;
+                  // Use extra space for taller chart with longer Y-axis
+                  const height = (containerHeight + 15) - margin.top - margin.bottom;
                   
                   console.log('Chart dimensions:', { containerWidth, containerHeight, width, height });
                   console.log('Parent dimensions:', { parentWidth: parentElement.clientWidth, parentHeight: parentElement.clientHeight });
@@ -314,8 +315,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                       .style('position', 'relative')
                       .style('overflow', 'visible'); // Allow content to extend beyond container if needed
                   
-                  // Calculate SVG height to include year labels (add extra space for year labels)
-                  const svgHeight = containerHeight + 20; // Extra 20px to ensure year labels are visible
+                  // Expand SVG height to use all available space including the white strip area
+                  const svgHeight = containerHeight + 35; // Extra space to use the white area below chart
                   
                   const svg = container.append('svg')
                       .attr('width', containerWidth)
@@ -565,11 +566,11 @@ class _ChartWebViewState extends State<ChartWebView> {
                           tooltip.transition().duration(200).style('opacity', 0);
                       });
                   
-                  // Add centered chart title
+                  // Add centered chart title (adjusted position for optimized margins)
                   svg.append('text')
                       .attr('class', 'chart-title')
                       .attr('x', containerWidth / 2)
-                      .attr('y', 25)
+                      .attr('y', 22)
                       .style('text-anchor', 'middle')
                       .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
                       .style('font-size', '18px')
