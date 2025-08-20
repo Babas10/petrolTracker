@@ -304,9 +304,9 @@ class _ChartWebViewState extends State<ChartWebView> {
                       let tooltipX, tooltipY;
                       
                       if (isRightSide) {
-                          // Position tooltip to the LEFT of cursor
-                          tooltipX = event.pageX - tooltipWidth - 15; // 15px padding from cursor
-                          console.log('Right side positioning: tooltip to the left');
+                          // Position tooltip to the LEFT of cursor (closer positioning)
+                          tooltipX = event.pageX - tooltipWidth + 5; // Bring tooltip closer, only 5px gap
+                          console.log('Right side positioning: tooltip to the left (close)');
                       } else {
                           // Position tooltip to the RIGHT of cursor (current behavior)
                           tooltipX = event.pageX + 15; // 15px padding from cursor
