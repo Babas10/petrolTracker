@@ -583,17 +583,17 @@ class _ChartWebViewState extends State<ChartWebView> {
                           tooltip.transition().duration(200).style('opacity', 0);
                       });
                   
-                  // Add centered chart title with app-consistent styling (adjusted for 3px shift)
+                  // Add centered chart title with titleMedium styling (h2/h3 level)
                   svg.append('text')
                       .attr('class', 'chart-title')
                       .attr('x', containerWidth / 2)
                       .attr('y', 25)
                       .style('text-anchor', 'middle')
                       .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
-                      .style('font-size', '22px')
-                      .style('font-weight', '400')
-                      .style('line-height', '28px')
-                      .style('letter-spacing', '0px')
+                      .style('font-size', '16px')
+                      .style('font-weight', '500')
+                      .style('line-height', '24px')
+                      .style('letter-spacing', '0.15px')
                       .style('fill', onSurfaceColor)
                       .text('Consumption (L/100km) Over Time');
                   
