@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+// No conditional imports - handle platform differences in code
+
 /// Chart types supported by the WebView
 enum ChartType {
   line,
@@ -124,6 +126,13 @@ class _ChartWebViewState extends State<ChartWebView> {
             setState(() {
               _isLoading = false;
             });
+            // Give D3.js a moment to initialize, then mark as ready
+            Future.delayed(const Duration(milliseconds: 500), () {
+              print('WebView page finished loading, marking as ready');
+              _isWebViewReady = true;
+              _renderChart();
+              widget.onChartReady?.call();
+            });
           },
           onWebResourceError: (WebResourceError error) {
             setState(() {
@@ -147,12 +156,27 @@ class _ChartWebViewState extends State<ChartWebView> {
         'chartEvent',
         onMessageReceived: (JavaScriptMessage message) {
           try {
+            if (message.message.isEmpty) return;
+            
             final data = jsonDecode(message.message) as Map<String, dynamic>;
-            final eventType = data['eventType'] as String;
+            final eventType = data['eventType'] as String? ?? data['type'] as String?;
             final eventData = data['data'] as Map<String, dynamic>? ?? {};
-            widget.onChartEvent?.call(eventType, eventData);
+            
+            if (eventType == 'log') {
+              // Print D3.js console logs to Flutter console
+              print('D3.js: ${data['message']}');
+            } else if (eventType == 'ready') {
+              // Handle ready signal from D3.js
+              print('D3.js ready signal received!');
+              _isWebViewReady = true;
+              _renderChart();
+              widget.onChartReady?.call();
+            } else if (eventType != null) {
+              widget.onChartEvent?.call(eventType, eventData);
+            }
           } catch (e) {
             debugPrint('Error parsing chart event: $e');
+            debugPrint('Message was: ${message.message}');
           }
         },
       );
@@ -162,16 +186,507 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   Future<void> _loadHtmlAsset() async {
     try {
+      // Load all the required assets
       final String htmlContent = await rootBundle.loadString('assets/charts/index.html');
-      final String baseUrl = Platform.isAndroid 
-          ? 'file:///android_asset/flutter_assets/assets/charts/'
-          : 'assets/charts/';
+      final String jsContent = await rootBundle.loadString('assets/charts/charts.js');
+      final String cssContent = await rootBundle.loadString('assets/charts/styles.css');
       
-      await _controller!.loadHtmlString(
-        htmlContent,
-        baseUrl: baseUrl,
-      );
+      // Create self-contained HTML with inline CSS and JS
+      final String completeHtml = '''
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Petrol Tracker Charts</title>
+          <script src="https://d3js.org/d3.v7.min.js"></script>
+          <style>
+              $cssContent
+              
+              /* Ensure chart container fills available space */
+              #chart-container {
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+              }
+              
+              #chart {
+                  flex: 1;
+                  width: 100%;
+                  height: 100%;
+                  min-height: 200px;
+              }
+              
+              #chart svg {
+                  width: 100% !important;
+                  height: 100% !important;
+              }
+          </style>
+      </head>
+      <body>
+          <div id="chart-container">
+              <div id="loading" class="loading">
+                  <div class="loading-spinner"></div>
+                  <p>Loading chart...</p>
+              </div>
+              <div id="error" class="error hidden">
+                  <div class="error-icon">⚠️</div>
+                  <p class="error-message">Error loading chart</p>
+                  <button class="retry-button" onclick="window.chartManager.retryChart()">Retry</button>
+              </div>
+              <div id="chart" class="chart hidden"></div>
+          </div>
+
+          <script>$jsContent</script>
+          <script>
+              // Override the renderAreaChart method for optimal space usage and styling
+              ChartManager.prototype.renderAreaChart = function(data, options) {
+                  console.log('Custom renderAreaChart called with', data.length, 'data points');
+                  console.log('Theme colors:', options.theme);
+                  
+                  // Prevent re-entry during rendering
+                  if (this._rendering) {
+                      console.log('Already rendering, skipping duplicate call');
+                      return;
+                  }
+                  this._rendering = true;
+                  
+                  try {
+                      // Create tooltip div if it doesn't exist
+                  let tooltip = d3.select('body').select('.d3-tooltip');
+                  if (tooltip.empty()) {
+                      tooltip = d3.select('body').append('div')
+                          .attr('class', 'd3-tooltip')
+                          .style('position', 'absolute')
+                          .style('background', 'rgba(0, 0, 0, 0.8)')
+                          .style('color', 'white')
+                          .style('padding', '8px 12px')
+                          .style('border-radius', '4px')
+                          .style('font-size', '12px')
+                          .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                          .style('pointer-events', 'none')
+                          .style('opacity', 0)
+                          .style('z-index', 1000);
+                  }
+                  
+                  // Get theme colors with fallbacks
+                  const primaryColor = (options.theme && options.theme.primaryColor) || '#10b981'; // Default green
+                  const surfaceColor = (options.theme && options.theme.surfaceColor) || '#f7fbf1'; // Light green background
+                  const onSurfaceColor = (options.theme && options.theme.onSurfaceColor) || '#374151';
+                  const outlineColor = (options.theme && options.theme.outlineColor) || '#9ca3af';
+                  
+                  const container = d3.select('#chart');
+                  
+                  // Get parent element dimensions for responsive sizing with retry mechanism
+                  const parentElement = container.node().parentElement;
+                  let containerWidth = parentElement.clientWidth || 400;
+                  let containerHeight = parentElement.clientHeight || 300;
+                  
+                  // If dimensions are too small, wait and retry (fixes initial loading issue)
+                  if (containerWidth < 100 || containerHeight < 100) {
+                      console.log('Container too small, retrying in 100ms...');
+                      setTimeout(() => {
+                          if (parentElement.clientWidth > 100 && parentElement.clientHeight > 100) {
+                              console.log('Retrying chart render with proper dimensions');
+                              this.renderAreaChart(data, options);
+                          }
+                      }, 100);
+                      return;
+                  }
+                  
+                  // Optimize margins for better space usage (increased bottom for year labels)
+                  const margin = { top: 20, right: 20, bottom: 90, left: 70 };
+                  const width = containerWidth - margin.left - margin.right;
+                  const height = containerHeight - margin.top - margin.bottom;
+                  
+                  console.log('Chart dimensions:', { containerWidth, containerHeight, width, height });
+                  console.log('Parent dimensions:', { parentWidth: parentElement.clientWidth, parentHeight: parentElement.clientHeight });
+                  
+                  // Clear any existing content first
+                  container.selectAll('*').remove();
+                  
+                  // Set the container to fill available space with app background color
+                  container
+                      .style('width', '100%')
+                      .style('height', '100%')
+                      .style('background-color', surfaceColor)
+                      .style('position', 'relative')
+                      .style('overflow', 'visible'); // Allow content to extend beyond container if needed
+                  
+                  // Calculate SVG height to include year labels (add extra space for year labels)
+                  const svgHeight = containerHeight + 20; // Extra 20px to ensure year labels are visible
+                  
+                  const svg = container.append('svg')
+                      .attr('width', containerWidth)
+                      .attr('height', svgHeight)
+                      .attr('viewBox', '0 0 ' + containerWidth + ' ' + svgHeight)
+                      .attr('preserveAspectRatio', 'xMidYMid meet')
+                      .style('width', '100%')
+                      .style('height', '100%')
+                      .style('display', 'block')
+                      .style('background-color', surfaceColor)
+                      .style('max-width', '100%')
+                      .style('max-height', '100%')
+                      .style('overflow', 'visible'); // Ensure content isn't clipped
+                      
+                  const g = svg.append('g')
+                      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                  
+                  // Parse dates and values
+                  const parseDate = d3.timeParse('%Y-%m-%d');
+                  data.forEach(d => {
+                      d.date = parseDate(d.date) || new Date(d.date);
+                      d.value = +d.value;
+                  });
+                  
+                  console.log('Parsed data range:', d3.extent(data, d => d.value));
+                  
+                  // Create scales with smart Y-axis bounds
+                  const xScale = d3.scaleTime()
+                      .domain(d3.extent(data, d => d.date))
+                      .range([0, width]);
+                  
+                  const yExtent = d3.extent(data, d => d.value);
+                  const yMin = Math.floor(yExtent[0] * 2) / 2; // Round down to nearest 0.5
+                  const yMax = Math.ceil(yExtent[1] * 2) / 2;  // Round up to nearest 0.5
+                  
+                  const yScale = d3.scaleLinear()
+                      .domain([yMin, yMax])
+                      .range([height, 0]);
+                  
+                  console.log('Y-axis domain:', [yMin, yMax]);
+                  
+                  console.log('Starting X-axis tick calculation...');
+                  
+                  // Create exactly 5 X-axis ticks for better readability
+                  const xTickValues = [];
+                  const totalDataPoints = data.length;
+                  if (totalDataPoints <= 5) {
+                      // Show all data points if 5 or fewer
+                      data.forEach(d => xTickValues.push(d.date));
+                  } else {
+                      // Show exactly 5 evenly distributed dates
+                      for (let i = 0; i < 5; i++) {
+                          const index = Math.round(i * (totalDataPoints - 1) / 4);
+                          xTickValues.push(data[index].date);
+                      }
+                  }
+                  console.log('X-axis ticks calculated');
+                  
+                  // Create exactly 5 Y-axis ticks
+                  const yTickValues = [];
+                  for (let i = 0; i < 5; i++) {
+                      yTickValues.push(yMin + (yMax - yMin) * i / 4);
+                  }
+                  console.log('Y-axis ticks calculated');
+                  
+                  // Area and line generators
+                  console.log('Creating area and line generators...');
+                  const area = d3.area()
+                      .x(d => xScale(d.date))
+                      .y0(height)
+                      .y1(d => yScale(d.value))
+                      .curve(d3.curveMonotoneX);
+                      
+                  const line = d3.line()
+                      .x(d => xScale(d.date))
+                      .y(d => yScale(d.value))
+                      .curve(d3.curveMonotoneX);
+                  console.log('Generators created');
+                  
+                  // Add light grid lines first (behind everything)
+                  console.log('Adding grid lines...');
+                  g.append('g')
+                      .attr('class', 'grid')
+                      .attr('opacity', 0.3)
+                      .call(d3.axisLeft(yScale)
+                          .tickValues(yTickValues)
+                          .tickSize(-width)
+                          .tickFormat('')
+                      );
+                  console.log('Grid lines added');
+                  
+                  // Add X axis with exactly 5 ticks and system font
+                  console.log('Adding X-axis...');
+                  g.append('g')
+                      .attr('class', 'x-axis')
+                      .attr('transform', 'translate(0,' + height + ')')
+                      .call(d3.axisBottom(xScale)
+                          .tickValues(xTickValues)
+                          .tickFormat(d3.timeFormat('%m/%d')))
+                      .selectAll('text')
+                      .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                      .style('font-size', '13px')
+                      .style('font-weight', '500')
+                      .style('fill', onSurfaceColor)
+                      .attr('dy', '1.35em'); // Move labels 1 pixel down (from default 0.35em to 1.35em)
+                  console.log('X-axis added');
+                  
+                  // Style X axis line and ticks
+                  console.log('Styling X-axis...');
+                  g.select('.x-axis')
+                      .selectAll('path, line')
+                      .style('stroke', outlineColor);
+                  console.log('X-axis styled');
+                  
+                  // Year axis is now handled by the separate addYearAxis method
+                  console.log('Year axis handled by addYearAxis method');
+                  
+                  // Add Y axis with exactly 5 ticks and system font
+                  console.log('Adding Y-axis...');
+                  g.append('g')
+                      .attr('class', 'y-axis')
+                      .call(d3.axisLeft(yScale)
+                          .tickValues(yTickValues)
+                          .tickFormat(d3.format('.1f')))
+                      .selectAll('text')
+                      .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                      .style('font-size', '13px')
+                      .style('font-weight', '500')
+                      .style('fill', onSurfaceColor);
+                  console.log('Y-axis added');
+                  
+                  // Style Y axis line and ticks
+                  g.select('.y-axis')
+                      .selectAll('path, line')
+                      .style('stroke', outlineColor);
+                  
+                  console.log('X-axis tick values:', xTickValues);
+                  console.log('Y-axis tick values:', yTickValues);
+                  
+                  // Calculate year positioning for second X-axis layer
+                  let yearData = [];
+                  console.log('Starting year calculation...');
+                  
+                  try {
+                      // Extract years from parsed dates
+                      const yearSet = new Set();
+                      data.forEach((d, index) => {
+                          if (d.date && typeof d.date === 'object' && d.date.getFullYear) {
+                              const year = d.date.getFullYear();
+                              yearSet.add(year);
+                          }
+                      });
+                      
+                      const years = Array.from(yearSet).sort((a, b) => a - b);
+                      console.log('Extracted years:', years);
+                      
+                      // Position years in the middle of equal intervals
+                      if (years.length === 1) {
+                          // Single year - center of entire X-axis
+                          yearData = [{ year: years[0], position: width / 2 }];
+                      } else {
+                          // Multiple years - divide X-axis into n equal intervals
+                          const intervalWidth = width / years.length;
+                          yearData = years.map((year, index) => ({
+                              year: year,
+                              position: (index * intervalWidth) + (intervalWidth / 2)
+                          }));
+                      }
+                      
+                      console.log('Year data calculated:', yearData);
+                  } catch (error) {
+                      console.error('Error in year calculation:', error);
+                      yearData = [];
+                  }
+                  
+                  console.log('Year positioning:', yearData);
+                  
+                  // Add area with gradient using theme colors
+                  const gradient = svg.append('defs')
+                      .append('linearGradient')
+                      .attr('id', 'areaGradient')
+                      .attr('gradientUnits', 'userSpaceOnUse')
+                      .attr('x1', 0).attr('y1', margin.top + height)
+                      .attr('x2', 0).attr('y2', margin.top);
+                  
+                  gradient.append('stop')
+                      .attr('offset', '0%')
+                      .attr('stop-color', primaryColor)
+                      .attr('stop-opacity', 0.1);
+                  
+                  gradient.append('stop')
+                      .attr('offset', '100%')
+                      .attr('stop-color', primaryColor)
+                      .attr('stop-opacity', 0.4);
+                  
+                  g.append('path')
+                      .datum(data)
+                      .attr('class', 'area')
+                      .attr('d', area)
+                      .style('fill', 'url(#areaGradient)');
+                  
+                  // Add line using theme color
+                  g.append('path')
+                      .datum(data)
+                      .attr('class', 'line')
+                      .attr('d', line)
+                      .style('fill', 'none')
+                      .style('stroke', primaryColor)
+                      .style('stroke-width', 3);
+                  
+                  // Add circles for each data point using theme colors
+                  g.selectAll('.dot')
+                      .data(data)
+                      .enter().append('circle')
+                      .attr('class', 'dot')
+                      .attr('cx', d => xScale(d.date))
+                      .attr('cy', d => yScale(d.value))
+                      .attr('r', 4)
+                      .style('fill', primaryColor)
+                      .style('stroke', surfaceColor)
+                      .style('stroke-width', 2)
+                      .style('cursor', 'pointer')
+                      .on('mouseover', function(event, d) {
+                          // Enlarge the data point
+                          d3.select(this).attr('r', 6);
+                          
+                          // Format the date
+                          const formatDate = d3.timeFormat('%B %d, %Y');
+                          const dateText = formatDate(d.date);
+                          
+                          // Format the value with unit
+                          const unit = options.unit || '';
+                          const valueText = d.value.toFixed(2);
+                          const valueWithUnit = unit ? valueText + ' ' + unit : valueText;
+                          
+                          // Show tooltip
+                          tooltip.transition().duration(200).style('opacity', 1);
+                          tooltip.html(dateText + '<br/>' + valueWithUnit)
+                              .style('left', (event.pageX + 10) + 'px')
+                              .style('top', (event.pageY - 10) + 'px');
+                      })
+                      .on('mouseout', function(event, d) {
+                          // Reset data point size
+                          d3.select(this).attr('r', 4);
+                          
+                          // Hide tooltip
+                          tooltip.transition().duration(200).style('opacity', 0);
+                      });
+                  
+                  // Remove X-axis title to save space for year labels
+                  // (Date title removed to make room for year labels)
+                  
+                  g.append('text')
+                      .attr('class', 'y-label')
+                      .attr('transform', 'rotate(-90)')
+                      .attr('x', -height / 2)
+                      .attr('y', -55)
+                      .style('text-anchor', 'middle')
+                      .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                      .style('font-size', '16px')
+                      .style('font-weight', '600')
+                      .style('fill', onSurfaceColor)
+                      .text(options.yLabel || 'Consumption (L/100km)');
+                  
+                      // Add year axis directly here with access to all variables
+                      console.log('Adding year axis with main chart context...');
+                      
+                      if (yearData.length > 0) {
+                          try {
+                              console.log('Creating year axis group with yearData:', yearData);
+                              
+                              // Create year axis group positioned below x-axis
+                              const yearAxisY = height + 50; // Below x-axis labels
+                              console.log('Year axis positioned at:', yearAxisY, 'chart height:', height);
+                              
+                              const yearAxisGroup = g.append('g')
+                                  .attr('class', 'year-axis')
+                                  .attr('transform', 'translate(0,' + yearAxisY + ')');
+                              
+                              // Add year labels with normal styling
+                              const labels = yearAxisGroup.selectAll('.year-label')
+                                  .data(yearData)
+                                  .enter()
+                                  .append('text')
+                                  .attr('class', 'year-label')
+                                  .attr('x', d => d.position)
+                                  .attr('y', 0)
+                                  .attr('dy', '0.35em')
+                                  .style('text-anchor', 'middle')
+                                  .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                                  .style('font-size', '13px')
+                                  .style('font-weight', 'normal')
+                                  .style('fill', '#666')
+                                  .text(d => d.year);
+                              
+                              console.log('Year labels created:', labels.size(), 'elements');
+                              console.log('Year axis added successfully in main context');
+                          } catch (yearError) {
+                              console.error('Year axis error:', yearError);
+                          }
+                      } else {
+                          console.log('No year data available for axis creation');
+                      }
+                      
+                      console.log('Optimized area chart rendered successfully');
+                      
+                  } catch (error) {
+                      console.error('Error in renderAreaChart:', error);
+                      console.error('Error stack:', error.stack);
+                  } finally {
+                      this._rendering = false;
+                  }
+              };
+          </script>
+          <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                  console.log('D3.js DOM ready, initializing ChartManager...');
+                  window.chartManager = new ChartManager();
+                  console.log('ChartManager created');
+                  
+                  // Override console.log to send logs to Flutter
+                  const originalLog = console.log;
+                  console.log = function(...args) {
+                      originalLog.apply(console, args);
+                      if (window.chartEvent) {
+                          window.chartEvent.postMessage(JSON.stringify({
+                              type: 'log',
+                              message: args.join(' ')
+                          }));
+                      }
+                  };
+                  
+                  // Send ready signal to Flutter
+                  if (window.flutter_inappwebview) {
+                      console.log('Sending ready signal via flutter_inappwebview...');
+                      window.flutter_inappwebview.callHandler('onChartReady');
+                  } else {
+                      console.log('Sending ready signal via chartEvent...');
+                      // Fallback - send ready message via postMessage
+                      setTimeout(() => {
+                          console.log('Sending ready via postMessage...');
+                          window.postMessage(JSON.stringify({
+                              type: 'ready',
+                              message: 'Chart system ready'
+                          }), '*');
+                      }, 100);
+                  }
+              });
+
+              window.addEventListener('message', function(event) {
+                  console.log('D3.js received message:', event.data);
+                  if (event.data && window.chartManager) {
+                      try {
+                          const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                          console.log('Parsed message data:', data);
+                          window.chartManager.handleFlutterMessage(data);
+                      } catch (e) {
+                          console.error('Error parsing message:', e, 'Raw data:', event.data);
+                      }
+                  }
+              });
+          </script>
+      </body>
+      </html>
+      ''';
+      
+      print('Loading self-contained chart HTML...');
+      
+      await _controller!.loadHtmlString(completeHtml);
     } catch (e) {
+      print('Error loading chart HTML: $e');
       setState(() {
         _hasError = true;
         _errorMessage = 'Failed to load chart: $e';
@@ -182,27 +697,13 @@ class _ChartWebViewState extends State<ChartWebView> {
   }
 
   void _renderChart() {
-    if (!_isWebViewReady || widget.data.isEmpty) return;
-
-    final message = {
-      'type': 'renderChart',
-      'chartType': widget.config.type.name,
-      'data': widget.data,
-      'options': widget.config.toJson(),
-    };
-
-    _sendMessageToWebView(message);
+    print('_renderChart called: ready=$_isWebViewReady, dataCount=${widget.data.length}');
+    _sendDataToMobileWebView();
   }
 
   void _updateChart() {
-    if (!_isWebViewReady) return;
-
-    final message = {
-      'type': 'updateData',
-      'data': widget.data,
-    };
-
-    _sendMessageToWebView(message);
+    print('_updateChart called');
+    _sendDataToMobileWebView();
   }
 
   void _sendMessageToWebView(Map<String, dynamic> message) {
@@ -227,8 +728,13 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   @override
   Widget build(BuildContext context) {
-    // Use fl_chart fallback for web and mobile platforms (WebView doesn't work reliably on mobile)
-    return _buildWebFallback(context);
+    // Use D3.js WebView for area charts on mobile platforms only
+    // Keep fl_chart for other chart types and web platform until fully migrated
+    if (kIsWeb || widget.config.type != ChartType.area) {
+      return _buildWebFallback(context);
+    } else {
+      return _buildWebViewForMobile(context);
+    }
   }
 
   Widget _buildLoadingWidget() {
@@ -249,6 +755,96 @@ class _ChartWebViewState extends State<ChartWebView> {
         ],
       ),
     );
+  }
+
+  Widget _buildWebFallback(BuildContext context) {
+    return Container(
+      width: widget.width,
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: widget.data.isNotEmpty
+            ? _buildFlChart(context)
+            : _buildEmptyChart(context),
+      ),
+    );
+  }
+
+  Widget _buildFlChart(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.config.title != null) ...[
+            Text(
+              widget.config.title!,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          Expanded(
+            child: _buildChartByType(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebViewForMobile(BuildContext context) {
+    // For iOS/Android, use WebView with D3.js charts
+    if (_controller == null) {
+      return _buildLoadingWidget();
+    }
+
+    return WebViewWidget(controller: _controller!);
+  }
+  
+  void _sendDataToMobileWebView() {
+    if (!_isWebViewReady || widget.data.isEmpty) {
+      print('Not ready to send data: ready=$_isWebViewReady, dataCount=${widget.data.length}');
+      return;
+    }
+    
+    // Get Flutter theme colors to pass to D3.js
+    final theme = Theme.of(context);
+    final primaryColor = '#${theme.colorScheme.primary.value.toRadixString(16).substring(2)}';
+    final surfaceColor = '#${theme.colorScheme.surface.value.toRadixString(16).substring(2)}';
+    final onSurfaceColor = '#${theme.colorScheme.onSurface.value.toRadixString(16).substring(2)}';
+    final outlineColor = '#${theme.colorScheme.outline.value.toRadixString(16).substring(2)}';
+    
+    // Send chart data to D3.js in mobile WebView
+    final message = {
+      'type': 'renderChart',
+      'chartType': widget.config.type.name,
+      'data': widget.data,
+      'options': {
+        'title': widget.config.title,
+        'xLabel': widget.config.xLabel,
+        'yLabel': widget.config.yLabel,
+        'unit': widget.config.unit,
+        'className': widget.config.className,
+        'theme': {
+          'primaryColor': primaryColor,
+          'surfaceColor': surfaceColor,
+          'onSurfaceColor': onSurfaceColor,
+          'outlineColor': outlineColor,
+        }
+      }
+    };
+    
+    print('Sending chart data: ${widget.data.length} points, type: ${widget.config.type.name}');
+    
+    _controller?.runJavaScript('window.postMessage(${jsonEncode(jsonEncode(message))}, "*");');
   }
 
   Widget _buildErrorWidget() {
@@ -535,6 +1131,11 @@ class _ChartWebViewState extends State<ChartWebView> {
     final dataMax = values.reduce((a, b) => a > b ? a : b);
     final dataRange = dataMax - dataMin;
     
+    // DEBUG: Print actual data values and range
+    print('🔍 Y-AXIS DEBUG:');
+    print('  Data values: $values');
+    print('  DataMin: $dataMin, DataMax: $dataMax, Range: $dataRange');
+    
     // Handle identical values (single point or all same values)
     if (dataRange <= 0.001) { // Use small epsilon for floating point comparison
       final center = dataMin;
@@ -555,9 +1156,8 @@ class _ChartWebViewState extends State<ChartWebView> {
           'interval': 1.0
         };
       } else {
-        // For larger values (>10), use 20% range with nice interval
-        final range = center.abs() * 0.2;
-        final interval = _calculateNiceInterval(range / 4);
+        // For larger values (>10), use simple interval
+        final interval = center.abs() * 0.1; // 10% of value as interval
         return {
           'minY': center - interval * 2,
           'maxY': center + interval * 2,
@@ -566,69 +1166,34 @@ class _ChartWebViewState extends State<ChartWebView> {
       }
     }
     
-    // Simple approach: Calculate nice interval and ensure exactly 5 ticks
-    double rawInterval = dataRange / 4; // 4 intervals = 5 ticks
-    double interval = _calculateNiceInterval(rawInterval);
+    // Control exact Y-axis labels
+    final minY = _roundDown(dataMin, 0.5); // Round down to nearest 0.5
+    final maxY = _roundUp(dataMax, 0.5);   // Round up to nearest 0.5
+    final interval = (maxY - minY) / 4;    // 4 intervals for exactly 5 labels
     
-    // Calculate bounds that encompass all data with some padding
-    double minY = (dataMin / interval).floor() * interval;
-    double maxY = (dataMax / interval).ceil() * interval;
+    // Use very small interval to force fl_chart to generate all possible ticks
+    final flInterval = 0.01; // Very small to generate many ticks, we'll filter in getTitlesWidget
     
-    // If we don't have exactly 5 ticks, adjust the max bound
-    double currentRange = maxY - minY;
-    int currentTicks = (currentRange / interval).round() + 1;
-    
-    if (currentTicks != 5) {
-      // Force exactly 5 ticks by adjusting maxY
-      maxY = minY + (4 * interval);
-      
-      // If this cuts off data at the top, extend upward
-      if (maxY < dataMax) {
-        int extensionSteps = ((dataMax - maxY) / interval).ceil();
-        maxY += extensionSteps * interval;
-        minY = maxY - (4 * interval);
-      }
-      
-      // If this cuts off data at the bottom, extend downward  
-      if (minY > dataMin) {
-        int extensionSteps = ((minY - dataMin) / interval).ceil();
-        minY -= extensionSteps * interval;
-        maxY = minY + (4 * interval);
-      }
-    }
-    
-    final finalMinY = minY;
-    final finalMaxY = maxY;
-    
+    print('  FORCE-TICK Y-AXIS: dataMin=$dataMin→$minY, dataMax=$dataMax→$maxY');
+    print('  Our interval: $interval, fl_chart interval: $flInterval (force all ticks)');
+    print('  Expected labels: $minY, ${minY + interval}, ${minY + 2*interval}, ${minY + 3*interval}, ${minY + 4*interval}');
+    print('');
     
     return {
-      'minY': finalMinY,
-      'maxY': finalMaxY,
-      'interval': interval
+      'minY': minY,
+      'maxY': maxY,
+      'interval': flInterval  // Very small to force many ticks
     };
   }
   
-  /// Calculate nice interval using proper nice number algorithm
-  double _calculateNiceInterval(double rawInterval) {
-    if (rawInterval <= 0) return 1.0;
-    
-    // Find the power of 10 that contains the interval
-    final magnitude = (math.log(rawInterval) / math.ln10).floor();
-    final normalizedInterval = rawInterval / math.pow(10, magnitude);
-    
-    // Choose nice number: 1, 2, 5, or 10
-    double niceNormalizedInterval;
-    if (normalizedInterval <= 1.0) {
-      niceNormalizedInterval = 1.0;
-    } else if (normalizedInterval <= 2.0) {
-      niceNormalizedInterval = 2.0;
-    } else if (normalizedInterval <= 5.0) {
-      niceNormalizedInterval = 5.0;
-    } else {
-      niceNormalizedInterval = 10.0;
-    }
-    
-    return niceNormalizedInterval * math.pow(10, magnitude);
+  /// Round value down to nearest step (e.g., 6.05 with step 0.5 → 6.0)
+  double _roundDown(double value, double step) {
+    return (value / step).floor() * step;
+  }
+  
+  /// Round value up to nearest step (e.g., 7.7 with step 0.5 → 8.0)
+  double _roundUp(double value, double step) {
+    return (value / step).ceil() * step;
   }
 
   Widget _buildChartByType(BuildContext context) {
@@ -719,11 +1284,28 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
               getTitlesWidget: (value, meta) {
-                // Simplified approach - just show all ticks that fl_chart provides
+                // Calculate our 5 exact labels
+                final minY = yAxisConfig['minY']!;
+                final maxY = yAxisConfig['maxY']!;
+                final ourInterval = (maxY - minY) / 4;
+                
+                final exactLabels = [
+                  minY,                        // 5.5
+                  minY + ourInterval,          // 6.125
+                  minY + 2 * ourInterval,      // 6.75  
+                  minY + 3 * ourInterval,      // 7.375
+                  minY + 4 * ourInterval       // 8.0 (maxY)
+                ];
+                
+                // Only show if value exactly matches one of our labels
+                if (!exactLabels.any((label) => (value - label).abs() < 0.001)) {
+                  return const SizedBox.shrink();
+                }
+                
+                // Format nicely
                 return Text(
-                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : (value * 10) % 1 == 0 ? 1 : 2),
                   style: Theme.of(context).textTheme.bodySmall,
                 );
               },
@@ -878,11 +1460,28 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
               getTitlesWidget: (value, meta) {
-                // Simplified approach - just show all ticks that fl_chart provides
+                // Calculate our 5 exact labels
+                final minY = yAxisConfig['minY']!;
+                final maxY = yAxisConfig['maxY']!;
+                final ourInterval = (maxY - minY) / 4;
+                
+                final exactLabels = [
+                  minY,                        // 5.5
+                  minY + ourInterval,          // 6.125
+                  minY + 2 * ourInterval,      // 6.75  
+                  minY + 3 * ourInterval,      // 7.375
+                  minY + 4 * ourInterval       // 8.0 (maxY)
+                ];
+                
+                // Only show if value exactly matches one of our labels
+                if (!exactLabels.any((label) => (value - label).abs() < 0.001)) {
+                  return const SizedBox.shrink();
+                }
+                
+                // Format nicely
                 return Text(
-                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : (value * 10) % 1 == 0 ? 1 : 2),
                   style: Theme.of(context).textTheme.bodySmall,
                 );
               },
@@ -1062,11 +1661,28 @@ class _ChartWebViewState extends State<ChartWebView> {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: yAxisConfig['interval'], // Keep the interval parameter - it's needed!
               getTitlesWidget: (value, meta) {
-                // Simplified approach - just show all ticks that fl_chart provides
+                // Calculate our 5 exact labels
+                final minY = yAxisConfig['minY']!;
+                final maxY = yAxisConfig['maxY']!;
+                final ourInterval = (maxY - minY) / 4;
+                
+                final exactLabels = [
+                  minY,                        // 5.5
+                  minY + ourInterval,          // 6.125
+                  minY + 2 * ourInterval,      // 6.75  
+                  minY + 3 * ourInterval,      // 7.375
+                  minY + 4 * ourInterval       // 8.0 (maxY)
+                ];
+                
+                // Only show if value exactly matches one of our labels
+                if (!exactLabels.any((label) => (value - label).abs() < 0.001)) {
+                  return const SizedBox.shrink();
+                }
+                
+                // Format nicely
                 return Text(
-                  value.toStringAsFixed(value % 1 == 0 ? 0 : 1),
+                  value.toStringAsFixed(value % 1 == 0 ? 0 : (value * 10) % 1 == 0 ? 1 : 2),
                   style: Theme.of(context).textTheme.bodySmall,
                 );
               },
