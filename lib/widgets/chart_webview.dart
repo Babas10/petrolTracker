@@ -413,17 +413,30 @@ class _ChartWebViewState extends State<ChartWebView> {
                       .curve(d3.curveMonotoneX);
                   console.log('Generators created');
                   
-                  // Add light grid lines first (behind everything)
-                  console.log('Adding grid lines...');
+                  // Add light horizontal grid lines first (behind everything)
+                  console.log('Adding horizontal grid lines...');
                   g.append('g')
-                      .attr('class', 'grid')
+                      .attr('class', 'grid horizontal-grid')
                       .attr('opacity', 0.3)
                       .call(d3.axisLeft(yScale)
                           .tickValues(yTickValues)
                           .tickSize(-width)
                           .tickFormat('')
                       );
-                  console.log('Grid lines added');
+                  console.log('Horizontal grid lines added');
+                  
+                  // Add light vertical grid lines
+                  console.log('Adding vertical grid lines...');
+                  g.append('g')
+                      .attr('class', 'grid vertical-grid')
+                      .attr('opacity', 0.3)
+                      .attr('transform', 'translate(0,' + height + ')')
+                      .call(d3.axisBottom(xScale)
+                          .tickValues(xTickValues)
+                          .tickSize(-height)
+                          .tickFormat('')
+                      );
+                  console.log('Vertical grid lines added');
                   
                   // Add X axis with exactly 5 ticks and system font
                   console.log('Adding X-axis...');
