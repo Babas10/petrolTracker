@@ -888,49 +888,6 @@ class _ChartWebViewState extends State<ChartWebView> {
     );
   }
 
-  Widget _buildWebFallback(BuildContext context) {
-    return Container(
-      width: widget.width,
-      height: widget.height,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: widget.data.isNotEmpty
-            ? _buildFlChart(context)
-            : _buildEmptyChart(context),
-      ),
-    );
-  }
-
-  Widget _buildFlChart(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (widget.config.title != null) ...[
-            Text(
-              widget.config.title!,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          Expanded(
-            child: _buildChartByType(context),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Smart tick selection algorithm for x-axis optimization
   /// Returns list of indices that should show labels
   List<int> _getOptimalTickIndices(int dataLength, {int maxTicks = 10}) {
