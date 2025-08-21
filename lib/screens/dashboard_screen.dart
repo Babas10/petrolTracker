@@ -258,7 +258,7 @@ class _ChartSection extends ConsumerWidget {
                   return ChartWebView(
                     data: chartData.toChartData(),
                     config: const ChartConfig(
-                      type: ChartType.line,
+                      type: ChartType.area,
                       title: 'Fuel Consumption Over Time',
                       xLabel: 'Date',
                       yLabel: 'Consumption (L/100km)',
