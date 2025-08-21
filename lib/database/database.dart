@@ -18,7 +18,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -43,12 +43,13 @@ class AppDatabase extends _$AppDatabase {
         ''');
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Future migration logic will go here
-        // Example:
-        // if (from < 2) {
-        //   // Migration from v1 to v2
-        //   await m.addColumn(fuelEntries, fuelEntries.newColumn);
-        // }
+        if (from < 2) {
+          // Migration from v1 to v2: Add is_full_tank column
+          await m.addColumn(fuelEntries, fuelEntries.isFullTank);
+          
+          // Set all existing entries as full tank (backward compatibility)
+          await customStatement('UPDATE fuel_entries SET is_full_tank = 1 WHERE is_full_tank IS NULL');
+        }
       },
       beforeOpen: (details) async {
         // Enable foreign keys

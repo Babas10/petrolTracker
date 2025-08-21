@@ -12,6 +12,7 @@ class FuelEntryModel {
   final String country;
   final double pricePerLiter;
   final double? consumption;
+  final bool isFullTank;
 
   const FuelEntryModel({
     this.id,
@@ -23,6 +24,7 @@ class FuelEntryModel {
     required this.country,
     required this.pricePerLiter,
     this.consumption,
+    this.isFullTank = true,
   });
 
   /// Creates a FuelEntryModel from a Drift FuelEntry entity
@@ -37,6 +39,7 @@ class FuelEntryModel {
       country: entity.country,
       pricePerLiter: entity.pricePerLiter,
       consumption: entity.consumption,
+      isFullTank: entity.isFullTank,
     );
   }
 
@@ -50,6 +53,7 @@ class FuelEntryModel {
     required String country,
     required double pricePerLiter,
     double? consumption,
+    bool isFullTank = true,
   }) {
     return FuelEntryModel(
       vehicleId: vehicleId,
@@ -60,20 +64,22 @@ class FuelEntryModel {
       country: country,
       pricePerLiter: pricePerLiter,
       consumption: consumption,
+      isFullTank: isFullTank,
     );
   }
 
   /// Converts to Drift FuelEntriesCompanion for database operations
   FuelEntriesCompanion toCompanion() {
-    return FuelEntriesCompanion.insert(
-      vehicleId: vehicleId,
-      date: date,
-      currentKm: currentKm,
-      fuelAmount: fuelAmount,
-      price: price,
-      country: country,
-      pricePerLiter: pricePerLiter,
+    return FuelEntriesCompanion(
+      vehicleId: Value(vehicleId),
+      date: Value(date),
+      currentKm: Value(currentKm),
+      fuelAmount: Value(fuelAmount),
+      price: Value(price),
+      country: Value(country),
+      pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
+      isFullTank: Value(isFullTank),
     );
   }
 
@@ -89,6 +95,7 @@ class FuelEntryModel {
       country: Value(country),
       pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
+      isFullTank: Value(isFullTank),
     );
   }
 
@@ -117,12 +124,17 @@ class FuelEntryModel {
   }
 
   /// Validates fuel entry data
-  List<String> validate({double? previousKm}) {
+  List<String> validate({double? previousKm, bool isFirstEntry = false}) {
     final errors = <String>[];
 
     // Vehicle ID validation
     if (vehicleId <= 0) {
       errors.add('Vehicle ID must be valid');
+    }
+
+    // First entry must be full tank
+    if (isFirstEntry && !isFullTank) {
+      errors.add('First fuel entry for a vehicle must be a full tank fill-up');
     }
 
     // Date validation
@@ -181,7 +193,7 @@ class FuelEntryModel {
   }
 
   /// Returns true if the fuel entry data is valid
-  bool isValid({double? previousKm}) => validate(previousKm: previousKm).isEmpty;
+  bool isValid({double? previousKm, bool isFirstEntry = false}) => validate(previousKm: previousKm, isFirstEntry: isFirstEntry).isEmpty;
 
   /// Calculated properties
   
@@ -211,6 +223,7 @@ class FuelEntryModel {
     String? country,
     double? pricePerLiter,
     double? consumption,
+    bool? isFullTank,
   }) {
     return FuelEntryModel(
       id: id ?? this.id,
@@ -222,6 +235,7 @@ class FuelEntryModel {
       country: country ?? this.country,
       pricePerLiter: pricePerLiter ?? this.pricePerLiter,
       consumption: consumption ?? this.consumption,
+      isFullTank: isFullTank ?? this.isFullTank,
     );
   }
 
@@ -237,7 +251,8 @@ class FuelEntryModel {
         other.price == price &&
         other.country == country &&
         other.pricePerLiter == pricePerLiter &&
-        other.consumption == consumption;
+        other.consumption == consumption &&
+        other.isFullTank == isFullTank;
   }
 
   @override
@@ -252,11 +267,12 @@ class FuelEntryModel {
       country,
       pricePerLiter,
       consumption,
+      isFullTank,
     );
   }
 
   @override
   String toString() {
-    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption)';
+    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption, isFullTank: $isFullTank)';
   }
 }

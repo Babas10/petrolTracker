@@ -38,6 +38,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
   bool _isLoading = false;
   double? _previousKm;
   bool _autoCalculatePricePerLiter = true;
+  bool _isFullTank = true;
+  bool _isFirstEntryForVehicle = false;
 
   @override
   void initState() {
@@ -90,6 +92,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
               _buildKilometersSection(),
               const SizedBox(height: 24),
               _buildFuelAmountSection(),
+              const SizedBox(height: 24),
+              _buildFullTankSection(),
               const SizedBox(height: 24),
               _buildPriceSection(),
               const SizedBox(height: 24),
@@ -334,6 +338,133 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
             return null;
           },
         ),
+      ],
+    );
+  }
+
+  Widget _buildFullTankSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Fill-up Type *',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: _isFirstEntryForVehicle && !_isFullTank 
+                ? Theme.of(context).colorScheme.error 
+                : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+            ),
+            borderRadius: BorderRadius.circular(8),
+            color: _isFirstEntryForVehicle && !_isFullTank 
+              ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.1)
+              : null,
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _isFullTank ? Icons.local_gas_station : Icons.local_gas_station_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isFullTank ? 'Full Tank' : 'Partial Refuel',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          _isFullTank 
+                            ? 'Tank filled to capacity'
+                            : 'Partial fuel addition',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _isFullTank,
+                    onChanged: _isFirstEntryForVehicle 
+                      ? null // Disable switch for first entry
+                      : (value) {
+                          setState(() {
+                            _isFullTank = value;
+                          });
+                        },
+                  ),
+                ],
+              ),
+              if (_isFirstEntryForVehicle && !_isFullTank) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'First entry for a vehicle must be a full tank',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (!_isFullTank) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Consumption will be calculated when you complete a full tank',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -588,6 +719,7 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       if (latestEntry != null) {
         setState(() {
           _previousKm = latestEntry.currentKm;
+          _isFirstEntryForVehicle = false;
         });
       } else {
         // If no previous entry, get initial km from vehicle
@@ -595,6 +727,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
         if (vehicle != null) {
           setState(() {
             _previousKm = vehicle.initialKm;
+            _isFirstEntryForVehicle = true;
+            _isFullTank = true; // Force full tank for first entry
           });
         }
       }
@@ -602,6 +736,7 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       // Handle error silently or show a subtle warning
       setState(() {
         _previousKm = null;
+        _isFirstEntryForVehicle = false;
       });
     }
   }
@@ -655,10 +790,14 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
               previousKm: _previousKm!,
             )
           : null,
+        isFullTank: _isFullTank,
       );
       
       // Validate the entry
-      final validationErrors = fuelEntry.validate(previousKm: _previousKm);
+      final validationErrors = fuelEntry.validate(
+        previousKm: _previousKm,
+        isFirstEntry: _isFirstEntryForVehicle,
+      );
       if (validationErrors.isNotEmpty) {
         _showError(validationErrors.first);
         return;

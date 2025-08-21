@@ -42,6 +42,11 @@ class FuelEntries extends Table {
   /// and the fuel amount for this entry. Can be null for the first entry.
   RealColumn get consumption => real().nullable()();
 
+  /// Indicates whether this was a full tank fill-up or a partial refuel
+  /// Used for accurate consumption calculation - only full-to-full periods are used
+  /// First entry for a vehicle must always be a full tank
+  BoolColumn get isFullTank => boolean().withDefault(const Constant(true))();
+
   // Primary key is automatically set by autoIncrement()
 
   @override
