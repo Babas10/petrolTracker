@@ -7,7 +7,7 @@ part of 'chart_providers.dart';
 // **************************************************************************
 
 String _$consumptionChartDataHash() =>
-    r'473bb4d1f0afe3e1d9524ecacf6dcce9f08f4c17';
+    r'a479704261fd7d33c8a7c47c51386695c2058611';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,22 +31,26 @@ class _SystemHash {
 }
 
 /// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionChartData].
 @ProviderFor(consumptionChartData)
 const consumptionChartDataProvider = ConsumptionChartDataFamily();
 
 /// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionChartData].
 class ConsumptionChartDataFamily
     extends Family<AsyncValue<List<ConsumptionDataPoint>>> {
   /// Provider for consumption chart data for a specific vehicle
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionChartData].
   const ConsumptionChartDataFamily();
 
   /// Provider for consumption chart data for a specific vehicle
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionChartData].
   ConsumptionChartDataProvider call(
@@ -91,11 +95,13 @@ class ConsumptionChartDataFamily
 }
 
 /// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionChartData].
 class ConsumptionChartDataProvider
     extends AutoDisposeFutureProvider<List<ConsumptionDataPoint>> {
   /// Provider for consumption chart data for a specific vehicle
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionChartData].
   ConsumptionChartDataProvider(
@@ -1859,25 +1865,29 @@ class _PeriodAverageConsumptionDataProviderElement
 }
 
 String _$consumptionStatisticsHash() =>
-    r'8d440d9f6844a129ba185490099cb1ab2475b852';
+    r'362dd492f2fbe29d44e2828c95d5cfb1e6d6233f';
 
 /// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionStatistics].
 @ProviderFor(consumptionStatistics)
 const consumptionStatisticsProvider = ConsumptionStatisticsFamily();
 
 /// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionStatistics].
 class ConsumptionStatisticsFamily
     extends Family<AsyncValue<Map<String, double>>> {
   /// Provider for overall consumption statistics
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionStatistics].
   const ConsumptionStatisticsFamily();
 
   /// Provider for overall consumption statistics
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionStatistics].
   ConsumptionStatisticsProvider call(
@@ -1922,11 +1932,13 @@ class ConsumptionStatisticsFamily
 }
 
 /// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
 ///
 /// Copied from [consumptionStatistics].
 class ConsumptionStatisticsProvider
     extends AutoDisposeFutureProvider<Map<String, double>> {
   /// Provider for overall consumption statistics
+  /// Uses period-based consumption calculation (full tank to full tank)
   ///
   /// Copied from [consumptionStatistics].
   ConsumptionStatisticsProvider(

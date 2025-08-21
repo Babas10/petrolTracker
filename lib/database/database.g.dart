@@ -421,6 +421,21 @@ class $FuelEntriesTable extends FuelEntries
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isFullTankMeta = const VerificationMeta(
+    'isFullTank',
+  );
+  @override
+  late final GeneratedColumn<bool> isFullTank = GeneratedColumn<bool>(
+    'is_full_tank',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_full_tank" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -432,6 +447,7 @@ class $FuelEntriesTable extends FuelEntries
     country,
     pricePerLiter,
     consumption,
+    isFullTank,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -516,6 +532,15 @@ class $FuelEntriesTable extends FuelEntries
         ),
       );
     }
+    if (data.containsKey('is_full_tank')) {
+      context.handle(
+        _isFullTankMeta,
+        isFullTank.isAcceptableOrUnknown(
+          data['is_full_tank']!,
+          _isFullTankMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -561,6 +586,10 @@ class $FuelEntriesTable extends FuelEntries
         DriftSqlType.double,
         data['${effectivePrefix}consumption'],
       ),
+      isFullTank: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_full_tank'],
+      )!,
     );
   }
 
@@ -604,6 +633,11 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
   /// This is calculated based on the distance traveled since the last entry
   /// and the fuel amount for this entry. Can be null for the first entry.
   final double? consumption;
+
+  /// Indicates whether this was a full tank fill-up or a partial refuel
+  /// Used for accurate consumption calculation - only full-to-full periods are used
+  /// First entry for a vehicle must always be a full tank
+  final bool isFullTank;
   const FuelEntry({
     required this.id,
     required this.vehicleId,
@@ -614,6 +648,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
     required this.country,
     required this.pricePerLiter,
     this.consumption,
+    required this.isFullTank,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -629,6 +664,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
     if (!nullToAbsent || consumption != null) {
       map['consumption'] = Variable<double>(consumption);
     }
+    map['is_full_tank'] = Variable<bool>(isFullTank);
     return map;
   }
 
@@ -645,6 +681,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
       consumption: consumption == null && nullToAbsent
           ? const Value.absent()
           : Value(consumption),
+      isFullTank: Value(isFullTank),
     );
   }
 
@@ -663,6 +700,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
       country: serializer.fromJson<String>(json['country']),
       pricePerLiter: serializer.fromJson<double>(json['pricePerLiter']),
       consumption: serializer.fromJson<double?>(json['consumption']),
+      isFullTank: serializer.fromJson<bool>(json['isFullTank']),
     );
   }
   @override
@@ -678,6 +716,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
       'country': serializer.toJson<String>(country),
       'pricePerLiter': serializer.toJson<double>(pricePerLiter),
       'consumption': serializer.toJson<double?>(consumption),
+      'isFullTank': serializer.toJson<bool>(isFullTank),
     };
   }
 
@@ -691,6 +730,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
     String? country,
     double? pricePerLiter,
     Value<double?> consumption = const Value.absent(),
+    bool? isFullTank,
   }) => FuelEntry(
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
@@ -701,6 +741,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
     country: country ?? this.country,
     pricePerLiter: pricePerLiter ?? this.pricePerLiter,
     consumption: consumption.present ? consumption.value : this.consumption,
+    isFullTank: isFullTank ?? this.isFullTank,
   );
   FuelEntry copyWithCompanion(FuelEntriesCompanion data) {
     return FuelEntry(
@@ -719,6 +760,9 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
       consumption: data.consumption.present
           ? data.consumption.value
           : this.consumption,
+      isFullTank: data.isFullTank.present
+          ? data.isFullTank.value
+          : this.isFullTank,
     );
   }
 
@@ -733,7 +777,8 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
           ..write('price: $price, ')
           ..write('country: $country, ')
           ..write('pricePerLiter: $pricePerLiter, ')
-          ..write('consumption: $consumption')
+          ..write('consumption: $consumption, ')
+          ..write('isFullTank: $isFullTank')
           ..write(')'))
         .toString();
   }
@@ -749,6 +794,7 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
     country,
     pricePerLiter,
     consumption,
+    isFullTank,
   );
   @override
   bool operator ==(Object other) =>
@@ -762,7 +808,8 @@ class FuelEntry extends DataClass implements Insertable<FuelEntry> {
           other.price == this.price &&
           other.country == this.country &&
           other.pricePerLiter == this.pricePerLiter &&
-          other.consumption == this.consumption);
+          other.consumption == this.consumption &&
+          other.isFullTank == this.isFullTank);
 }
 
 class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
@@ -775,6 +822,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
   final Value<String> country;
   final Value<double> pricePerLiter;
   final Value<double?> consumption;
+  final Value<bool> isFullTank;
   const FuelEntriesCompanion({
     this.id = const Value.absent(),
     this.vehicleId = const Value.absent(),
@@ -785,6 +833,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
     this.country = const Value.absent(),
     this.pricePerLiter = const Value.absent(),
     this.consumption = const Value.absent(),
+    this.isFullTank = const Value.absent(),
   });
   FuelEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -796,6 +845,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
     required String country,
     required double pricePerLiter,
     this.consumption = const Value.absent(),
+    this.isFullTank = const Value.absent(),
   }) : vehicleId = Value(vehicleId),
        date = Value(date),
        currentKm = Value(currentKm),
@@ -813,6 +863,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
     Expression<String>? country,
     Expression<double>? pricePerLiter,
     Expression<double>? consumption,
+    Expression<bool>? isFullTank,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -824,6 +875,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
       if (country != null) 'country': country,
       if (pricePerLiter != null) 'price_per_liter': pricePerLiter,
       if (consumption != null) 'consumption': consumption,
+      if (isFullTank != null) 'is_full_tank': isFullTank,
     });
   }
 
@@ -837,6 +889,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
     Value<String>? country,
     Value<double>? pricePerLiter,
     Value<double?>? consumption,
+    Value<bool>? isFullTank,
   }) {
     return FuelEntriesCompanion(
       id: id ?? this.id,
@@ -848,6 +901,7 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
       country: country ?? this.country,
       pricePerLiter: pricePerLiter ?? this.pricePerLiter,
       consumption: consumption ?? this.consumption,
+      isFullTank: isFullTank ?? this.isFullTank,
     );
   }
 
@@ -881,6 +935,9 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
     if (consumption.present) {
       map['consumption'] = Variable<double>(consumption.value);
     }
+    if (isFullTank.present) {
+      map['is_full_tank'] = Variable<bool>(isFullTank.value);
+    }
     return map;
   }
 
@@ -895,7 +952,8 @@ class FuelEntriesCompanion extends UpdateCompanion<FuelEntry> {
           ..write('price: $price, ')
           ..write('country: $country, ')
           ..write('pricePerLiter: $pricePerLiter, ')
-          ..write('consumption: $consumption')
+          ..write('consumption: $consumption, ')
+          ..write('isFullTank: $isFullTank')
           ..write(')'))
         .toString();
   }
@@ -1199,6 +1257,7 @@ typedef $$FuelEntriesTableCreateCompanionBuilder =
       required String country,
       required double pricePerLiter,
       Value<double?> consumption,
+      Value<bool> isFullTank,
     });
 typedef $$FuelEntriesTableUpdateCompanionBuilder =
     FuelEntriesCompanion Function({
@@ -1211,6 +1270,7 @@ typedef $$FuelEntriesTableUpdateCompanionBuilder =
       Value<String> country,
       Value<double> pricePerLiter,
       Value<double?> consumption,
+      Value<bool> isFullTank,
     });
 
 final class $$FuelEntriesTableReferences
@@ -1283,6 +1343,11 @@ class $$FuelEntriesTableFilterComposer
 
   ColumnFilters<double> get consumption => $composableBuilder(
     column: $table.consumption,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isFullTank => $composableBuilder(
+    column: $table.isFullTank,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1359,6 +1424,11 @@ class $$FuelEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isFullTank => $composableBuilder(
+    column: $table.isFullTank,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$VehiclesTableOrderingComposer get vehicleId {
     final $$VehiclesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -1419,6 +1489,11 @@ class $$FuelEntriesTableAnnotationComposer
 
   GeneratedColumn<double> get consumption => $composableBuilder(
     column: $table.consumption,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isFullTank => $composableBuilder(
+    column: $table.isFullTank,
     builder: (column) => column,
   );
 
@@ -1483,6 +1558,7 @@ class $$FuelEntriesTableTableManager
                 Value<String> country = const Value.absent(),
                 Value<double> pricePerLiter = const Value.absent(),
                 Value<double?> consumption = const Value.absent(),
+                Value<bool> isFullTank = const Value.absent(),
               }) => FuelEntriesCompanion(
                 id: id,
                 vehicleId: vehicleId,
@@ -1493,6 +1569,7 @@ class $$FuelEntriesTableTableManager
                 country: country,
                 pricePerLiter: pricePerLiter,
                 consumption: consumption,
+                isFullTank: isFullTank,
               ),
           createCompanionCallback:
               ({
@@ -1505,6 +1582,7 @@ class $$FuelEntriesTableTableManager
                 required String country,
                 required double pricePerLiter,
                 Value<double?> consumption = const Value.absent(),
+                Value<bool> isFullTank = const Value.absent(),
               }) => FuelEntriesCompanion.insert(
                 id: id,
                 vehicleId: vehicleId,
@@ -1515,6 +1593,7 @@ class $$FuelEntriesTableTableManager
                 country: country,
                 pricePerLiter: pricePerLiter,
                 consumption: consumption,
+                isFullTank: isFullTank,
               ),
           withReferenceMapper: (p0) => p0
               .map(

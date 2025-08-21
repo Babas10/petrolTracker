@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
+import 'package:petrol_tracker/services/consumption_calculation_service.dart';
 import 'fuel_entry_providers.dart';
 
 part 'chart_providers.g.dart';
@@ -65,6 +66,7 @@ class PriceTrendDataPoint {
 }
 
 /// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
 @riverpod
 Future<List<ConsumptionDataPoint>> consumptionChartData(
   ConsumptionChartDataRef ref,
@@ -89,15 +91,23 @@ Future<List<ConsumptionDataPoint>> consumptionChartData(
     entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
-  // Convert to chart data points, filtering out entries without consumption
-  return entries
-      .where((entry) => entry.consumption != null)
-      .map((entry) => ConsumptionDataPoint(
-            date: entry.date,
-            consumption: entry.consumption!,
-            kilometers: entry.currentKm,
-          ))
-      .toList();
+  if (entries.isEmpty) {
+    return [];
+  }
+
+  // Calculate consumption periods using the new service
+  final periods = ConsumptionCalculationService.calculateConsumptionPeriods(entries);
+  
+  if (periods.isEmpty) {
+    return [];
+  }
+
+  // Convert periods to chart data points (one point per completed period)
+  return periods.map((period) => ConsumptionDataPoint(
+    date: period.endFullTank.date, // Use the end date of the period
+    consumption: period.consumption, // Period-based consumption
+    kilometers: period.endFullTank.currentKm, // End kilometers
+  )).toList();
 }
 
 /// Provider for price trend chart data
@@ -802,6 +812,7 @@ DateTime _getDateFromWeek(int year, int week) {
 }
 
 /// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
 @riverpod
 Future<Map<String, double>> consumptionStatistics(
   ConsumptionStatisticsRef ref,
@@ -826,12 +837,7 @@ Future<Map<String, double>> consumptionStatistics(
     entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
-  // Filter entries with consumption data
-  final entriesWithConsumption = entries
-      .where((entry) => entry.consumption != null)
-      .toList();
-
-  if (entriesWithConsumption.isEmpty) {
+  if (entries.isEmpty) {
     return {
       'average': 0.0,
       'minimum': 0.0,
@@ -841,17 +847,19 @@ Future<Map<String, double>> consumptionStatistics(
     };
   }
 
-  final consumptions = entriesWithConsumption
-      .map((e) => e.consumption!)
-      .toList();
+  // Calculate consumption periods using the new service
+  final periods = ConsumptionCalculationService.calculateConsumptionPeriods(entries);
+  
+  if (periods.isEmpty) {
+    return {
+      'average': 0.0,
+      'minimum': 0.0,
+      'maximum': 0.0,
+      'total': 0.0,
+      'count': 0.0,
+    };
+  }
 
-  consumptions.sort();
-
-  return {
-    'average': consumptions.reduce((a, b) => a + b) / consumptions.length,
-    'minimum': consumptions.first,
-    'maximum': consumptions.last,
-    'total': consumptions.reduce((a, b) => a + b),
-    'count': consumptions.length.toDouble(),
-  };
+  // Use the built-in statistics calculation from our service
+  return ConsumptionCalculationService.calculateStatistics(periods);
 }
