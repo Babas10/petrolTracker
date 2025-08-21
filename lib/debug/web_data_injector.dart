@@ -158,6 +158,15 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
             
             _buildQuickAction(
               context,
+              'Create Mixed Refuel Test Vehicle',
+              'Perfect for testing full/partial consumption periods',
+              Icons.scatter_plot,
+              () => _createMixedRefuelTestVehicle(),
+            ),
+            const SizedBox(height: 12),
+            
+            _buildQuickAction(
+              context,
               'Clear All Data',
               'Reset to empty state',
               Icons.delete_sweep,
@@ -495,6 +504,132 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
           const SnackBar(
             content: Text('✅ All data cleared!'),
             backgroundColor: Colors.orange,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _createMixedRefuelTestVehicle() async {
+    try {
+      // Create vehicle for mixed refuel testing
+      final vehicle = VehicleModel.create(
+        name: 'Mixed Refuel Test Vehicle',
+        initialKm: 75000.0,
+      );
+
+      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      
+      // Create entries that demonstrate consumption periods clearly
+      final baseDate = DateTime.now().subtract(const Duration(days: 50));
+      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      
+      // Define a clear pattern for testing:
+      // Period 1: Full -> Partial -> Partial -> Full (3 entries, consumption calculated)
+      // Period 2: Full -> Partial -> Full (2 entries, consumption calculated)  
+      // Period 3: Full -> Partial (incomplete, no consumption yet)
+      
+      final entries = [
+        // Entry 1: Start with full tank (required)
+        {
+          'days': 0,
+          'km': 75000.0,
+          'fuel': 45.0,
+          'price': 65.25,
+          'full': true,
+          'note': 'Start - Full Tank'
+        },
+        // Entry 2: Partial refuel
+        {
+          'days': 5,
+          'km': 75280.0,
+          'fuel': 20.0,
+          'price': 29.00,
+          'full': false,
+          'note': 'Partial refuel'
+        },
+        // Entry 3: Another partial refuel
+        {
+          'days': 10,
+          'km': 75520.0,
+          'fuel': 25.0,
+          'price': 36.25,
+          'full': false,
+          'note': 'Another partial'
+        },
+        // Entry 4: Full tank (completes Period 1: 520km with 90L total)
+        {
+          'days': 15,
+          'km': 75520.0,
+          'fuel': 35.0,
+          'price': 50.75,
+          'full': true,
+          'note': 'Full tank - completes period 1'
+        },
+        // Entry 5: Partial refuel (starts Period 2)
+        {
+          'days': 20,
+          'km': 75800.0,
+          'fuel': 22.0,
+          'price': 31.90,
+          'full': false,
+          'note': 'Start period 2 - partial'
+        },
+        // Entry 6: Full tank (completes Period 2: 280km with 57L total)
+        {
+          'days': 25,
+          'km': 75800.0,
+          'fuel': 35.0,
+          'price': 50.75,
+          'full': true,
+          'note': 'Full tank - completes period 2'
+        },
+        // Entry 7: Partial refuel (starts Period 3 - incomplete)
+        {
+          'days': 30,
+          'km': 76050.0,
+          'fuel': 18.0,
+          'price': 26.10,
+          'full': false,
+          'note': 'Partial - incomplete period'
+        },
+      ];
+      
+      for (int i = 0; i < entries.length; i++) {
+        final data = entries[i];
+        final pricePerLiter = (data['price'] as double) / (data['fuel'] as double);
+        
+        final entry = FuelEntryModel.create(
+          vehicleId: createdVehicle.id!,
+          date: baseDate.add(Duration(days: data['days'] as int)),
+          currentKm: data['km'] as double,
+          fuelAmount: data['fuel'] as double,
+          price: data['price'] as double,
+          country: 'Canada',
+          pricePerLiter: pricePerLiter,
+          consumption: null, // Will be calculated by periods
+          isFullTank: data['full'] as bool,
+        );
+        
+        await fuelNotifier.addFuelEntry(entry);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Mixed Refuel Test Vehicle created!\n• 2 complete consumption periods\n• 1 incomplete period\nPerfect for testing the new consumption logic!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
           ),
         );
         Navigator.of(context).pop();

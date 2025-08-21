@@ -33,16 +33,15 @@ class WebAutoPopulation {
         return; // Data already exists, don't auto-populate other vehicles
       }
 
-      print('🚗 Auto-populating comprehensive test data with 6 diverse vehicles...');
+      print('🚗 Auto-populating comprehensive test data with 5 diverse vehicles...');
       
       await _createHondaCivic(ref);
       await _createToyotaHilux(ref);
-      await _createBMW320i(ref);
       await _createToyotaPrius(ref);
-      await _createMazdaMX5(ref);
+      await _createMixedRefuelTestVehicle(ref); // New mixed refuel test vehicle
       await _createTeslaModel3(ref); // New vehicle for year-spanning test
       
-      print('✅ Auto-populated 6 vehicles with 150+ comprehensive fuel entries');
+      print('✅ Auto-populated 5 vehicles with mixed refuel types for comprehensive testing');
     } catch (e) {
       print('❌ Failed to auto-populate data: $e');
     }
@@ -102,31 +101,84 @@ class WebAutoPopulation {
     );
   }
 
-  /// Create BMW 320i 2019 - Luxury sedan with moderate consumption
-  static Future<void> _createBMW320i(Ref ref) async {
+  /// Create Mixed Refuel Test Vehicle - Perfect for testing full/partial consumption periods
+  static Future<void> _createMixedRefuelTestVehicle(Ref ref) async {
     final vehicle = VehicleModel.create(
-      name: 'BMW 320i 2019',
-      initialKm: 32850.0,
+      name: 'Mixed Refuel Test Vehicle',
+      initialKm: 75000.0,
     );
 
     final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
     final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
     
-    // Generate 22 entries over 13 months with 8.5-11 L/100km consumption
-    await _generateFuelEntries(
-      fuelNotifier,
-      createdVehicle.id!,
-      vehicle.initialKm,
-      vehicleName: 'BMW 320i',
-      entryCount: 22,
-      monthsSpan: 13,
-      baseConsumption: 9.75,
-      consumptionVariance: 1.25,
-      tankSize: 60.0,
-      countries: ['Germany', 'France', 'USA'],
-      currencies: ['EUR', 'EUR', 'USD'],
-      basePrices: [1.70, 1.68, 1.15], // EUR, EUR, USD per liter
-    );
+    // Create entries that demonstrate consumption periods clearly
+    final baseDate = DateTime.now().subtract(const Duration(days: 50));
+    
+    // Enhanced pattern for richer testing - spans 6 months with 8 complete periods
+    // Each period demonstrates different consumption scenarios across seasons
+    
+    final entries = [
+      // Period 1: Full -> Partial -> Full (city driving, winter)
+      {'days': -180, 'km': 75000.0, 'fuel': 55.0, 'price': 79.75, 'full': true, 'type': 'Full'},
+      {'days': -175, 'km': 75180.0, 'fuel': 25.0, 'price': 36.25, 'full': false, 'type': 'Partial'},
+      {'days': -170, 'km': 75380.0, 'fuel': 40.0, 'price': 58.00, 'full': true, 'type': 'Full'},
+      
+      // Period 2: Full -> Full (highway driving, winter)
+      {'days': -160, 'km': 75780.0, 'fuel': 48.0, 'price': 69.60, 'full': true, 'type': 'Full'},
+      
+      // Period 3: Full -> Partial -> Partial -> Full (mixed driving, late winter)
+      {'days': -145, 'km': 76200.0, 'fuel': 52.0, 'price': 75.40, 'full': true, 'type': 'Full'},
+      {'days': -135, 'km': 76450.0, 'fuel': 30.0, 'price': 43.50, 'full': false, 'type': 'Partial'},
+      {'days': -125, 'km': 76680.0, 'fuel': 28.0, 'price': 40.60, 'full': false, 'type': 'Partial'},
+      {'days': -115, 'km': 76920.0, 'fuel': 42.0, 'price': 60.90, 'full': true, 'type': 'Full'},
+      
+      // Period 4: Full -> Partial -> Full (spring efficiency improvement)
+      {'days': -100, 'km': 77350.0, 'fuel': 45.0, 'price': 65.25, 'full': true, 'type': 'Full'},
+      {'days': -85, 'km': 77650.0, 'fuel': 22.0, 'price': 31.90, 'full': false, 'type': 'Partial'},
+      {'days': -70, 'km': 77980.0, 'fuel': 38.0, 'price': 55.10, 'full': true, 'type': 'Full'},
+      
+      // Period 5: Full -> Full (summer efficiency, best consumption)
+      {'days': -55, 'km': 78420.0, 'fuel': 40.0, 'price': 58.00, 'full': true, 'type': 'Full'},
+      
+      // Period 6: Full -> Partial -> Full (summer, AC usage)
+      {'days': -40, 'km': 78800.0, 'fuel': 42.0, 'price': 60.90, 'full': true, 'type': 'Full'},
+      {'days': -30, 'km': 79120.0, 'fuel': 24.0, 'price': 34.80, 'full': false, 'type': 'Partial'},
+      {'days': -20, 'km': 79450.0, 'fuel': 36.0, 'price': 52.20, 'full': true, 'type': 'Full'},
+      
+      // Period 7: Full -> Partial -> Partial -> Full (fall, moderate consumption)
+      {'days': -10, 'km': 79850.0, 'fuel': 44.0, 'price': 63.80, 'full': true, 'type': 'Full'},
+      {'days': -5, 'km': 80100.0, 'fuel': 20.0, 'price': 29.00, 'full': false, 'type': 'Partial'},
+      {'days': 0, 'km': 80350.0, 'fuel': 25.0, 'price': 36.25, 'full': false, 'type': 'Partial'},
+      {'days': 5, 'km': 80600.0, 'fuel': 35.0, 'price': 50.75, 'full': true, 'type': 'Full'},
+      
+      // Period 8: Full -> Full (recent, efficient driving)
+      {'days': 15, 'km': 81020.0, 'fuel': 38.0, 'price': 55.10, 'full': true, 'type': 'Full'},
+      
+      // Incomplete Period 9: Full -> Partial (current, ongoing)
+      {'days': 25, 'km': 81350.0, 'fuel': 18.0, 'price': 26.10, 'full': false, 'type': 'Partial'},
+    ];
+    
+    for (int i = 0; i < entries.length; i++) {
+      final data = entries[i];
+      final pricePerLiter = (data['price'] as double) / (data['fuel'] as double);
+      
+      final entry = FuelEntryModel.create(
+        vehicleId: createdVehicle.id!,
+        date: baseDate.add(Duration(days: data['days'] as int)),
+        currentKm: data['km'] as double,
+        fuelAmount: data['fuel'] as double,
+        price: data['price'] as double,
+        country: 'Canada',
+        pricePerLiter: pricePerLiter,
+        consumption: null, // Will be calculated by periods
+        isFullTank: data['full'] as bool,
+      );
+      
+      await fuelNotifier.addFuelEntry(entry);
+      print('Created ${data['type']} refuel entry: ${data['fuel']}L at ${data['km']} km');
+    }
+    
+    print('✅ Created Mixed Refuel Test Vehicle with 8 complete periods + 1 incomplete (spans 6 months)');
   }
 
   /// Create Toyota Prius 2021 - Hybrid with very high efficiency
@@ -157,32 +209,6 @@ class WebAutoPopulation {
     );
   }
 
-  /// Create Mazda MX-5 2018 - Sports car with variable consumption
-  static Future<void> _createMazdaMX5(Ref ref) async {
-    final vehicle = VehicleModel.create(
-      name: 'Mazda MX-5 2018',
-      initialKm: 67420.0,
-    );
-
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
-    
-    // Generate 24 entries over 15 months with 8-16 L/100km consumption (highly variable)
-    await _generateFuelEntries(
-      fuelNotifier,
-      createdVehicle.id!,
-      vehicle.initialKm,
-      vehicleName: 'Mazda MX-5',
-      entryCount: 24,
-      monthsSpan: 15,
-      baseConsumption: 12.0,
-      consumptionVariance: 4.0, // High variance for sports car (city vs highway)
-      tankSize: 45.0,
-      countries: ['Australia', 'Japan', 'Canada'],
-      currencies: ['AUD', 'JPY', 'CAD'],
-      basePrices: [1.80, 165.0, 1.62], // AUD, JPY, CAD per liter
-    );
-  }
 
   /// Create Tesla Model 3 2023 - Electric vehicle with year-spanning data for testing
   static Future<void> _createTeslaModel3(Ref ref) async {
@@ -258,6 +284,7 @@ class WebAutoPopulation {
         country: 'Canada',
         pricePerLiter: pricePerLiter,
         consumption: actualConsumption,
+        isFullTank: true, // Tesla Model 3 - all entries are "full charges"
       );
       
       await fuelNotifier.addFuelEntry(entry);
@@ -333,6 +360,7 @@ class WebAutoPopulation {
         country: country,
         pricePerLiter: pricePerLiter,
         consumption: consumption,
+        isFullTank: i == 0 ? true : (i % 4 != 2), // First must be full, then realistic mix (75% full, 25% partial)
       );
       
       await fuelNotifier.addFuelEntry(entry);
