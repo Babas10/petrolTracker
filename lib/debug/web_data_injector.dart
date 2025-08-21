@@ -304,6 +304,7 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
           country: 'Canada',
           pricePerLiter: 1.45,
           consumption: i == 0 ? null : 10.0 + (i * 0.5), // First entry has no consumption
+          isFullTank: i == 0 ? true : (i % 3 != 1), // First entry must be full tank, then mix
         );
         
         await fuelNotifier.addFuelEntry(entry);
@@ -375,6 +376,7 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
             data['km']!,
             data['liters']!,
           ),
+          isFullTank: i == 0 ? true : (i % 4 != 2), // First must be full, then realistic mix
         );
         
         await fuelNotifier.addFuelEntry(entry);
@@ -431,6 +433,7 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
           country: i % 3 == 0 ? 'USA' : 'Canada',
           pricePerLiter: 1.40 + (i * 0.02),
           consumption: i == 0 ? null : 8.5 + (i % 5),
+          isFullTank: i == 0 ? true : (i % 5 != 2), // First must be full, then varied mix
         );
         
         await fuelNotifier.addFuelEntry(entry);
