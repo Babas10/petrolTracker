@@ -1,8 +1,9 @@
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
+import 'package:petrol_tracker/providers/chart_providers.dart';
 
-/// Represents a consumption period from one full tank to another
+/// Represents a consumption period ending at a full tank
 class ConsumptionPeriod {
-  final FuelEntryModel startFullTank;
+  final FuelEntryModel startEntry; // Can be full or partial
   final FuelEntryModel endFullTank;
   final List<FuelEntryModel> partialEntries;
   final double totalFuel;
@@ -11,7 +12,7 @@ class ConsumptionPeriod {
   final double totalCost;
 
   const ConsumptionPeriod({
-    required this.startFullTank,
+    required this.startEntry,
     required this.endFullTank,
     required this.partialEntries,
     required this.totalFuel,
@@ -31,7 +32,7 @@ class ConsumptionPeriod {
 
   /// Period description for UI
   String get periodDescription {
-    final startDate = startFullTank.date;
+    final startDate = startEntry.date;
     final endDate = endFullTank.date;
     final days = endDate.difference(startDate).inDays;
     return '${totalDistance.toStringAsFixed(0)} km over $days days';
@@ -41,7 +42,8 @@ class ConsumptionPeriod {
 /// Service for calculating fuel consumption using full tank to full tank periods
 class ConsumptionCalculationService {
   /// Calculate consumption periods from a list of fuel entries
-  /// Only calculates consumption between full tank entries
+  /// Focus on periods that END with full tank (meaningful consumption measurement)
+  /// This gives periods like: Partial → Full or Full → Partial → Full
   static List<ConsumptionPeriod> calculateConsumptionPeriods(List<FuelEntryModel> entries) {
     final periods = <ConsumptionPeriod>[];
     
@@ -49,24 +51,32 @@ class ConsumptionCalculationService {
     final sortedEntries = List<FuelEntryModel>.from(entries)
       ..sort((a, b) => a.date.compareTo(b.date));
     
-    FuelEntryModel? lastFullTank;
-    List<FuelEntryModel> currentPartials = [];
+    // Track the sequence of entries leading up to each full tank
+    List<FuelEntryModel> leadingEntries = [];
     
-    for (final entry in sortedEntries) {
+    for (int i = 0; i < sortedEntries.length; i++) {
+      final entry = sortedEntries[i];
+      
       if (entry.isFullTank) {
-        if (lastFullTank != null) {
-          // Create consumption period from last full tank to this one
+        // If we have leading entries, create a consumption period ending at this full tank
+        if (leadingEntries.isNotEmpty) {
+          final startEntry = leadingEntries.first;
+          final partialEntries = leadingEntries.where((e) => !e.isFullTank).toList();
+          
+          // Create period ending at this full tank
           final period = _createConsumptionPeriod(
-            startFullTank: lastFullTank,
+            startEntry: startEntry,
             endFullTank: entry,
-            partialEntries: currentPartials,
+            partialEntries: partialEntries,
           );
           periods.add(period);
         }
-        lastFullTank = entry;
-        currentPartials.clear();
+        
+        // Start new sequence with this full tank
+        leadingEntries = [entry];
       } else {
-        currentPartials.add(entry);
+        // Add partial to the current sequence
+        leadingEntries.add(entry);
       }
     }
     
@@ -75,7 +85,7 @@ class ConsumptionCalculationService {
 
   /// Create a single consumption period
   static ConsumptionPeriod _createConsumptionPeriod({
-    required FuelEntryModel startFullTank,
+    required FuelEntryModel startEntry,
     required FuelEntryModel endFullTank,
     required List<FuelEntryModel> partialEntries,
   }) {
@@ -84,7 +94,7 @@ class ConsumptionCalculationService {
                      endFullTank.fuelAmount;
     
     // Calculate total distance
-    final totalDistance = endFullTank.currentKm - startFullTank.currentKm;
+    final totalDistance = endFullTank.currentKm - startEntry.currentKm;
     
     // Calculate consumption (L/100km)
     final consumption = totalDistance > 0 ? (totalFuel / totalDistance) * 100 : 0.0;
@@ -94,7 +104,7 @@ class ConsumptionCalculationService {
                      endFullTank.price;
     
     return ConsumptionPeriod(
-      startFullTank: startFullTank,
+      startEntry: startEntry,
       endFullTank: endFullTank,
       partialEntries: partialEntries,
       totalFuel: totalFuel,
@@ -113,10 +123,59 @@ class ConsumptionCalculationService {
       'fuel': period.totalFuel,
       'cost': period.totalCost,
       'distance': period.totalDistance,
-      'startDate': period.startFullTank.date.toIso8601String().split('T')[0],
+      'startDate': period.startEntry.date.toIso8601String().split('T')[0],
       'endDate': period.endFullTank.date.toIso8601String().split('T')[0],
       'entryCount': period.allEntries.length,
     }).toList();
+  }
+
+  /// Generate enhanced consumption data points with period composition details
+  static List<EnhancedConsumptionDataPoint> getEnhancedConsumptionDataPoints(List<ConsumptionPeriod> periods) {
+    return periods.map((period) {
+      final totalEntries = period.allEntries.length;
+      final partialEntries = period.partialEntries.length;
+      final periodComposition = _generatePeriodComposition(period);
+      final entryIds = period.allEntries.map((e) => e.id ?? 0).toList();
+
+      return EnhancedConsumptionDataPoint(
+        date: period.endFullTank.date,
+        consumption: period.consumption,
+        kilometers: period.endFullTank.currentKm,
+        totalEntries: totalEntries,
+        partialEntries: partialEntries,
+        periodComposition: periodComposition,
+        entryIds: entryIds,
+        periodStart: period.startEntry.date,
+        periodEnd: period.endFullTank.date,
+        totalFuel: period.totalFuel,
+        totalDistance: period.totalDistance,
+        totalCost: period.totalCost,
+        hasPartialRefuels: partialEntries > 0,
+      );
+    }).toList();
+  }
+
+  /// Generate a human-readable description of the period composition
+  static String _generatePeriodComposition(ConsumptionPeriod period) {
+    final startType = period.startEntry.isFullTank ? 'Full' : 'Partial';
+    final partialCount = period.partialEntries.length;
+    
+    // Always ends with Full tank in our new logic
+    if (startType == 'Full' && partialCount == 0) {
+      return 'Full → Full';
+    } else if (startType == 'Partial' && partialCount == 0) {
+      return 'Partial → Full';
+    } else if (startType == 'Full' && partialCount == 1) {
+      return 'Full → Partial → Full';
+    } else if (startType == 'Partial' && partialCount == 1) {
+      return 'Partial → Partial → Full';
+    } else if (startType == 'Full' && partialCount > 1) {
+      return 'Full → $partialCount Partials → Full';
+    } else if (startType == 'Partial' && partialCount > 1) {
+      return 'Partial → $partialCount Partials → Full';
+    } else {
+      return '$startType → Full';
+    }
   }
 
   /// Calculate statistics from consumption periods

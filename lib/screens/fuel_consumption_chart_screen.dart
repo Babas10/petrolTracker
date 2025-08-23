@@ -6,6 +6,7 @@ import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/widgets/country_selection_widget.dart';
+import 'package:petrol_tracker/widgets/period_detail_modal.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 
@@ -266,7 +267,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         final dateRange = _getDateRangeFromEntries(_selectedTimePeriod, entries);
         final effectiveDateRange = _selectedDateRange ?? dateRange;
         
-        final chartDataAsync = ref.watch(consumptionChartDataProvider(
+        final chartDataAsync = ref.watch(enhancedConsumptionChartDataProvider(
           _selectedVehicle!.id!,
           startDate: effectiveDateRange?.start,
           endDate: effectiveDateRange?.end,
@@ -280,7 +281,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
   
-  Widget _buildSingleVehicleChartContent(AsyncValue<List<ConsumptionDataPoint>> chartDataAsync) {
+  Widget _buildSingleVehicleChartContent(AsyncValue<List<EnhancedConsumptionDataPoint>> chartDataAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -294,11 +295,44 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                   return _buildEmptyChartPlaceholder();
                 }
 
-                // Transform to chart format
+                // Debug: Print enhanced data to verify it's working (UPDATED FOR VISUAL FIX)
+                print('🔍 CHART DEBUG ENHANCED: Enhanced consumption data points:');
+                for (int i = 0; i < consumptionData.length; i++) {
+                  final point = consumptionData[i];
+                  print('  Point $i: ${point.consumption.toStringAsFixed(2)} L/100km, Complex: ${point.isComplexPeriod}, Composition: "${point.periodComposition}"');
+                }
+                print('🔍 SENDING TO D3.js: Expected blue dots for Simple periods, orange dots for Complex periods');
+
+                // Transform to enhanced chart format with period metadata
                 final chartData = consumptionData.map((point) => {
                   'date': point.date.toIso8601String().split('T')[0],
                   'value': point.consumption,
                   'km': point.kilometers,
+                  // Enhanced metadata for visual distinction and tooltips
+                  'isComplexPeriod': point.isComplexPeriod,
+                  'isSimplePeriod': point.isSimplePeriod,
+                  'periodComposition': point.periodComposition,
+                  'totalEntries': point.totalEntries,
+                  'partialEntries': point.partialEntries,
+                  'totalFuel': point.totalFuel,
+                  'totalDistance': point.totalDistance,
+                  'formattedDuration': point.formattedDuration,
+                  // Data for period detail modal
+                  'periodData': {
+                    'date': point.date.toIso8601String(),
+                    'consumption': point.consumption,
+                    'kilometers': point.kilometers,
+                    'totalEntries': point.totalEntries,
+                    'partialEntries': point.partialEntries,
+                    'periodComposition': point.periodComposition,
+                    'entryIds': point.entryIds,
+                    'periodStart': point.periodStart.toIso8601String(),
+                    'periodEnd': point.periodEnd.toIso8601String(),
+                    'totalFuel': point.totalFuel,
+                    'totalDistance': point.totalDistance,
+                    'totalCost': point.totalCost,
+                    'hasPartialRefuels': point.hasPartialRefuels,
+                  },
                 }).toList();
 
                 return ChartWebView(
@@ -381,7 +415,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         final vehicle = vehicles[index];
         if (vehicle.id == null) return const SizedBox();
         
-        final chartDataAsync = ref.watch(consumptionChartDataProvider(
+        final chartDataAsync = ref.watch(enhancedConsumptionChartDataProvider(
           vehicle.id!,
           startDate: _selectedDateRange?.start,
           endDate: _selectedDateRange?.end,
@@ -411,6 +445,31 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                         final chartData = consumptionData.map((point) => {
                           'date': point.date.toIso8601String().split('T')[0],
                           'value': point.consumption,
+                          // Enhanced metadata for visual distinction and tooltips
+                          'isComplexPeriod': point.isComplexPeriod,
+                          'isSimplePeriod': point.isSimplePeriod,
+                          'periodComposition': point.periodComposition,
+                          'totalEntries': point.totalEntries,
+                          'partialEntries': point.partialEntries,
+                          'totalFuel': point.totalFuel,
+                          'totalDistance': point.totalDistance,
+                          'formattedDuration': point.formattedDuration,
+                          // Data for period detail modal
+                          'periodData': {
+                            'date': point.date.toIso8601String(),
+                            'consumption': point.consumption,
+                            'kilometers': point.kilometers,
+                            'totalEntries': point.totalEntries,
+                            'partialEntries': point.partialEntries,
+                            'periodComposition': point.periodComposition,
+                            'entryIds': point.entryIds,
+                            'periodStart': point.periodStart.toIso8601String(),
+                            'periodEnd': point.periodEnd.toIso8601String(),
+                            'totalFuel': point.totalFuel,
+                            'totalDistance': point.totalDistance,
+                            'totalCost': point.totalCost,
+                            'hasPartialRefuels': point.hasPartialRefuels,
+                          },
                         }).toList();
 
                         return ChartWebView(
@@ -457,7 +516,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         final dateRange = _getDateRangeFromEntries(_selectedTimePeriod, entries);
         final effectiveDateRange = _selectedDateRange ?? dateRange;
         
-        final chartDataAsync = ref.watch(consumptionChartDataProvider(
+        final chartDataAsync = ref.watch(enhancedConsumptionChartDataProvider(
           _selectedVehicle!.id!,
           startDate: effectiveDateRange?.start,
           endDate: effectiveDateRange?.end,
@@ -471,7 +530,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     );
   }
   
-  Widget _buildVehicleStatisticsContent(AsyncValue<List<ConsumptionDataPoint>> chartDataAsync) {
+  Widget _buildVehicleStatisticsContent(AsyncValue<List<EnhancedConsumptionDataPoint>> chartDataAsync) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -729,20 +788,65 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   void _handleChartEvent(String eventType, Map<String, dynamic> data) {
     switch (eventType) {
       case 'hover':
-        // Show detailed tooltip
+        // Enhanced tooltips are handled by the chart itself using the period metadata
         break;
       case 'click':
-        // Navigate to detailed entry view
+        // Show period detail modal when clicking on a chart data point
+        _handlePeriodDetailClick(data);
         break;
       default:
         debugPrint('Unhandled chart event: $eventType');
     }
   }
 
+  void _handlePeriodDetailClick(Map<String, dynamic> data) {
+    try {
+      debugPrint('🔍 CLICK DEBUG: Received data keys: ${data.keys}');
+      debugPrint('🔍 CLICK DEBUG: Full data: $data');
+      
+      final periodData = data['periodData'] as Map<String, dynamic>?;
+      if (periodData == null) {
+        debugPrint('No period data available for detail modal');
+        return;
+      }
+
+      debugPrint('🔍 CLICK DEBUG: Period data keys: ${periodData.keys}');
+      debugPrint('🔍 CLICK DEBUG: Period data types: ${periodData.map((k, v) => MapEntry(k, v.runtimeType))}');
+
+      // Reconstruct EnhancedConsumptionDataPoint from the data with safe type casting
+      final enhancedPoint = EnhancedConsumptionDataPoint(
+        date: DateTime.parse(periodData['date'].toString()),
+        consumption: double.tryParse(periodData['consumption'].toString()) ?? 0.0,
+        kilometers: double.tryParse(periodData['kilometers'].toString()) ?? 0.0,
+        totalEntries: int.tryParse(periodData['totalEntries'].toString()) ?? 0,
+        partialEntries: int.tryParse(periodData['partialEntries'].toString()) ?? 0,
+        periodComposition: periodData['periodComposition']?.toString() ?? '',
+        entryIds: (periodData['entryIds'] as List?)?.cast<int>() ?? [],
+        periodStart: DateTime.tryParse(periodData['periodStart'].toString()) ?? DateTime.now(),
+        periodEnd: DateTime.tryParse(periodData['periodEnd'].toString()) ?? DateTime.now(),
+        totalFuel: double.tryParse(periodData['totalFuel'].toString()) ?? 0.0,
+        totalDistance: double.tryParse(periodData['totalDistance'].toString()) ?? 0.0,
+        totalCost: double.tryParse(periodData['totalCost'].toString()) ?? 0.0,
+        hasPartialRefuels: periodData['hasPartialRefuels'] == true,
+      );
+
+      // Show the period detail modal
+      showPeriodDetailModal(context, enhancedPoint);
+    } catch (e) {
+      debugPrint('Error showing period detail modal: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading period details: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 
   void _refreshData() {
     ref.invalidate(vehiclesNotifierProvider);
-    ref.invalidate(consumptionChartDataProvider);
+    ref.invalidate(enhancedConsumptionChartDataProvider);
   }
 
 

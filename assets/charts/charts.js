@@ -97,6 +97,11 @@ class ChartManager {
      * Render line chart
      */
     renderLineChart(data, options) {
+        // Debug: Check what data we're receiving
+        console.log('🔍 D3.js DEBUG: Received chart data:', data);
+        console.log('🔍 D3.js DEBUG: Sample data point:', data[0]);
+        console.log('🔍 D3.js DEBUG: Has isComplexPeriod?', data.some(d => d.hasOwnProperty('isComplexPeriod')));
+        
         const container = d3.select('#chart');
         const containerRect = container.node().getBoundingClientRect();
         const width = containerRect.width - this.margin.left - this.margin.right;
@@ -144,16 +149,48 @@ class ChartManager {
             .attr('class', `line ${options.className || 'consumption'}`)
             .attr('d', line);
 
-        // Add dots
+        // Add dots with visual distinction for period types
         g.selectAll('.dot')
             .data(data)
             .enter().append('circle')
-            .attr('class', `dot ${options.className || 'consumption'}`)
+            .attr('class', d => {
+                const baseClass = `dot ${options.className || 'consumption'}`;
+                if (d.isComplexPeriod) {
+                    return `${baseClass} complex-period`;
+                } else {
+                    return `${baseClass} simple-period`;
+                }
+            })
             .attr('cx', d => xScale(d.date))
             .attr('cy', d => yScale(d.value))
+            .attr('fill', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#FF8A50' : '#4A90E2'; // Orange for complex, blue for simple
+                } else {
+                    return '#4caf50'; // Default green for backward compatibility
+                }
+            })
+            .attr('stroke', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#E6732A' : '#2C5E95'; // Darker border
+                } else {
+                    return '#fff'; // Default white border
+                }
+            })
+            .attr('stroke-width', 1.5)
+            .attr('r', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? 6 : 4; // Larger dots for complex periods
+                } else {
+                    return 4; // Default size
+                }
+            })
             .on('mouseover', (event, d) => this.showTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
+
+        // Add period type legend
+        this.addPeriodLegend(svg, containerRect.width, containerRect.height);
 
         // Add title
         if (options.title) {
@@ -205,15 +242,37 @@ class ChartManager {
         // Add axes
         this.addAxes(g, xScale, yScale, width, height, options, true);
 
-        // Add bars
+        // Add bars with visual distinction for period types
         g.selectAll('.bar')
             .data(data)
             .enter().append('rect')
-            .attr('class', `bar ${options.className || 'consumption'}`)
+            .attr('class', d => {
+                const baseClass = `bar ${options.className || 'consumption'}`;
+                if (d.isComplexPeriod) {
+                    return `${baseClass} complex-period`;
+                } else {
+                    return `${baseClass} simple-period`;
+                }
+            })
             .attr('x', d => xScale(d.label))
             .attr('width', xScale.bandwidth())
             .attr('y', d => yScale(d.value))
             .attr('height', d => height - yScale(d.value))
+            .attr('fill', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#FF8A50' : '#4A90E2'; // Orange for complex, blue for simple
+                } else {
+                    return '#4caf50'; // Default green for backward compatibility
+                }
+            })
+            .attr('stroke', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#E6732A' : '#2C5E95'; // Darker border
+                } else {
+                    return '#fff'; // Default white border
+                }
+            })
+            .attr('stroke-width', 1)
             .on('mouseover', (event, d) => this.showTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
@@ -234,6 +293,11 @@ class ChartManager {
      * Render area chart
      */
     renderAreaChart(data, options) {
+        // Debug: Check what data we're receiving  
+        console.log('🔍 D3.js DEBUG VERSION 2.0: Received area chart data:', data);
+        console.log('🔍 D3.js DEBUG VERSION 2.0: Sample area data point:', data[0]);
+        console.log('🔍 D3.js DEBUG VERSION 2.0: Area chart has isComplexPeriod?', data.some(d => d.hasOwnProperty('isComplexPeriod')));
+        
         const container = d3.select('#chart');
         const containerRect = container.node().getBoundingClientRect();
         const width = containerRect.width - this.margin.left - this.margin.right;
@@ -294,16 +358,48 @@ class ChartManager {
             .attr('class', `line ${options.className || 'consumption'}`)
             .attr('d', line);
 
-        // Add dots
+        // Add dots with visual distinction for period types
         g.selectAll('.dot')
             .data(data)
             .enter().append('circle')
-            .attr('class', `dot ${options.className || 'consumption'}`)
+            .attr('class', d => {
+                const baseClass = `dot ${options.className || 'consumption'}`;
+                if (d.isComplexPeriod) {
+                    return `${baseClass} complex-period`;
+                } else {
+                    return `${baseClass} simple-period`;
+                }
+            })
             .attr('cx', d => xScale(d.date))
             .attr('cy', d => yScale(d.value))
+            .attr('fill', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#FF8A50' : '#4A90E2'; // Orange for complex, blue for simple
+                } else {
+                    return '#4caf50'; // Default green for backward compatibility
+                }
+            })
+            .attr('stroke', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? '#E6732A' : '#2C5E95'; // Darker border
+                } else {
+                    return '#fff'; // Default white border
+                }
+            })
+            .attr('stroke-width', 1.5)
+            .attr('r', d => {
+                if (d.hasOwnProperty('isComplexPeriod')) {
+                    return d.isComplexPeriod ? 6 : 4; // Larger dots for complex periods
+                } else {
+                    return 4; // Default size
+                }
+            })
             .on('mouseover', (event, d) => this.showTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
+
+        // Add period type legend
+        this.addPeriodLegend(svg, containerRect.width, containerRect.height);
 
         // Add year axis functionality
         try {
@@ -670,7 +766,107 @@ class ChartManager {
     }
 
     /**
-     * Show tooltip
+     * Add period type legend for consumption charts
+     */
+    addPeriodLegend(svg, containerWidth, containerHeight) {
+        // Only add legend if we have period data
+        if (!this.currentData || !this.currentData.some(d => d.hasOwnProperty('isComplexPeriod'))) {
+            return;
+        }
+
+        const legend = svg.append('g')
+            .attr('class', 'period-legend')
+            .attr('transform', `translate(20, ${containerHeight - 60})`);
+
+        // Legend background
+        const legendBg = legend.append('rect')
+            .attr('class', 'legend-background')
+            .attr('x', -10)
+            .attr('y', -5)
+            .attr('width', 180)
+            .attr('height', 50)
+            .attr('fill', 'rgba(255, 255, 255, 0.9)')
+            .attr('stroke', '#ddd')
+            .attr('stroke-width', 1)
+            .attr('rx', 4);
+
+        // Simple period legend item
+        const simpleItem = legend.append('g')
+            .attr('class', 'legend-item simple')
+            .attr('transform', 'translate(0, 5)');
+
+        simpleItem.append('circle')
+            .attr('cx', 6)
+            .attr('cy', 6)
+            .attr('r', 5)
+            .attr('fill', '#4A90E2')
+            .attr('stroke', '#2C5E95')
+            .attr('stroke-width', 1.5);
+
+        simpleItem.append('text')
+            .attr('x', 18)
+            .attr('y', 6)
+            .attr('dy', '0.35em')
+            .attr('font-size', '11px')
+            .attr('fill', '#333')
+            .text('Simple (Full → Full)');
+
+        // Complex period legend item
+        const complexItem = legend.append('g')
+            .attr('class', 'legend-item complex')
+            .attr('transform', 'translate(0, 25)');
+
+        complexItem.append('circle')
+            .attr('cx', 6)
+            .attr('cy', 6)
+            .attr('r', 6)
+            .attr('fill', '#FF8A50')
+            .attr('stroke', '#E6732A')
+            .attr('stroke-width', 1.5);
+
+        complexItem.append('text')
+            .attr('x', 18)
+            .attr('y', 6)
+            .attr('dy', '0.35em')
+            .attr('font-size', '11px')
+            .attr('fill', '#333')
+            .text('Complex (with partials)');
+    }
+
+    /**
+     * Show enhanced tooltip on click with period composition details
+     */
+    showTooltipOnClick(event, data, options) {
+        // FIRST: Reset ALL data points to original state
+        if (this.currentChart && this.currentChart.g) {
+            this.currentChart.g.selectAll('.dot')
+                .attr('r', 4) // Reset to original size
+                .attr('fill', '#4caf50') // Back to green
+                .attr('stroke', '#fff') // Back to original stroke
+                .attr('stroke-width', 1.5); // Reset stroke width
+        }
+        
+        // THEN: Change clicked dot appearance with subtle visual feedback
+        const clickedDot = d3.select(event.target);
+        clickedDot
+            .attr('fill', '#4caf50') // Keep the same green
+            .attr('stroke', '#e0e0e0') // Lighter gray outer ring
+            .attr('stroke-width', 3) // Slightly thicker stroke
+            .attr('r', 6); // Enlarged on click
+        
+        this.showTooltip(event, data, options);
+        
+        // Make tooltip clickable for period details
+        this.tooltip
+            .style('pointer-events', 'all')
+            .on('click', (tooltipEvent) => {
+                tooltipEvent.stopPropagation();
+                this.notifyFlutter('dataPointClicked', data);
+            });
+    }
+
+    /**
+     * Show enhanced tooltip with period composition details
      */
     showTooltip(event, data, options) {
         const formatValue = options.formatValue || (d => d.value?.toFixed(2) || d.value);
@@ -680,13 +876,23 @@ class ChartManager {
         
         // Add date on first line
         if (data.date) {
-            content += `${formatDate(data.date)}<br>`;
+            content += `<div class="tooltip-date">${formatDate(data.date)}</div>`;
         }
         
-        // Add value with unit on second line
+        // Add consumption value with unit
         const valueText = formatValue(data);
         const unit = options.unit || '';
-        content += `${valueText}${unit ? ` ${unit}` : ''}`;
+        content += `<div class="tooltip-value">${valueText}${unit ? ` ${unit}` : ''}</div>`;
+        
+        // Add simple period information if available
+        if (data.totalEntries && data.totalEntries > 1) {
+            content += `<div class="tooltip-separator"></div>`;
+            content += `<div class="tooltip-period-info" style="color: #666;">`;
+            content += `${data.totalEntries} entries`;
+            content += `</div>`;
+            
+            content += `<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>`;
+        }
 
         this.tooltip
             .html(content)
@@ -699,7 +905,8 @@ class ChartManager {
      * Hide tooltip
      */
     hideTooltip() {
-        this.tooltip.classed('visible', false);
+        this.tooltip.classed('visible', false)
+            .style('pointer-events', 'none');
     }
 
     /**

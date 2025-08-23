@@ -588,7 +588,7 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         // Entry 6: Full tank (completes Period 2: 280km with 57L total)
         {
           'days': 25,
-          'km': 75800.0,
+          'km': 76080.0,  // Fixed: was 75800.0, should be different from entry 5
           'fuel': 35.0,
           'price': 50.75,
           'full': true,

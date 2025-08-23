@@ -35,6 +35,94 @@ class ConsumptionDataPoint {
   }
 }
 
+/// Enhanced data point for consumption chart with period composition details
+class EnhancedConsumptionDataPoint extends ConsumptionDataPoint {
+  final int totalEntries;
+  final int partialEntries;
+  final String periodComposition;
+  final List<int> entryIds;
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final double totalFuel;
+  final double totalDistance;
+  final double totalCost;
+  final bool hasPartialRefuels;
+
+  const EnhancedConsumptionDataPoint({
+    required super.date,
+    required super.consumption,
+    required super.kilometers,
+    required this.totalEntries,
+    required this.partialEntries,
+    required this.periodComposition,
+    required this.entryIds,
+    required this.periodStart,
+    required this.periodEnd,
+    required this.totalFuel,
+    required this.totalDistance,
+    required this.totalCost,
+    required this.hasPartialRefuels,
+  });
+
+  /// Returns true if this is a simple Full→Full period
+  bool get isSimplePeriod => totalEntries == 2 && partialEntries == 0;
+
+  /// Returns true if this period contains partial refuels
+  bool get isComplexPeriod => partialEntries > 0;
+
+  /// Formatted period duration string
+  String get formattedDuration {
+    final days = periodEnd.difference(periodStart).inDays;
+    return '$days days';
+  }
+
+  /// Formatted total fuel string
+  String get formattedTotalFuel => '${totalFuel.toStringAsFixed(1)}L';
+
+  /// Formatted total cost string
+  String get formattedTotalCost => '\$${totalCost.toStringAsFixed(2)}';
+
+  /// Formatted distance string
+  String get formattedDistance => '${totalDistance.toStringAsFixed(0)} km';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is EnhancedConsumptionDataPoint &&
+        super == other &&
+        other.totalEntries == totalEntries &&
+        other.partialEntries == partialEntries &&
+        other.periodComposition == periodComposition &&
+        other.entryIds.length == entryIds.length &&
+        other.periodStart == periodStart &&
+        other.periodEnd == periodEnd &&
+        other.totalFuel == totalFuel &&
+        other.totalDistance == totalDistance &&
+        other.totalCost == totalCost &&
+        other.hasPartialRefuels == hasPartialRefuels;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    super.hashCode,
+    totalEntries,
+    partialEntries,
+    periodComposition,
+    entryIds,
+    periodStart,
+    periodEnd,
+    totalFuel,
+    totalDistance,
+    totalCost,
+    hasPartialRefuels,
+  );
+
+  @override
+  String toString() {
+    return 'EnhancedConsumptionDataPoint(date: $date, consumption: $consumption, periodComposition: $periodComposition, totalEntries: $totalEntries, partialEntries: $partialEntries)';
+  }
+}
+
 /// Data point for price trend chart
 class PriceTrendDataPoint {
   final DateTime date;
@@ -108,6 +196,46 @@ Future<List<ConsumptionDataPoint>> consumptionChartData(
     consumption: period.consumption, // Period-based consumption
     kilometers: period.endFullTank.currentKm, // End kilometers
   )).toList();
+}
+
+/// Provider for enhanced consumption chart data with period composition details
+@riverpod
+Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
+  EnhancedConsumptionChartDataRef ref,
+  int vehicleId, {
+  DateTime? startDate,
+  DateTime? endDate,
+  String? countryFilter,
+}) async {
+  // Get fuel entries for the vehicle
+  List<FuelEntryModel> entries;
+  
+  if (startDate != null && endDate != null) {
+    entries = await ref.watch(
+      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
+    );
+  } else {
+    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+  }
+
+  // Apply country filter if specified
+  if (countryFilter != null) {
+    entries = entries.where((entry) => entry.country == countryFilter).toList();
+  }
+
+  if (entries.isEmpty) {
+    return [];
+  }
+
+  // Calculate consumption periods using the new service
+  final periods = ConsumptionCalculationService.calculateConsumptionPeriods(entries);
+  
+  if (periods.isEmpty) {
+    return [];
+  }
+
+  // Convert periods to enhanced chart data points with composition details
+  return ConsumptionCalculationService.getEnhancedConsumptionDataPoints(periods);
 }
 
 /// Provider for price trend chart data
