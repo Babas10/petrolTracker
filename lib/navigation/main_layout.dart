@@ -137,7 +137,7 @@ class NavAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: showBackButton 
         ? IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+            onPressed: () => _handleBackNavigation(context),
           )
         : leading,
       actions: actions,
@@ -148,4 +148,30 @@ class NavAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  /// Handle back navigation with fallback for shell routes
+  /// 
+  /// Tries to pop the current route, and if that fails (indicating we're at
+  /// a top-level shell route), navigates back to the most appropriate screen.
+  /// For the add-entry screen, this typically means going back to entries.
+  void _handleBackNavigation(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      // Fallback for shell routes where there's nothing to pop
+      // Determine appropriate fallback based on current location
+      final currentLocation = GoRouterState.of(context).uri.path;
+      
+      switch (currentLocation) {
+        case '/add-entry':
+          // When editing/adding entries, go back to entries list
+          context.go('/entries');
+          break;
+        default:
+          // For other screens, go to dashboard as safe fallback
+          context.go('/');
+          break;
+      }
+    }
+  }
 }
