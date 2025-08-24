@@ -963,14 +963,34 @@ class _FuelEntryCard extends ConsumerWidget {
             ),
           ),
           title: vehicleAsync.when(
-            data: (vehicle) => Text(
-              vehicle?.name ?? 'Unknown Vehicle',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            data: (vehicle) => Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    vehicle?.name ?? 'Unknown Vehicle',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _TankTypeChip(isFullTank: entry.isFullTank),
+              ],
             ),
-            loading: () => const Text('Loading vehicle...'),
-            error: (_, __) => const Text('Unknown Vehicle'),
+            loading: () => Row(
+              children: [
+                const Expanded(child: Text('Loading vehicle...')),
+                const SizedBox(width: 8),
+                _TankTypeChip(isFullTank: entry.isFullTank),
+              ],
+            ),
+            error: (_, __) => Row(
+              children: [
+                const Expanded(child: Text('Unknown Vehicle')),
+                const SizedBox(width: 8),
+                _TankTypeChip(isFullTank: entry.isFullTank),
+              ],
+            ),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1491,6 +1511,35 @@ class _EntryDetailsDialog extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Tank type indicator chip widget
+/// 
+/// Displays "Full" or "Partial" based on the isFullTank boolean value
+/// with appropriate styling and colors.
+class _TankTypeChip extends StatelessWidget {
+  final bool isFullTank;
+
+  const _TankTypeChip({
+    required this.isFullTank,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(
+        isFullTank ? 'Full' : 'Partial',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: Theme.of(context).colorScheme.onPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      visualDensity: VisualDensity.compact,
+      side: BorderSide.none,
     );
   }
 }
