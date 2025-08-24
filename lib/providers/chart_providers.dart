@@ -207,35 +207,54 @@ Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
   DateTime? endDate,
   String? countryFilter,
 }) async {
+  print('🔍 [PROVIDER] enhancedConsumptionChartData called for vehicle $vehicleId');
+  print('🔍 [PROVIDER] Date range: $startDate to $endDate');
+  print('🔍 [PROVIDER] Country filter: $countryFilter');
+  
   // Get fuel entries for the vehicle
   List<FuelEntryModel> entries;
   
   if (startDate != null && endDate != null) {
+    print('🔍 [PROVIDER] Using date range provider...');
     entries = await ref.watch(
       fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
     );
+    print('🔍 [PROVIDER] Date range provider returned ${entries.length} entries');
   } else {
+    print('🔍 [PROVIDER] Using all entries provider...');
     entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+    print('🔍 [PROVIDER] All entries provider returned ${entries.length} entries');
   }
 
   // Apply country filter if specified
   if (countryFilter != null) {
+    final beforeFilter = entries.length;
     entries = entries.where((entry) => entry.country == countryFilter).toList();
+    print('🔍 [PROVIDER] Country filter applied: $beforeFilter -> ${entries.length} entries');
   }
 
   if (entries.isEmpty) {
+    print('🔍 [PROVIDER] No entries after filtering - returning empty list');
     return [];
   }
 
+  print('🔍 [PROVIDER] Starting consumption calculation with ${entries.length} entries');
+
   // Calculate consumption periods using the new service
+  print('🔍 [PROVIDER] Calling ConsumptionCalculationService.calculateConsumptionPeriods...');
   final periods = ConsumptionCalculationService.calculateConsumptionPeriods(entries);
+  print('🔍 [PROVIDER] Got ${periods.length} consumption periods');
   
   if (periods.isEmpty) {
+    print('🔍 [PROVIDER] No consumption periods calculated - returning empty list');
     return [];
   }
 
   // Convert periods to enhanced chart data points with composition details
-  return ConsumptionCalculationService.getEnhancedConsumptionDataPoints(periods);
+  print('🔍 [PROVIDER] Converting periods to enhanced data points...');
+  final result = ConsumptionCalculationService.getEnhancedConsumptionDataPoints(periods);
+  print('🔍 [PROVIDER] Returning ${result.length} enhanced data points');
+  return result;
 }
 
 /// Provider for price trend chart data

@@ -852,17 +852,37 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
 
 
-  /// Get date range from selected time period ending at current date
+  /// Get date range from selected time period 
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
     if (period == TimePeriod.allTime) {
+      print('🔍 [DEBUG] All Time selected - no date filtering');
       return null; // No date filtering for all time
     }
     
-    // Always use current date as the END date for time periods
-    // This makes more intuitive sense - "1M" means "last 1 month from today"
-    final endDate = DateTime.now();
+    if (entries.isEmpty) {
+      print('🔍 [DEBUG] No entries available, using current date as fallback');
+      final calculatedRange = _calculateDateRange(period, DateTime.now());
+      print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
+      return calculatedRange;
+    }
     
-    return _calculateDateRange(period, endDate);
+    print('🔍 [DEBUG] Total entries available: ${entries.length}');
+    print('🔍 [DEBUG] Entry date range: ${entries.last.date} to ${entries.first.date}');
+    
+    // Use the EARLIER of current date or most recent entry date
+    // This ensures we don't create date ranges in the future beyond available data
+    final currentDate = DateTime.now();
+    final mostRecentEntryDate = entries.first.date;
+    final endDate = currentDate.isBefore(mostRecentEntryDate) 
+        ? currentDate          // Use current date if entries are in the future
+        : mostRecentEntryDate; // Use most recent entry date if it's not in the future
+    
+    print('🔍 [DEBUG] Using end date: $endDate (current: $currentDate, most recent entry: $mostRecentEntryDate)');
+    
+    final calculatedRange = _calculateDateRange(period, endDate);
+    print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
+    
+    return calculatedRange;
   }
   
   /// Calculate date range based on period and reference date
