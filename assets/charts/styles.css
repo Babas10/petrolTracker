@@ -183,16 +183,43 @@ body {
     fill: #ff9800;
 }
 
-/* Dot styles for line charts */
+/* Enhanced dot styles for line charts with period type distinction */
 .dot {
     r: 4;
-    transition: r 0.2s;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .dot:hover {
-    r: 6;
+    r: 8;
+    stroke-width: 2;
 }
 
+/* Simple period dots (blue theme) */
+.dot.simple-period {
+    fill: #4A90E2;
+    stroke: #2C5E95;
+}
+
+.dot.simple-period:hover {
+    fill: #357ABD;
+    stroke: #1A4B7A;
+    filter: drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3));
+}
+
+/* Complex period dots (orange theme) */
+.dot.complex-period {
+    fill: #FF8A50;
+    stroke: #E6732A;
+}
+
+.dot.complex-period:hover {
+    fill: #FF7038;
+    stroke: #D45F1F;
+    filter: drop-shadow(0 2px 4px rgba(255, 138, 80, 0.3));
+}
+
+/* Legacy styles for backward compatibility */
 .dot.consumption {
     fill: #4caf50;
     stroke: #fff;
@@ -211,22 +238,72 @@ body {
     stroke-width: 2;
 }
 
-/* Tooltip styles */
+/* Enhanced Tooltip styles */
 .tooltip {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
     pointer-events: none;
     z-index: 1000;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    max-width: 280px;
+    line-height: 1.4;
 }
 
 .tooltip.visible {
     opacity: 1;
+}
+
+.tooltip-date {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+.tooltip-value {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.tooltip-separator {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.3);
+    margin: 8px 0;
+}
+
+.tooltip-period-type {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.tooltip-period-info {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2px;
+}
+
+.tooltip-duration {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 6px;
+}
+
+.tooltip-click-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 4px;
 }
 
 /* Legend styles */

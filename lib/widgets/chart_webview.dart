@@ -256,8 +256,12 @@ class _ChartWebViewState extends State<ChartWebView> {
           <script>
               // Override the renderAreaChart method for optimal space usage and styling
               ChartManager.prototype.renderAreaChart = function(data, options) {
-                  console.log('Custom renderAreaChart called with', data.length, 'data points');
-                  console.log('Theme colors:', options.theme);
+                  console.log('🔍 ENHANCED: Custom renderAreaChart called with', data.length, 'data points');
+                  console.log('🔍 ENHANCED: Theme colors:', options.theme);
+                  console.log('🔍 ENHANCED: Sample data point 0:', JSON.stringify(data[0], null, 2));
+                  console.log('🔍 ENHANCED: Data points with isComplexPeriod:', data.filter(d => d.hasOwnProperty('isComplexPeriod')).length);
+                  console.log('🔍 ENHANCED: Complex periods:', data.filter(d => d.isComplexPeriod === true).length);
+                  console.log('🔍 ENHANCED: Simple periods:', data.filter(d => d.isComplexPeriod === false).length);
                   
                   // Prevent re-entry during rendering
                   if (this._rendering) {
@@ -654,21 +658,44 @@ class _ChartWebViewState extends State<ChartWebView> {
                       .style('stroke', primaryColor)
                       .style('stroke-width', 3);
                   
-                  // Add circles for each data point using theme colors
+                  // Add circles for each data point with visual distinction for period types
                   g.selectAll('.dot')
                       .data(data)
                       .enter().append('circle')
-                      .attr('class', 'dot')
+                      .attr('class', d => {
+                          const baseClass = 'dot';
+                          if (d.hasOwnProperty('isComplexPeriod')) {
+                              return d.isComplexPeriod ? baseClass + ' complex-period' : baseClass + ' simple-period';
+                          }
+                          return baseClass;
+                      })
                       .attr('cx', d => xScale(d.date))
                       .attr('cy', d => yScale(d.value))
-                      .attr('r', 4)
-                      .style('fill', primaryColor)
-                      .style('stroke', surfaceColor)
+                      .attr('r', 4) // Standard radius for all dots
+                      .style('fill', primaryColor) // Always use green (primary theme color)
+                      .style('stroke', surfaceColor) // Standard stroke color
                       .style('stroke-width', 2)
                       .style('cursor', 'pointer')
-                      .on('mouseover', function(event, d) {
-                          // Enlarge the data point
-                          d3.select(this).attr('r', 6);
+                      .on('click', function(event, d) {
+                          // Stop event propagation to prevent chart background click
+                          event.stopPropagation();
+                          
+                          // FIRST: Reset ALL data points to original state
+                          g.selectAll('.dot')
+                              .attr('r', 4) // Reset to original size
+                              .style('fill', primaryColor) // Back to green
+                              .style('stroke', surfaceColor) // Back to original stroke
+                              .style('stroke-width', 2); // Reset stroke width
+                          
+                          // THEN: Activate the clicked data point
+                          const clickedElement = d3.select(this);
+                          clickedElement.attr('r', 6); // Enlarged on click
+                          
+                          // Change appearance on click with subtle visual feedback
+                          clickedElement
+                              .style('fill', primaryColor) // Keep the same green
+                              .style('stroke', '#e0e0e0') // Lighter gray outer ring
+                              .style('stroke-width', 3); // Slightly thicker stroke
                           
                           // Format the date
                           const formatDate = d3.timeFormat('%B %d, %Y');
@@ -679,22 +706,76 @@ class _ChartWebViewState extends State<ChartWebView> {
                           const valueText = d.value.toFixed(2);
                           const valueWithUnit = unit ? valueText + ' ' + unit : valueText;
                           
-                          // Show tooltip with smart positioning
+                          // Build enhanced tooltip content with period information
+                          let tooltipContent = '<div class="tooltip-date">' + dateText + '</div>';
+                          tooltipContent += '<div class="tooltip-value">' + valueWithUnit + '</div>';
+                          
+                          // Add simple period information if available
+                          if (d.totalEntries && d.totalEntries > 1) {
+                              tooltipContent += '<div class="tooltip-separator"></div>';
+                              tooltipContent += '<div class="tooltip-period-info" style="color: #666;">';
+                              tooltipContent += d.totalEntries + ' entries';
+                              tooltipContent += '</div>';
+                          }
+                          
+                          // Always show "click for details" message for all data points
+                          tooltipContent += '<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>';
+                          
+                          // Show tooltip with smart positioning and make it clickable
                           const chartContainer = document.querySelector('#chart');
                           const smartPosition = getSmartTooltipPosition(event, d, chartContainer);
                           
-                          tooltip.transition().duration(200).style('opacity', 1);
-                          tooltip.html(dateText + '<br/>' + valueWithUnit)
-                              .style('left', smartPosition.x + 'px')
-                              .style('top', smartPosition.y + 'px');
-                      })
-                      .on('mouseout', function(event, d) {
-                          // Reset data point size
-                          d3.select(this).attr('r', 4);
+                          // Store current data point reference for tooltip click handling
+                          tooltip.datum(d);
                           
-                          // Hide tooltip
-                          tooltip.transition().duration(200).style('opacity', 0);
+                          tooltip.transition().duration(200).style('opacity', 1);
+                          tooltip.html(tooltipContent)
+                              .style('left', smartPosition.x + 'px')
+                              .style('top', smartPosition.y + 'px')
+                              .style('pointer-events', 'all') // Make tooltip clickable
+                              .on('click', function(tooltipEvent) {
+                                  // Handle tooltip click - show period details
+                                  tooltipEvent.stopPropagation();
+                                  console.log('🔍 TOOLTIP CLICKED:', d);
+                                  
+                                  if (d.periodData) {
+                                      // Send click event with period data to Flutter
+                                      if (window.flutter_inappwebview) {
+                                          window.flutter_inappwebview.callHandler('chartEvent', JSON.stringify({
+                                              eventType: 'click',
+                                              data: d
+                                          }));
+                                      } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.chartEvent) {
+                                          window.webkit.messageHandlers.chartEvent.postMessage(JSON.stringify({
+                                              eventType: 'click',
+                                              data: d
+                                          }));
+                                      } else {
+                                          console.log('Chart click event (no Flutter bridge):', d);
+                                      }
+                                  }
+                              });
                       });
+                  
+                  // Add click handler to chart background to dismiss tooltip
+                  svg.on('click', function(event) {
+                      // Reset all data points to original state
+                      g.selectAll('.dot')
+                          .attr('r', 4) // Reset to original size
+                          .style('fill', primaryColor) // Back to green
+                          .style('stroke', surfaceColor) // Back to original stroke
+                          .style('stroke-width', 2); // Reset stroke width
+                      
+                      // Hide tooltip
+                      tooltip.transition().duration(200).style('opacity', 0)
+                          .style('pointer-events', 'none');
+                      
+                      console.log('🔍 CHART BACKGROUND CLICKED: Tooltip dismissed');
+                  });
+                  
+                  // Add cache-busting timestamp in title for verification
+                  const timestamp = new Date().toISOString();
+                  console.log('🔥 CACHE BUSTER: Chart rendered at', timestamp);
                   
                   // Add centered chart title with titleMedium styling (h2/h3 level)
                   svg.append('text')
@@ -710,6 +791,8 @@ class _ChartWebViewState extends State<ChartWebView> {
                       .style('fill', onSurfaceColor)
                       .text('Consumption (L/100km) Over Time');
                   
+                      // Legend removed per user request - color distinction now only on hover/click
+
                       // Add year axis directly here with access to all variables
                       console.log('Adding year axis with main chart context...');
                       

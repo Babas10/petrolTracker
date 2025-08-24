@@ -232,6 +232,210 @@ class _ConsumptionChartDataProviderElement
       (origin as ConsumptionChartDataProvider).countryFilter;
 }
 
+String _$enhancedConsumptionChartDataHash() =>
+    r'2db8c8148f108ab791e86eeb865a1f2536f510f2';
+
+/// Provider for enhanced consumption chart data with period composition details
+///
+/// Copied from [enhancedConsumptionChartData].
+@ProviderFor(enhancedConsumptionChartData)
+const enhancedConsumptionChartDataProvider =
+    EnhancedConsumptionChartDataFamily();
+
+/// Provider for enhanced consumption chart data with period composition details
+///
+/// Copied from [enhancedConsumptionChartData].
+class EnhancedConsumptionChartDataFamily
+    extends Family<AsyncValue<List<EnhancedConsumptionDataPoint>>> {
+  /// Provider for enhanced consumption chart data with period composition details
+  ///
+  /// Copied from [enhancedConsumptionChartData].
+  const EnhancedConsumptionChartDataFamily();
+
+  /// Provider for enhanced consumption chart data with period composition details
+  ///
+  /// Copied from [enhancedConsumptionChartData].
+  EnhancedConsumptionChartDataProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) {
+    return EnhancedConsumptionChartDataProvider(
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+      countryFilter: countryFilter,
+    );
+  }
+
+  @override
+  EnhancedConsumptionChartDataProvider getProviderOverride(
+    covariant EnhancedConsumptionChartDataProvider provider,
+  ) {
+    return call(
+      provider.vehicleId,
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      countryFilter: provider.countryFilter,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'enhancedConsumptionChartDataProvider';
+}
+
+/// Provider for enhanced consumption chart data with period composition details
+///
+/// Copied from [enhancedConsumptionChartData].
+class EnhancedConsumptionChartDataProvider
+    extends AutoDisposeFutureProvider<List<EnhancedConsumptionDataPoint>> {
+  /// Provider for enhanced consumption chart data with period composition details
+  ///
+  /// Copied from [enhancedConsumptionChartData].
+  EnhancedConsumptionChartDataProvider(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) : this._internal(
+         (ref) => enhancedConsumptionChartData(
+           ref as EnhancedConsumptionChartDataRef,
+           vehicleId,
+           startDate: startDate,
+           endDate: endDate,
+           countryFilter: countryFilter,
+         ),
+         from: enhancedConsumptionChartDataProvider,
+         name: r'enhancedConsumptionChartDataProvider',
+         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+             ? null
+             : _$enhancedConsumptionChartDataHash,
+         dependencies: EnhancedConsumptionChartDataFamily._dependencies,
+         allTransitiveDependencies:
+             EnhancedConsumptionChartDataFamily._allTransitiveDependencies,
+         vehicleId: vehicleId,
+         startDate: startDate,
+         endDate: endDate,
+         countryFilter: countryFilter,
+       );
+
+  EnhancedConsumptionChartDataProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.vehicleId,
+    required this.startDate,
+    required this.endDate,
+    required this.countryFilter,
+  }) : super.internal();
+
+  final int vehicleId;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? countryFilter;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<EnhancedConsumptionDataPoint>> Function(
+      EnhancedConsumptionChartDataRef provider,
+    )
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: EnhancedConsumptionChartDataProvider._internal(
+        (ref) => create(ref as EnhancedConsumptionChartDataRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        vehicleId: vehicleId,
+        startDate: startDate,
+        endDate: endDate,
+        countryFilter: countryFilter,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<EnhancedConsumptionDataPoint>>
+  createElement() {
+    return _EnhancedConsumptionChartDataProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is EnhancedConsumptionChartDataProvider &&
+        other.vehicleId == vehicleId &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.countryFilter == countryFilter;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, vehicleId.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, countryFilter.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin EnhancedConsumptionChartDataRef
+    on AutoDisposeFutureProviderRef<List<EnhancedConsumptionDataPoint>> {
+  /// The parameter `vehicleId` of this provider.
+  int get vehicleId;
+
+  /// The parameter `startDate` of this provider.
+  DateTime? get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime? get endDate;
+
+  /// The parameter `countryFilter` of this provider.
+  String? get countryFilter;
+}
+
+class _EnhancedConsumptionChartDataProviderElement
+    extends AutoDisposeFutureProviderElement<List<EnhancedConsumptionDataPoint>>
+    with EnhancedConsumptionChartDataRef {
+  _EnhancedConsumptionChartDataProviderElement(super.provider);
+
+  @override
+  int get vehicleId =>
+      (origin as EnhancedConsumptionChartDataProvider).vehicleId;
+  @override
+  DateTime? get startDate =>
+      (origin as EnhancedConsumptionChartDataProvider).startDate;
+  @override
+  DateTime? get endDate =>
+      (origin as EnhancedConsumptionChartDataProvider).endDate;
+  @override
+  String? get countryFilter =>
+      (origin as EnhancedConsumptionChartDataProvider).countryFilter;
+}
+
 String _$priceTrendChartDataHash() =>
     r'4ecd4057cd25d681b12098d4c823a544f83683ca';
 
