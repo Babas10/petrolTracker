@@ -869,15 +869,11 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     print('🔍 [DEBUG] Total entries available: ${entries.length}');
     print('🔍 [DEBUG] Entry date range: ${entries.last.date} to ${entries.first.date}');
     
-    // Use the EARLIER of current date or most recent entry date
-    // This ensures we don't create date ranges in the future beyond available data
-    final currentDate = DateTime.now();
-    final mostRecentEntryDate = entries.first.date;
-    final endDate = currentDate.isBefore(mostRecentEntryDate) 
-        ? currentDate          // Use current date if entries are in the future
-        : mostRecentEntryDate; // Use most recent entry date if it's not in the future
+    // ALWAYS use current date as the end date for time periods
+    // This is more intuitive: "1M" means "last 1 month from today"
+    final endDate = DateTime.now();
     
-    print('🔍 [DEBUG] Using end date: $endDate (current: $currentDate, most recent entry: $mostRecentEntryDate)');
+    print('🔍 [DEBUG] Using current date as end: $endDate');
     
     final calculatedRange = _calculateDateRange(period, endDate);
     print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
