@@ -852,22 +852,17 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
 
 
-  /// Get date range from selected time period starting from the last fuel entry
+  /// Get date range from selected time period ending at current date
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
     if (period == TimePeriod.allTime) {
       return null; // No date filtering for all time
     }
     
-    DateTime referenceDate;
-    if (entries.isEmpty) {
-      // No entries, use current date as fallback
-      referenceDate = DateTime.now();
-    } else {
-      // Use the date of the most recent entry as the end date
-      referenceDate = entries.first.date;
-    }
+    // Always use current date as the END date for time periods
+    // This makes more intuitive sense - "1M" means "last 1 month from today"
+    final endDate = DateTime.now();
     
-    return _calculateDateRange(period, referenceDate);
+    return _calculateDateRange(period, endDate);
   }
   
   /// Calculate date range based on period and reference date
