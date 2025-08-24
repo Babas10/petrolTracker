@@ -29,7 +29,12 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/entries',
           name: 'entries',
-          builder: (context, state) => const FuelEntriesScreen(),
+          builder: (context, state) {
+            // Extract vehicleId from extra parameters if provided
+            final extra = state.extra as Map<String, dynamic>?;
+            final vehicleId = extra?['vehicleId'] as int?;
+            return FuelEntriesScreen(vehicleFilter: vehicleId);
+          },
         ),
         GoRoute(
           path: '/add-entry',
