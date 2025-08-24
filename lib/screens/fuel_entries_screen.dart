@@ -52,100 +52,40 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavAppBar(
-        title: widget.vehicleFilter != null ? 'Vehicle Entries' : 'Fuel Entries',
-        actions: [
-          IconButton(
-            icon: Icon(_showSearch ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _showSearch = !_showSearch;
-                if (!_showSearch) {
-                  _searchController.clear();
-                  _searchQuery = '';
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
-            onSelected: (value) {
-              setState(() {
-                if (value == _sortBy) {
-                  _ascending = !_ascending;
-                } else {
-                  _sortBy = value;
-                  _ascending = true;
-                }
-              });
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'date',
-                child: Row(
-                  children: [
-                    const Icon(Icons.calendar_today),
-                    const SizedBox(width: 8),
-                    const Text('Sort by Date'),
-                    const Spacer(),
-                    if (_sortBy == 'date')
-                      Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'amount',
-                child: Row(
-                  children: [
-                    const Icon(Icons.local_gas_station),
-                    const SizedBox(width: 8),
-                    const Text('Sort by Amount'),
-                    const Spacer(),
-                    if (_sortBy == 'amount')
-                      Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'cost',
-                child: Row(
-                  children: [
-                    const Icon(Icons.attach_money),
-                    const SizedBox(width: 8),
-                    const Text('Sort by Cost'),
-                    const Spacer(),
-                    if (_sortBy == 'cost')
-                      Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'consumption',
-                child: Row(
-                  children: [
-                    const Icon(Icons.speed),
-                    const SizedBox(width: 8),
-                    const Text('Sort by Consumption'),
-                    const Spacer(),
-                    if (_sortBy == 'consumption')
-                      Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.refresh(fuelEntriesNotifierProvider);
-            },
-          ),
-        ],
-      ),
+      appBar: widget.vehicleFilter != null 
+          ? _VehicleAppBar(
+              vehicleId: widget.vehicleFilter!,
+              onSearchPressed: () {
+                setState(() {
+                  _showSearch = !_showSearch;
+                  if (!_showSearch) {
+                    _searchController.clear();
+                    _searchQuery = '';
+                  }
+                });
+              },
+              onFilterPressed: _showFilterDialog,
+              onSortPressed: (value) {
+                setState(() {
+                  if (value == _sortBy) {
+                    _ascending = !_ascending;
+                  } else {
+                    _sortBy = value;
+                    _ascending = true;
+                  }
+                });
+              },
+              onRefreshPressed: () {
+                ref.refresh(fuelEntriesNotifierProvider);
+              },
+              showSearch: _showSearch,
+              sortBy: _sortBy,
+              ascending: _ascending,
+            )
+          : NavAppBar(
+              title: 'Fuel Entries',
+              actions: _buildActions(),
+            ),
       body: Column(
         children: [
           if (_showSearch) _buildSearchBar(),
@@ -221,6 +161,100 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
     );
   }
 
+  List<Widget> _buildActions() {
+    return [
+      IconButton(
+        icon: Icon(_showSearch ? Icons.close : Icons.search),
+        onPressed: () {
+          setState(() {
+            _showSearch = !_showSearch;
+            if (!_showSearch) {
+              _searchController.clear();
+              _searchQuery = '';
+            }
+          });
+        },
+      ),
+      IconButton(
+        icon: const Icon(Icons.filter_list),
+        onPressed: _showFilterDialog,
+      ),
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.sort),
+        onSelected: (value) {
+          setState(() {
+            if (value == _sortBy) {
+              _ascending = !_ascending;
+            } else {
+              _sortBy = value;
+              _ascending = true;
+            }
+          });
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'date',
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today),
+                const SizedBox(width: 8),
+                const Text('Sort by Date'),
+                const Spacer(),
+                if (_sortBy == 'date')
+                  Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'amount',
+            child: Row(
+              children: [
+                const Icon(Icons.local_gas_station),
+                const SizedBox(width: 8),
+                const Text('Sort by Amount'),
+                const Spacer(),
+                if (_sortBy == 'amount')
+                  Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'cost',
+            child: Row(
+              children: [
+                const Icon(Icons.attach_money),
+                const SizedBox(width: 8),
+                const Text('Sort by Cost'),
+                const Spacer(),
+                if (_sortBy == 'cost')
+                  Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'consumption',
+            child: Row(
+              children: [
+                const Icon(Icons.speed),
+                const SizedBox(width: 8),
+                const Text('Sort by Consumption'),
+                const Spacer(),
+                if (_sortBy == 'consumption')
+                  Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+              ],
+            ),
+          ),
+        ],
+      ),
+      IconButton(
+        icon: const Icon(Icons.refresh),
+        onPressed: () {
+          ref.refresh(fuelEntriesNotifierProvider);
+        },
+      ),
+    ];
+  }
+
   void _showFilterDialog() {
     showDialog(
       context: context,
@@ -246,6 +280,149 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
       ),
     );
   }
+}
+
+/// Vehicle app bar with dynamic title for filtered entries
+class _VehicleAppBar extends ConsumerWidget implements PreferredSizeWidget {
+  final int vehicleId;
+  final VoidCallback onSearchPressed;
+  final VoidCallback onFilterPressed;
+  final ValueChanged<String> onSortPressed;
+  final VoidCallback onRefreshPressed;
+  final bool showSearch;
+  final String sortBy;
+  final bool ascending;
+
+  const _VehicleAppBar({
+    required this.vehicleId,
+    required this.onSearchPressed,
+    required this.onFilterPressed,
+    required this.onSortPressed,
+    required this.onRefreshPressed,
+    required this.showSearch,
+    required this.sortBy,
+    required this.ascending,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vehicleAsync = ref.watch(vehicleProvider(vehicleId));
+
+    return vehicleAsync.when(
+      data: (vehicle) => NavAppBar(
+        title: vehicle?.name ?? 'Unknown Vehicle',
+        actions: [
+          IconButton(
+            icon: Icon(showSearch ? Icons.close : Icons.search),
+            onPressed: onSearchPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: onFilterPressed,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.sort),
+            onSelected: onSortPressed,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'date',
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today),
+                    const SizedBox(width: 8),
+                    const Text('Sort by Date'),
+                    const Spacer(),
+                    if (sortBy == 'date')
+                      Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'amount',
+                child: Row(
+                  children: [
+                    const Icon(Icons.local_gas_station),
+                    const SizedBox(width: 8),
+                    const Text('Sort by Amount'),
+                    const Spacer(),
+                    if (sortBy == 'amount')
+                      Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'cost',
+                child: Row(
+                  children: [
+                    const Icon(Icons.attach_money),
+                    const SizedBox(width: 8),
+                    const Text('Sort by Cost'),
+                    const Spacer(),
+                    if (sortBy == 'cost')
+                      Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'consumption',
+                child: Row(
+                  children: [
+                    const Icon(Icons.speed),
+                    const SizedBox(width: 8),
+                    const Text('Sort by Consumption'),
+                    const Spacer(),
+                    if (sortBy == 'consumption')
+                      Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: onRefreshPressed,
+          ),
+        ],
+      ),
+      loading: () => NavAppBar(
+        title: 'Loading...',
+        actions: [
+          IconButton(
+            icon: Icon(showSearch ? Icons.close : Icons.search),
+            onPressed: onSearchPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: onFilterPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: onRefreshPressed,
+          ),
+        ],
+      ),
+      error: (_, __) => NavAppBar(
+        title: 'Unknown Vehicle',
+        actions: [
+          IconButton(
+            icon: Icon(showSearch ? Icons.close : Icons.search),
+            onPressed: onSearchPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: onFilterPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: onRefreshPressed,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 /// Filter chips for quick filtering options
@@ -409,6 +586,15 @@ class _EntriesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Use different providers based on whether we're filtering by vehicle
+    if (vehicleFilter != null) {
+      return _buildVehicleFilteredEntries(context, ref);
+    } else {
+      return _buildAllEntries(context, ref);
+    }
+  }
+
+  Widget _buildAllEntries(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(fuelEntriesNotifierProvider);
 
     return entriesAsync.when(
@@ -459,6 +645,47 @@ class _EntriesList extends ConsumerWidget {
     );
   }
 
+  Widget _buildVehicleFilteredEntries(BuildContext context, WidgetRef ref) {
+    final entriesAsync = ref.watch(fuelEntriesByVehicleProvider(vehicleFilter!));
+
+    return entriesAsync.when(
+      data: (entries) {
+        // Apply remaining filters (excluding vehicle filter since it's already applied)
+        final filteredEntries = _applyNonVehicleFilters(entries);
+
+        // Apply sorting
+        final sortedEntries = _applySorting(filteredEntries);
+
+        if (sortedEntries.isEmpty) {
+          return _EmptyEntriesState(
+            hasFilters: searchQuery.isNotEmpty ||
+                       countryFilter != null ||
+                       dateRange != null ||
+                       vehicleFilter != null,
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.refresh(fuelEntriesByVehicleProvider(vehicleFilter!).future);
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: sortedEntries.length,
+            itemBuilder: (context, index) {
+              return _FuelEntryCard(
+                entry: sortedEntries[index],
+                ref: ref,
+              );
+            },
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => _buildErrorState(context, error.toString(), ref),
+    );
+  }
+
   List<FuelEntryModel> _applyFilters(List<FuelEntryModel> entries) {
     var filtered = entries;
 
@@ -466,6 +693,35 @@ class _EntriesList extends ConsumerWidget {
     if (vehicleFilter != null) {
       filtered = filtered.where((entry) => entry.vehicleId == vehicleFilter).toList();
     }
+
+    // Search query filter
+    if (searchQuery.isNotEmpty) {
+      final query = searchQuery.toLowerCase();
+      filtered = filtered.where((entry) {
+        return entry.country.toLowerCase().contains(query) ||
+               DateFormat('MMM d, yyyy').format(entry.date).toLowerCase().contains(query) ||
+               entry.formattedPrice.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    // Country filter
+    if (countryFilter != null) {
+      filtered = filtered.where((entry) => entry.country == countryFilter).toList();
+    }
+
+    // Date range filter
+    if (dateRange != null) {
+      filtered = filtered.where((entry) {
+        return entry.date.isAfter(dateRange!.start.subtract(const Duration(days: 1))) &&
+               entry.date.isBefore(dateRange!.end.add(const Duration(days: 1)));
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  List<FuelEntryModel> _applyNonVehicleFilters(List<FuelEntryModel> entries) {
+    var filtered = entries;
 
     // Search query filter
     if (searchQuery.isNotEmpty) {
