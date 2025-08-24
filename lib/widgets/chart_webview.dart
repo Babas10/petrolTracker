@@ -716,9 +716,10 @@ class _ChartWebViewState extends State<ChartWebView> {
                               tooltipContent += '<div class="tooltip-period-info" style="color: #666;">';
                               tooltipContent += d.totalEntries + ' entries';
                               tooltipContent += '</div>';
-                              
-                              tooltipContent += '<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>';
                           }
+                          
+                          // Always show "click for details" message for all data points
+                          tooltipContent += '<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>';
                           
                           // Show tooltip with smart positioning and make it clickable
                           const chartContainer = document.querySelector('#chart');

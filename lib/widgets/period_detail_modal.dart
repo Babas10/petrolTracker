@@ -40,9 +40,7 @@ class PeriodDetailModal extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: periodData.isComplexPeriod 
-            ? Colors.orange.withOpacity(0.1) 
-            : Colors.blue.withOpacity(0.1),
+        color: Colors.green.withOpacity(0.1),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(12),
           topRight: Radius.circular(12),
@@ -55,7 +53,7 @@ class PeriodDetailModal extends ConsumerWidget {
             children: [
               Icon(
                 periodData.isComplexPeriod ? Icons.analytics : Icons.timeline,
-                color: periodData.isComplexPeriod ? Colors.orange : Colors.blue,
+                color: Colors.green,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -119,7 +117,7 @@ class PeriodDetailModal extends ConsumerWidget {
               'Fuel Consumption',
               '${periodData.consumption.toStringAsFixed(1)} L/100km',
               Icons.local_gas_station,
-              periodData.isComplexPeriod ? Colors.orange : Colors.blue,
+              Colors.green,
             ),
             _buildStatRow(
               context,

@@ -890,9 +890,10 @@ class ChartManager {
             content += `<div class="tooltip-period-info" style="color: #666;">`;
             content += `${data.totalEntries} entries`;
             content += `</div>`;
-            
-            content += `<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>`;
         }
+        
+        // Always show "click for details" message for all data points
+        content += `<div class="tooltip-click-hint" style="cursor: pointer; background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 4px; margin-top: 8px;">Click for details</div>`;
 
         this.tooltip
             .html(content)
