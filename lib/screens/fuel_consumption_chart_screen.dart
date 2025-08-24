@@ -871,7 +871,9 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     
     // ALWAYS use current date as the end date for time periods
     // This is more intuitive: "1M" means "last 1 month from today"
-    final endDate = DateTime.now();
+    // Use date without time components to avoid infinite loops from DateTime.now() microsecond changes
+    final now = DateTime.now();
+    final endDate = DateTime(now.year, now.month, now.day);
     
     print('🔍 [DEBUG] Using current date as end: $endDate');
     
