@@ -1532,15 +1532,11 @@ class _TankTypeChip extends StatelessWidget {
       label: Text(
         isFullTank ? 'Full' : 'Partial',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: isFullTank 
-            ? Theme.of(context).colorScheme.onPrimary
-            : Theme.of(context).colorScheme.onSecondary,
+          color: Theme.of(context).colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
         ),
       ),
-      backgroundColor: isFullTank 
-        ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
-        : Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       visualDensity: VisualDensity.compact,
       side: BorderSide.none,
