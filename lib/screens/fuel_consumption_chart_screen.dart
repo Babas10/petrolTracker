@@ -295,13 +295,6 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                   return _buildEmptyChartPlaceholder();
                 }
 
-                // Debug: Print enhanced data to verify it's working (UPDATED FOR VISUAL FIX)
-                print('🔍 CHART DEBUG ENHANCED: Enhanced consumption data points:');
-                for (int i = 0; i < consumptionData.length; i++) {
-                  final point = consumptionData[i];
-                  print('  Point $i: ${point.consumption.toStringAsFixed(2)} L/100km, Complex: ${point.isComplexPeriod}, Composition: "${point.periodComposition}"');
-                }
-                print('🔍 SENDING TO D3.js: Expected blue dots for Simple periods, orange dots for Complex periods');
 
                 // Transform to enhanced chart format with period metadata
                 final chartData = consumptionData.map((point) => {
@@ -855,27 +848,23 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   /// Get date range from selected time period 
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
     if (period == TimePeriod.allTime) {
-      print('🔍 [DEBUG] All Time selected - no date filtering');
       return null; // No date filtering for all time
     }
     
     if (entries.isEmpty) {
-      print('🔍 [DEBUG] No entries available, using current date as fallback');
-      final calculatedRange = _calculateDateRange(period, DateTime.now());
-      print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
+final calculatedRange = _calculateDateRange(period, DateTime.now());
       return calculatedRange;
     }
     
-    print('🔍 [DEBUG] Total entries available: ${entries.length}');
-    print('🔍 [DEBUG] Entry date range: ${entries.last.date} to ${entries.first.date}');
     
     // Use the MINIMUM of current date and most recent entry date as end date
     // This prevents looking for data in the future beyond what exists
     final now = DateTime.now();
     final currentDate = DateTime(now.year, now.month, now.day);
     
+    // Find the actual most recent entry date (entries might not be sorted as expected)
     final mostRecentEntryDate = entries.isNotEmpty 
-        ? entries.first.date 
+        ? entries.map((e) => e.date).reduce((a, b) => a.isAfter(b) ? a : b)
         : currentDate;
         
     // Use the earlier date to avoid looking beyond available data
@@ -883,17 +872,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         ? currentDate 
         : mostRecentEntryDate;
     
-    print('🔍 [DEBUG] Using current date as end: $endDate');
-    
-    final calculatedRange = _calculateDateRange(period, endDate);
-    print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
-    
-    // Debug: Show how many entries would fall in this range
-    final entriesInRange = entries.where((entry) => 
-      entry.date.isAfter(calculatedRange.start.subtract(const Duration(days: 1))) &&
-      entry.date.isBefore(calculatedRange.end.add(const Duration(days: 1)))
-    ).length;
-    print('🔍 [DEBUG] Expected entries in this range: $entriesInRange');
+final calculatedRange = _calculateDateRange(period, endDate);
     
     return calculatedRange;
   }
