@@ -239,6 +239,11 @@ Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
   }
 
   print('🔍 [PROVIDER] Starting consumption calculation with ${entries.length} entries');
+  if (entries.isNotEmpty) {
+    print('🔍 [PROVIDER] Entry dates: ${entries.last.date} to ${entries.first.date}');
+    print('🔍 [PROVIDER] Entries with full tank: ${entries.where((e) => e.isFullTank).length}');
+    print('🔍 [PROVIDER] Entries with partial tank: ${entries.where((e) => !e.isFullTank).length}');
+  }
 
   // Calculate consumption periods using the new service
   print('🔍 [PROVIDER] Calling ConsumptionCalculationService.calculateConsumptionPeriods...');
@@ -246,7 +251,8 @@ Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
   print('🔍 [PROVIDER] Got ${periods.length} consumption periods');
   
   if (periods.isEmpty) {
-    print('🔍 [PROVIDER] No consumption periods calculated - returning empty list');
+    print('🔍 [PROVIDER] ❌ No consumption periods calculated despite having ${entries.length} entries');
+    print('🔍 [PROVIDER] This usually means not enough full tank entries to calculate consumption');
     return [];
   }
 

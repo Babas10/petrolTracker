@@ -869,16 +869,31 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
     print('🔍 [DEBUG] Total entries available: ${entries.length}');
     print('🔍 [DEBUG] Entry date range: ${entries.last.date} to ${entries.first.date}');
     
-    // ALWAYS use current date as the end date for time periods
-    // This is more intuitive: "1M" means "last 1 month from today"
-    // Use date without time components to avoid infinite loops from DateTime.now() microsecond changes
+    // Use the MINIMUM of current date and most recent entry date as end date
+    // This prevents looking for data in the future beyond what exists
     final now = DateTime.now();
-    final endDate = DateTime(now.year, now.month, now.day);
+    final currentDate = DateTime(now.year, now.month, now.day);
+    
+    final mostRecentEntryDate = entries.isNotEmpty 
+        ? entries.first.date 
+        : currentDate;
+        
+    // Use the earlier date to avoid looking beyond available data
+    final endDate = currentDate.isBefore(mostRecentEntryDate) 
+        ? currentDate 
+        : mostRecentEntryDate;
     
     print('🔍 [DEBUG] Using current date as end: $endDate');
     
     final calculatedRange = _calculateDateRange(period, endDate);
     print('🔍 [DEBUG] Calculated range for $period: ${calculatedRange.start} to ${calculatedRange.end}');
+    
+    // Debug: Show how many entries would fall in this range
+    final entriesInRange = entries.where((entry) => 
+      entry.date.isAfter(calculatedRange.start.subtract(const Duration(days: 1))) &&
+      entry.date.isBefore(calculatedRange.end.add(const Duration(days: 1)))
+    ).length;
+    print('🔍 [DEBUG] Expected entries in this range: $entriesInRange');
     
     return calculatedRange;
   }
