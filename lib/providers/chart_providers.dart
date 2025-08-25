@@ -207,6 +207,7 @@ Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
   DateTime? endDate,
   String? countryFilter,
 }) async {
+  
   // Get fuel entries for the vehicle
   List<FuelEntryModel> entries;
   
@@ -220,22 +221,24 @@ Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
 
   // Apply country filter if specified
   if (countryFilter != null) {
-    entries = entries.where((entry) => entry.country == countryFilter).toList();
+entries = entries.where((entry) => entry.country == countryFilter).toList();
   }
 
   if (entries.isEmpty) {
     return [];
   }
 
-  // Calculate consumption periods using the new service
+
+// Calculate consumption periods using the new service
   final periods = ConsumptionCalculationService.calculateConsumptionPeriods(entries);
   
-  if (periods.isEmpty) {
+if (periods.isEmpty) {
     return [];
   }
 
   // Convert periods to enhanced chart data points with composition details
-  return ConsumptionCalculationService.getEnhancedConsumptionDataPoints(periods);
+  final result = ConsumptionCalculationService.getEnhancedConsumptionDataPoints(periods);
+  return result;
 }
 
 /// Provider for price trend chart data
