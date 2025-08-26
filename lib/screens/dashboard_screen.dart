@@ -49,8 +49,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _WelcomeCard(),
-            const SizedBox(height: 16),
             _buildVehicleSelector(),
             const SizedBox(height: 16),
             _QuickStatsRow(ref: ref, selectedVehicle: _selectedVehicle),
@@ -62,43 +60,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _CostAnalysisSection(ref: ref, selectedVehicle: _selectedVehicle),
             const SizedBox(height: 16),
             _RecentEntriesSection(ref: ref, selectedVehicle: _selectedVehicle),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Welcome card showing user greeting and quick overview
-class _WelcomeCard extends StatelessWidget {
-  const _WelcomeCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.dashboard,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Welcome to Dashboard',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Monitor your fuel consumption and track spending patterns',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
           ],
         ),
       ),
