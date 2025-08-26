@@ -795,50 +795,82 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     });
   }
 
-  /// Get date range from selected time period starting from the last fuel entry
+  /// Get date range from selected time period 
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
     if (period == TimePeriod.allTime) {
       return null; // No date filtering for all time
     }
     
-    DateTime referenceDate;
     if (entries.isEmpty) {
-      // No entries, use current date as fallback
-      referenceDate = DateTime.now();
-    } else {
-      // Use the date of the most recent entry as the end date
-      referenceDate = entries.first.date;
+      final calculatedRange = _calculateDateRange(period, DateTime.now());
+      return calculatedRange;
     }
     
-    return _calculateDateRange(period, referenceDate);
+    // Use the MINIMUM of current date and most recent entry date as end date
+    // This prevents looking for data in the future beyond what exists
+    final now = DateTime.now();
+    final currentDate = DateTime(now.year, now.month, now.day);
+    
+    // Find the actual most recent entry date (entries might not be sorted as expected)
+    final mostRecentEntryDate = entries.isNotEmpty 
+        ? entries.map((e) => e.date).reduce((a, b) => a.isAfter(b) ? a : b)
+        : currentDate;
+        
+    // Use the earlier date to avoid looking beyond available data
+    final endDate = currentDate.isBefore(mostRecentEntryDate) 
+        ? currentDate 
+        : mostRecentEntryDate;
+    
+    final calculatedRange = _calculateDateRange(period, endDate);
+    
+    return calculatedRange;
   }
   
   /// Calculate date range based on period and reference date
   DateTimeRange _calculateDateRange(TimePeriod period, DateTime referenceDate) {
+    DateTime startDate;
+    
     switch (period) {
       case TimePeriod.oneMonth:
-        return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 1, referenceDate.day),
-          end: referenceDate,
-        );
+        startDate = _subtractMonths(referenceDate, 1);
+        break;
       case TimePeriod.threeMonths:
-        return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 3, referenceDate.day),
-          end: referenceDate,
-        );
+        startDate = _subtractMonths(referenceDate, 3);
+        break;
       case TimePeriod.sixMonths:
-        return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 6, referenceDate.day),
-          end: referenceDate,
-        );
+        startDate = _subtractMonths(referenceDate, 6);
+        break;
       case TimePeriod.oneYear:
-        return DateTimeRange(
-          start: DateTime(referenceDate.year - 1, referenceDate.month, referenceDate.day),
-          end: referenceDate,
-        );
+        startDate = _subtractMonths(referenceDate, 12);
+        break;
       case TimePeriod.allTime:
-        return DateTimeRange(start: DateTime(2020), end: referenceDate);
+        startDate = DateTime(2020);
+        break;
     }
+    
+    return DateTimeRange(start: startDate, end: referenceDate);
+  }
+
+  /// Safely subtract months from a date, handling month boundaries properly
+  DateTime _subtractMonths(DateTime date, int monthsToSubtract) {
+    int targetYear = date.year;
+    int targetMonth = date.month - monthsToSubtract;
+    
+    // Handle year boundary
+    while (targetMonth <= 0) {
+      targetYear--;
+      targetMonth += 12;
+    }
+    
+    // Handle day boundary - if the target month doesn't have enough days,
+    // use the last day of that month
+    int targetDay = date.day;
+    int maxDaysInTargetMonth = DateTime(targetYear, targetMonth + 1, 0).day;
+    if (targetDay > maxDaysInTargetMonth) {
+      targetDay = maxDaysInTargetMonth;
+    }
+    
+    return DateTime(targetYear, targetMonth, targetDay);
   }
 
   String _getPeriodDisplayName() {
