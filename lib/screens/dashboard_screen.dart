@@ -17,11 +17,20 @@ import 'package:petrol_tracker/models/vehicle_model.dart';
 /// - Fuel consumption and cost analysis
 /// - Recent entries summary
 /// - Quick statistics
-class DashboardScreen extends ConsumerWidget {
+/// - Vehicle selector for dynamic data switching
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  VehicleModel? _selectedVehicle;
+  bool _hasInitializedVehicle = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: NavAppBar(
         title: 'Dashboard',
@@ -40,54 +49,17 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _WelcomeCard(),
+            _buildVehicleSelector(),
             const SizedBox(height: 16),
-            _QuickStatsRow(ref: ref),
+            _QuickStatsRow(ref: ref, selectedVehicle: _selectedVehicle),
             const SizedBox(height: 16),
-            _ChartSection(ref: ref),
+            _ChartSection(ref: ref, selectedVehicle: _selectedVehicle),
             const SizedBox(height: 16),
-            _AverageConsumptionSection(ref: ref),
+            _AverageConsumptionSection(ref: ref, selectedVehicle: _selectedVehicle),
             const SizedBox(height: 16),
-            _CostAnalysisSection(ref: ref),
+            _CostAnalysisSection(ref: ref, selectedVehicle: _selectedVehicle),
             const SizedBox(height: 16),
-            _RecentEntriesSection(ref: ref),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Welcome card showing user greeting and quick overview
-class _WelcomeCard extends StatelessWidget {
-  const _WelcomeCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.dashboard,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Welcome to Dashboard',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Monitor your fuel consumption and track spending patterns',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            _RecentEntriesSection(ref: ref, selectedVehicle: _selectedVehicle),
           ],
         ),
       ),
@@ -98,25 +70,23 @@ class _WelcomeCard extends StatelessWidget {
 /// Quick statistics row showing key metrics
 class _QuickStatsRow extends ConsumerWidget {
   final WidgetRef ref;
+  final VehicleModel? selectedVehicle;
   
-  const _QuickStatsRow({required this.ref});
+  const _QuickStatsRow({required this.ref, this.selectedVehicle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vehicleState = ref.watch(vehiclesNotifierProvider);
-    final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
     
     return Row(
       children: [
         Expanded(
           child: _StatCard(
             icon: Icons.local_gas_station,
-            title: 'Total Entries',
-            value: fuelEntryState.when(
-              data: (state) => state.entries.length.toString(),
-              loading: () => '...',
-              error: (_, __) => 'Error',
-            ),
+            title: selectedVehicle != null ? 'Vehicle Entries' : 'Total Entries',
+            value: selectedVehicle != null
+                ? _buildVehicleEntryCount(ref)
+                : _buildTotalEntryCount(ref),
             subtitle: 'fuel entries',
           ),
         ),
@@ -134,6 +104,26 @@ class _QuickStatsRow extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  String _buildVehicleEntryCount(WidgetRef ref) {
+    if (selectedVehicle?.id == null) return '0';
+    
+    final entriesAsync = ref.watch(fuelEntriesByVehicleProvider(selectedVehicle!.id!));
+    return entriesAsync.when(
+      data: (entries) => entries.length.toString(),
+      loading: () => '...',
+      error: (_, __) => 'Error',
+    );
+  }
+
+  String _buildTotalEntryCount(WidgetRef ref) {
+    final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
+    return fuelEntryState.when(
+      data: (state) => state.entries.length.toString(),
+      loading: () => '...',
+      error: (_, __) => 'Error',
     );
   }
 }
@@ -199,12 +189,17 @@ class _StatCard extends StatelessWidget {
 /// Charts section with interactive D3.js charts
 class _ChartSection extends ConsumerWidget {
   final WidgetRef ref;
+  final VehicleModel? selectedVehicle;
   
-  const _ChartSection({required this.ref});
+  const _ChartSection({required this.ref, this.selectedVehicle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
+    if (selectedVehicle == null) {
+      return _buildNoVehicleSelectedCard(context);
+    }
+    
+    final vehicleEntriesAsync = ref.watch(fuelEntriesByVehicleProvider(selectedVehicle!.id!));
     
     return Card(
       child: Padding(
@@ -219,11 +214,13 @@ class _ChartSection extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Consumption Charts',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    'Consumption Chart - ${selectedVehicle!.name}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: () => context.go('/consumption-chart'),
                   icon: const Icon(Icons.open_in_full, size: 16),
@@ -234,15 +231,15 @@ class _ChartSection extends ConsumerWidget {
             const SizedBox(height: 16),
             SizedBox(
               height: 300,
-              child: fuelEntryState.when(
-                data: (state) {
-                  if (state.entries.isEmpty) {
+              child: vehicleEntriesAsync.when(
+                data: (entries) {
+                  if (entries.isEmpty) {
                     return _buildEmptyChartPlaceholder(context);
                   }
                   
                   // Transform data for chart
                   final rawChartData = ChartDataService.transformConsumptionData(
-                    state.entries.where((e) => e.consumption != null).toList(),
+                    entries.where((e) => e.consumption != null).toList(),
                   );
                   
                   if (rawChartData.isEmpty) {
@@ -561,13 +558,71 @@ class _ChartSection extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildNoVehicleSelectedCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.bar_chart,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Consumption Charts',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              height: 300,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.directions_car,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Select a vehicle above to view consumption charts',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Recent entries section showing latest fuel entries
 class _RecentEntriesSection extends ConsumerWidget {
   final WidgetRef ref;
+  final VehicleModel? selectedVehicle;
   
-  const _RecentEntriesSection({required this.ref});
+  const _RecentEntriesSection({required this.ref, this.selectedVehicle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -716,8 +771,9 @@ class _RecentEntriesSection extends ConsumerWidget {
 /// Average consumption section showing period-based statistics
 class _AverageConsumptionSection extends ConsumerWidget {
   final WidgetRef ref;
+  final VehicleModel? selectedVehicle;
   
-  const _AverageConsumptionSection({required this.ref});
+  const _AverageConsumptionSection({required this.ref, this.selectedVehicle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -755,23 +811,9 @@ class _AverageConsumptionSection extends ConsumerWidget {
             const SizedBox(height: 16),
             SizedBox(
               height: 300,
-              child: vehicleState.when(
-                data: (state) {
-                  if (state.vehicles.isEmpty) {
-                    return _buildEmptyVehiclesPlaceholder(context);
-                  }
-                  
-                  // Show period-based chart for the first vehicle
-                  final firstVehicle = state.vehicles.first;
-                  if (firstVehicle.id == null) {
-                    return _buildEmptyVehiclesPlaceholder(context);
-                  }
-                  
-                  return _buildAverageConsumptionChart(context, ref, firstVehicle.id!);
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildErrorPlaceholder(context),
-              ),
+              child: selectedVehicle == null
+                  ? _buildNoVehicleSelectedForPeriod(context)
+                  : _buildAverageConsumptionChart(context, ref, selectedVehicle!.id!),
             ),
           ],
         ),
@@ -941,17 +983,47 @@ class _AverageConsumptionSection extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildNoVehicleSelectedForPeriod(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Select a vehicle above to view period analysis',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Cost analysis section showing spending overview and quick access
 class _CostAnalysisSection extends ConsumerWidget {
   final WidgetRef ref;
+  final VehicleModel? selectedVehicle;
   
-  const _CostAnalysisSection({required this.ref});
+  const _CostAnalysisSection({required this.ref, this.selectedVehicle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleState = ref.watch(vehiclesNotifierProvider);
     
     return Card(
       child: Padding(
@@ -979,19 +1051,9 @@ class _CostAnalysisSection extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            vehicleState.when(
-              data: (vehicleData) {
-                final vehicles = vehicleData.vehicles;
-                
-                if (vehicles.isEmpty) {
-                  return _buildNoVehiclesMessage(context);
-                }
-                
-                return _buildCostPreview(context, ref, vehicles.first);
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => _buildCostErrorPlaceholder(context),
-            ),
+            selectedVehicle == null
+                ? _buildNoVehicleSelectedForCost(context)
+                : _buildCostPreview(context, ref, selectedVehicle!),
           ],
         ),
       ),
@@ -1183,6 +1245,180 @@ class _CostAnalysisSection extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoVehicleSelectedForCost(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Select a vehicle above to view cost analysis',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+extension _DashboardScreenStateExtension on _DashboardScreenState {
+  Widget _buildVehicleSelector() {
+    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    
+    return vehiclesState.when(
+      data: (vehicleState) {
+        final vehicles = vehicleState.vehicles;
+        
+        if (vehicles.isEmpty) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.directions_car,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "No vehicles available",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Auto-select first vehicle if not initialized
+        if (!_hasInitializedVehicle && vehicles.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {
+              _selectedVehicle = vehicles.first;
+              _hasInitializedVehicle = true;
+            });
+          });
+        }
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.directions_car,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Selected Vehicle",
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<VehicleModel>(
+                  value: _selectedVehicle,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    prefixIcon: const Icon(Icons.directions_car, size: 18),
+                    fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                    filled: true,
+                  ),
+                  items: vehicles.map((vehicle) => DropdownMenuItem<VehicleModel>(
+                    value: vehicle,
+                    child: Text(
+                      vehicle.name,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  )).toList(),
+                  onChanged: (vehicle) {
+                    setState(() {
+                      _selectedVehicle = vehicle;
+                    });
+                  },
+                  hint: Text(
+                    "Select a vehicle to view its data",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                "Loading vehicles...",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      ),
+      error: (error, stack) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Error loading vehicles: \$error",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
