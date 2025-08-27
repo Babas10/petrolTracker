@@ -450,10 +450,12 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
   }
 
   void _showAddMaintenanceDialog() {
-    // TODO: Implement add maintenance dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add maintenance feature coming soon!')),
-    );
+    // Navigate to add maintenance screen with optional vehicle filter
+    if (_selectedVehicle != null) {
+      context.go('/add-maintenance', extra: {'vehicleId': _selectedVehicle!.id});
+    } else {
+      context.go('/add-maintenance');
+    }
   }
 
   void _showMaintenanceLogDetails(MaintenanceLogModel log) {
