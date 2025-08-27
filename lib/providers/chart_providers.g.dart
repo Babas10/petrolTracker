@@ -233,7 +233,7 @@ class _ConsumptionChartDataProviderElement
 }
 
 String _$enhancedConsumptionChartDataHash() =>
-    r'2db8c8148f108ab791e86eeb865a1f2536f510f2';
+    r'8fd84f94c7a8d821d78072594ee1ba29b6d76b5c';
 
 /// Provider for enhanced consumption chart data with period composition details
 ///
