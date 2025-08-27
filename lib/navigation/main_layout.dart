@@ -16,10 +16,22 @@ class MainLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.path;
+    
     return Scaffold(
       body: child,
       bottomNavigationBar: const BottomNavBar(),
+      floatingActionButton: _shouldShowFAB(location) ? FloatingActionButton(
+        onPressed: () => context.go(AppRoute.addEntry.path),
+        child: const Icon(Icons.add),
+        tooltip: 'Add Fuel Entry',
+      ) : null,
     );
+  }
+
+  bool _shouldShowFAB(String location) {
+    // Show FAB on dashboard and entries screens
+    return location == '/' || location == '/entries';
   }
 }
 
@@ -53,9 +65,9 @@ class BottomNavBar extends StatelessWidget {
           label: 'Entries',
         ),
         NavigationDestination(
-          icon: Icon(Icons.add_circle_outline),
-          selectedIcon: Icon(Icons.add_circle),
-          label: 'Add Entry',
+          icon: Icon(Icons.build_outlined),
+          selectedIcon: Icon(Icons.build),
+          label: 'Maintenance',
         ),
         NavigationDestination(
           icon: Icon(Icons.directions_car_outlined),
@@ -78,7 +90,7 @@ class BottomNavBar extends StatelessWidget {
         return 0;
       case '/entries':
         return 1;
-      case '/add-entry':
+      case '/maintenance':
         return 2;
       case '/vehicles':
         return 3;
@@ -99,7 +111,7 @@ class BottomNavBar extends StatelessWidget {
         context.go(AppRoute.entries.path);
         break;
       case 2:
-        context.go(AppRoute.addEntry.path);
+        context.go(AppRoute.maintenance.path);
         break;
       case 3:
         context.go(AppRoute.vehicles.path);
