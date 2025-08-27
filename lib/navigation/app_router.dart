@@ -11,6 +11,7 @@ import 'package:petrol_tracker/screens/average_consumption_chart_screen.dart';
 import 'package:petrol_tracker/screens/cost_analysis_dashboard_screen.dart';
 import 'package:petrol_tracker/screens/maintenance_logs_screen.dart';
 import 'package:petrol_tracker/screens/add_maintenance_log_screen.dart';
+import 'package:petrol_tracker/screens/maintenance_categories_screen.dart';
 
 /// Application router configuration using go_router
 /// 
@@ -88,6 +89,11 @@ final appRouter = GoRouter(
             return AddMaintenanceLogScreen(preselectedVehicleId: vehicleId);
           },
         ),
+        GoRoute(
+          path: '/maintenance-categories',
+          name: 'maintenance-categories',
+          builder: (context, state) => const MaintenanceCategoriesScreen(),
+        ),
       ],
     ),
   ],
@@ -135,7 +141,8 @@ enum AppRoute {
   consumptionChart('/consumption-chart'),
   averageConsumptionChart('/average-consumption-chart'),
   maintenance('/maintenance'),
-  addMaintenance('/add-maintenance');
+  addMaintenance('/add-maintenance'),
+  maintenanceCategories('/maintenance-categories');
 
   const AppRoute(this.path);
   final String path;

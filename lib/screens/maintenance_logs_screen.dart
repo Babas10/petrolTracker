@@ -97,6 +97,16 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
                 ),
               ),
               const PopupMenuItem(
+                value: 'categories',
+                child: Row(
+                  children: [
+                    Icon(Icons.category),
+                    SizedBox(width: 8),
+                    Text('Manage Categories'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
                 value: 'refresh',
                 child: Row(
                   children: [
@@ -452,16 +462,202 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
   void _showAddMaintenanceDialog() {
     // Navigate to add maintenance screen with optional vehicle filter
     if (_selectedVehicle != null) {
-      context.go('/add-maintenance', extra: {'vehicleId': _selectedVehicle!.id});
+      context.push('/add-maintenance', extra: {'vehicleId': _selectedVehicle!.id});
     } else {
-      context.go('/add-maintenance');
+      context.push('/add-maintenance');
     }
   }
 
   void _showMaintenanceLogDetails(MaintenanceLogModel log) {
-    // TODO: Implement maintenance log details
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Details for: ${log.title}')),
+    final categoriesAsync = ref.read(maintenanceCategoriesProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.build, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                log.title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Category
+                categoriesAsync.when(
+                  data: (categories) {
+                    final category = categories.firstWhere(
+                      (c) => c.id == log.categoryId,
+                      orElse: () => MaintenanceCategoryModel(
+                        id: 0,
+                        name: 'Unknown',
+                        iconName: 'build',
+                        color: '#757575',
+                        createdAt: DateTime.now(),
+                      ),
+                    );
+                    return _buildDetailRow(
+                      'Category',
+                      category.name,
+                      Icons.category,
+                    );
+                  },
+                  loading: () => _buildDetailRow('Category', 'Loading...', Icons.category),
+                  error: (_, __) => _buildDetailRow('Category', 'Unknown', Icons.category),
+                ),
+                
+                // Service Date
+                _buildDetailRow(
+                  'Service Date',
+                  DateFormat.yMMMd().format(log.serviceDate),
+                  Icons.calendar_today,
+                ),
+                
+                // Odometer Reading
+                _buildDetailRow(
+                  'Odometer',
+                  '${log.odometerReading.toStringAsFixed(0)} km',
+                  Icons.speed,
+                ),
+                
+                // Cost
+                _buildDetailRow(
+                  'Total Cost',
+                  '${log.currency} \$${log.totalCost.toStringAsFixed(2)}',
+                  Icons.attach_money,
+                ),
+                
+                // Service Provider (if available)
+                if (log.serviceProvider?.isNotEmpty == true)
+                  _buildDetailRow(
+                    'Service Provider',
+                    log.serviceProvider!,
+                    Icons.store,
+                  ),
+                
+                // Description (if available)
+                if (log.description?.isNotEmpty == true)
+                  _buildDetailSection(
+                    'Description',
+                    log.description!,
+                    Icons.description,
+                  ),
+                
+                // Notes (if available)
+                if (log.notes?.isNotEmpty == true)
+                  _buildDetailSection(
+                    'Notes',
+                    log.notes!,
+                    Icons.notes,
+                  ),
+                
+                const SizedBox(height: 16),
+                
+                // Created/Updated info
+                Text(
+                  'Created: ${DateFormat.yMMMd().add_jm().format(log.createdAt)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailSection(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -469,6 +665,9 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
     switch (action) {
       case 'filter':
         _showFilterDialog();
+        break;
+      case 'categories':
+        context.go('/maintenance-categories');
         break;
       case 'refresh':
         ref.refresh(maintenanceLogsProvider);

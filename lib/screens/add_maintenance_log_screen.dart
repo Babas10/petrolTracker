@@ -37,9 +37,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
   final _descriptionController = TextEditingController();
   final _odometerController = TextEditingController();
   final _serviceProviderController = TextEditingController();
-  final _partsCostController = TextEditingController();
-  final _laborCostController = TextEditingController();
-  final _laborHoursController = TextEditingController();
+  final _totalCostController = TextEditingController(); // Renamed for clarity
   final _notesController = TextEditingController();
 
   VehicleModel? _selectedVehicle;
@@ -60,9 +58,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
     _descriptionController.dispose();
     _odometerController.dispose();
     _serviceProviderController.dispose();
-    _partsCostController.dispose();
-    _laborCostController.dispose();
-    _laborHoursController.dispose();
+    _totalCostController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -148,7 +144,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
               const SizedBox(height: 16),
               _buildServiceDetails(),
               const SizedBox(height: 16),
-              _buildCostBreakdown(),
+              _buildCostSection(),
               const SizedBox(height: 16),
               _buildNotesSection(),
               const SizedBox(height: 32),
@@ -253,55 +249,66 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
             const SizedBox(height: 12),
             categoriesAsync.when(
               data: (categories) {
-                return Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: categories.map((category) => _buildCategoryChip(category)).toList(),
+                // Find current selection in the categories list to avoid stale references
+                MaintenanceCategoryModel? validSelection;
+                if (_selectedCategory != null && categories.isNotEmpty) {
+                  try {
+                    validSelection = categories.firstWhere(
+                      (cat) => cat.id == _selectedCategory!.id,
+                    );
+                  } catch (e) {
+                    // Selected category not found in current list, reset selection
+                    validSelection = null;
+                    _selectedCategory = null;
+                  }
+                }
+                    
+                return SizedBox(
+                  width: double.infinity,
+                  child: DropdownButtonFormField<MaintenanceCategoryModel>(
+                    key: const ValueKey('maintenance_category_dropdown'),
+                    value: validSelection,
+                    decoration: const InputDecoration(
+                      hintText: 'Select maintenance category',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Please select a category';
+                      }
+                      return null;
+                    },
+                    items: categories.map((category) => DropdownMenuItem<MaintenanceCategoryModel>(
+                      value: category,
+                      child: Text(
+                        category.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )).toList(),
+                    onChanged: (category) {
+                      setState(() {
+                        _selectedCategory = category;
+                      });
+                    },
+                    isExpanded: true,
+                    isDense: false,
+                  ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Text('Error loading categories: $error'),
-            ),
-            if (_selectedCategory == null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'Please select a category',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+              loading: () => const SizedBox(
+                height: 56,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, stack) => SizedBox(
+                height: 56,
+                child: Center(
+                  child: Text('Error loading categories: $error'),
                 ),
               ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildCategoryChip(MaintenanceCategoryModel category) {
-    final isSelected = _selectedCategory?.id == category.id;
-
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            category.icon,
-            size: 18,
-            color: isSelected ? Colors.white : category.colorValue,
-          ),
-          const SizedBox(width: 6),
-          Text(category.name),
-        ],
-      ),
-      selected: isSelected,
-      selectedColor: category.colorValue,
-      backgroundColor: category.colorValue.withOpacity(0.1),
-      onSelected: (selected) {
-        setState(() {
-          _selectedCategory = selected ? category : null;
-        });
-      },
     );
   }
 
@@ -451,7 +458,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
     );
   }
 
-  Widget _buildCostBreakdown() {
+  Widget _buildCostSection() {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -466,7 +473,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Cost Breakdown',
+                  'Cost',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -474,104 +481,24 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _partsCostController,
-                    decoration: const InputDecoration(
-                      labelText: 'Parts Cost',
-                      border: OutlineInputBorder(),
-                      prefixText: '\$ ',
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) => _calculateTotalCost(),
-                    validator: (value) {
-                      if (value?.isNotEmpty == true) {
-                        final cost = double.tryParse(value!);
-                        if (cost == null || cost < 0) {
-                          return 'Invalid amount';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _laborCostController,
-                    decoration: const InputDecoration(
-                      labelText: 'Labor Cost',
-                      border: OutlineInputBorder(),
-                      prefixText: '\$ ',
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) => _calculateTotalCost(),
-                    validator: (value) {
-                      if (value?.isNotEmpty == true) {
-                        final cost = double.tryParse(value!);
-                        if (cost == null || cost < 0) {
-                          return 'Invalid amount';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _laborHoursController,
-                    decoration: const InputDecoration(
-                      labelText: 'Labor Hours (Optional)',
-                      border: OutlineInputBorder(),
-                      suffixText: 'hrs',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value?.isNotEmpty == true) {
-                        final hours = double.tryParse(value!);
-                        if (hours == null || hours < 0) {
-                          return 'Invalid hours';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total Cost',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                        Text(
-                          '\$${_calculateTotalCost().toStringAsFixed(2)}',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            TextFormField(
+              controller: _totalCostController,
+              decoration: const InputDecoration(
+                labelText: 'Total Cost',
+                border: OutlineInputBorder(),
+                prefixText: '\$ ',
+                hintText: '0.00',
+              ),
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value?.isNotEmpty == true) {
+                  final cost = double.tryParse(value!);
+                  if (cost == null || cost < 0) {
+                    return 'Invalid amount';
+                  }
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -582,7 +509,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
   Widget _buildNotesSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -591,25 +518,28 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
                 Icon(
                   Icons.notes,
                   color: Theme.of(context).colorScheme.primary,
+                  size: 20,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   'Additional Notes',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _notesController,
               decoration: const InputDecoration(
                 labelText: 'Notes (Optional)',
-                hintText: 'Any additional information, reminders, or observations',
+                hintText: 'Additional information or reminders',
                 border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-              maxLines: 4,
+              maxLines: 2,
               validator: (value) {
                 if (value != null && value.length > 2000) {
                   return 'Notes must be less than 2000 characters';
@@ -674,10 +604,8 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
     }
   }
 
-  double _calculateTotalCost() {
-    final partsCost = double.tryParse(_partsCostController.text) ?? 0.0;
-    final laborCost = double.tryParse(_laborCostController.text) ?? 0.0;
-    return partsCost + laborCost;
+  double _getTotalCost() {
+    return double.tryParse(_totalCostController.text) ?? 0.0;
   }
 
   Future<void> _submitForm() async {
@@ -716,13 +644,11 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
         serviceProvider: _serviceProviderController.text.trim().isNotEmpty 
           ? _serviceProviderController.text.trim() 
           : null,
-        partsCost: double.tryParse(_partsCostController.text) ?? 0.0,
-        laborCost: double.tryParse(_laborCostController.text) ?? 0.0,
-        totalCost: _calculateTotalCost(),
+        partsCost: 0.0, // Not used in simplified version
+        laborCost: 0.0, // Not used in simplified version
+        totalCost: _getTotalCost(),
         currency: _currency,
-        laborHours: _laborHoursController.text.isNotEmpty 
-          ? double.tryParse(_laborHoursController.text) 
-          : null,
+        laborHours: null, // Not used in simplified version
         notes: _notesController.text.trim().isNotEmpty 
           ? _notesController.text.trim() 
           : null,
