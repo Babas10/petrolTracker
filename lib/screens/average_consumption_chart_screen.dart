@@ -35,11 +35,11 @@ class AverageConsumptionChartScreen extends ConsumerStatefulWidget {
 
 class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumptionChartScreen> {
   VehicleModel? _selectedVehicle;
-  PeriodType _selectedPeriodType = PeriodType.monthly;
+  final PeriodType _selectedPeriodType = PeriodType.monthly;
   TimePeriod _selectedTimePeriod = TimePeriod.allTime;
   String? _selectedCountry;
-  bool _showStatistics = true;
-  bool _showNumericView = false;
+  final bool _showStatistics = true;
+  final bool _showNumericView = false;
   bool _hasInitializedVehicle = false;
 
   @override
@@ -48,20 +48,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
       appBar: NavAppBar(
         title: 'Average Consumption by Period',
         actions: [
-          IconButton(
-            icon: Icon(_showNumericView ? Icons.bar_chart : Icons.grid_view),
-            onPressed: () {
-              setState(() {
-                _showNumericView = !_showNumericView;
-              });
-            },
-            tooltip: _showNumericView ? 'Show Chart View' : 'Show Numeric View',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _showChartSettings,
-            tooltip: 'Chart Settings',
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshData,
@@ -73,9 +59,18 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
         children: [
           _buildControlPanel(),
           Expanded(
-            child: _showNumericView ? _buildNumericView() : _buildChartView(),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    child: _showNumericView ? _buildNumericView() : _buildChartView(),
+                  ),
+                  if (_showStatistics) _buildStatisticsPanel(),
+                ],
+              ),
+            ),
           ),
-          if (_showStatistics) _buildStatisticsPanel(),
         ],
       ),
     );
@@ -94,13 +89,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(child: _buildVehicleSelector()),
-              const SizedBox(width: 16),
-              Expanded(child: _buildPeriodTypeSelector()),
-            ],
-          ),
+          _buildVehicleSelector(),
           const SizedBox(height: 12),
           _buildCountryFilter(),
           const SizedBox(height: 12),
@@ -160,55 +149,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     );
   }
 
-  Widget _buildPeriodTypeSelector() {
-    return DropdownButtonFormField<PeriodType>(
-      value: _selectedPeriodType,
-      decoration: const InputDecoration(
-        labelText: 'Period Type',
-        border: OutlineInputBorder(),
-        isDense: true,
-      ),
-      items: const [
-        DropdownMenuItem(
-          value: PeriodType.weekly,
-          child: Row(
-            children: [
-              Icon(Icons.view_week, size: 16),
-              SizedBox(width: 8),
-              Text('Weekly'),
-            ],
-          ),
-        ),
-        DropdownMenuItem(
-          value: PeriodType.monthly,
-          child: Row(
-            children: [
-              Icon(Icons.calendar_month, size: 16),
-              SizedBox(width: 8),
-              Text('Monthly'),
-            ],
-          ),
-        ),
-        DropdownMenuItem(
-          value: PeriodType.yearly,
-          child: Row(
-            children: [
-              Icon(Icons.calendar_today, size: 16),
-              SizedBox(width: 8),
-              Text('Yearly'),
-            ],
-          ),
-        ),
-      ],
-      onChanged: (periodType) {
-        if (periodType != null) {
-          setState(() {
-            _selectedPeriodType = periodType;
-          });
-        }
-      },
-    );
-  }
 
   Widget _buildCountryFilter() {
     if (_selectedVehicle == null) {
@@ -265,18 +205,9 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildTimePeriodChip('1 Month', TimePeriod.oneMonth),
-            _buildTimePeriodChip('3 Months', TimePeriod.threeMonths),
-            _buildTimePeriodChip('6 Months', TimePeriod.sixMonths),
-            _buildTimePeriodChip('1 Year', TimePeriod.oneYear),
+            _buildTimePeriodChip('6M', TimePeriod.sixMonths),
+            _buildTimePeriodChip('1Y', TimePeriod.oneYear),
             _buildTimePeriodChip('All Time', TimePeriod.allTime),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            _buildActionButtons(),
           ],
         ),
       ],
@@ -288,6 +219,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     return FilterChip(
       label: Text(label),
       selected: isSelected,
+      showCheckmark: false,
       onSelected: (selected) {
         if (selected) {
           setState(() {
@@ -297,7 +229,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
       },
       backgroundColor: Theme.of(context).colorScheme.surface,
       selectedColor: Theme.of(context).colorScheme.primaryContainer,
-      checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
       labelStyle: TextStyle(
         color: isSelected 
             ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -307,27 +238,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: _resetFilters,
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reset Filters',
-        ),
-        IconButton(
-          onPressed: () {
-            setState(() {
-              _showStatistics = !_showStatistics;
-            });
-          },
-          icon: Icon(_showStatistics ? Icons.analytics : Icons.analytics_outlined),
-          tooltip: 'Toggle Statistics',
-        ),
-      ],
-    );
-  }
 
   Widget _buildChartView() {
     if (_selectedVehicle == null) {
@@ -356,66 +266,40 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
   }
   
   Widget _buildChartContent(AsyncValue<List<PeriodAverageDataPoint>> chartDataAsync) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.trending_up,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Average Consumption by ${_getPeriodDisplayName()} - ${_selectedVehicle!.name}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: chartDataAsync.when(
-                  data: (periodData) {
-                    if (periodData.isEmpty) {
-                      return _buildEmptyChartPlaceholder();
-                    }
+      child: chartDataAsync.when(
+        data: (periodData) {
+          if (periodData.isEmpty) {
+            return _buildEmptyChartPlaceholder();
+          }
 
-                    // Transform to chart format
-                    final chartData = periodData.map((point) => {
-                      'date': point.date.toIso8601String().split('T')[0],
-                      'value': point.averageConsumption,
-                      'label': point.periodLabel,
-                      'count': point.entryCount,
-                    }).toList();
+          // Transform to chart format
+          final chartData = periodData.map((point) => {
+            'date': point.date.toIso8601String().split('T')[0],
+            'value': point.averageConsumption,
+            'label': point.periodLabel,
+            'count': point.entryCount,
+          }).toList();
 
-                    return ChartWebView(
-                      data: chartData,
-                      config: ChartConfig(
-                        type: ChartType.bar,
-                        title: 'Average Consumption Trends',
-                        xLabel: _getPeriodDisplayName(),
-                        yLabel: 'Average Consumption (L/100km)',
-                        unit: 'L/100km',
-                        className: 'period-average-chart',
-                      ),
-                      onChartEvent: _handleChartEvent,
-                      onError: (error) {
-                        debugPrint('Chart error: $error');
-                      },
-                    );
-                  },
-                  loading: () => _buildLoadingPlaceholder(),
-                  error: (error, stack) => _buildErrorPlaceholder(error.toString()),
-                ),
-              ),
-            ],
-          ),
-        ),
+          return ChartWebView(
+            data: chartData,
+            config: ChartConfig(
+              type: ChartType.bar,
+              title: null,
+              xLabel: _getPeriodDisplayName(),
+              yLabel: 'Average Consumption (L/100km)',
+              unit: 'L/100km',
+              className: 'period-average-chart',
+            ),
+            onChartEvent: _handleChartEvent,
+            onError: (error) {
+              debugPrint('Chart error: $error');
+            },
+          );
+        },
+        loading: () => _buildLoadingPlaceholder(),
+        error: (error, stack) => _buildErrorPlaceholder(error.toString()),
       ),
     );
   }
@@ -447,89 +331,63 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
   }
   
   Widget _buildNumericContent(AsyncValue<List<PeriodAverageDataPoint>> chartDataAsync) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.grid_view,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Numeric View - ${_selectedVehicle!.name}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: chartDataAsync.when(
-                  data: (periodData) {
-                    if (periodData.isEmpty) {
-                      return _buildEmptyChartPlaceholder();
-                    }
+      child: chartDataAsync.when(
+        data: (periodData) {
+          if (periodData.isEmpty) {
+            return _buildEmptyChartPlaceholder();
+          }
 
-                    return ListView.separated(
-                      itemCount: periodData.length,
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemBuilder: (context, index) {
-                        final data = periodData[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            data.periodLabel,
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          subtitle: Text(
-                            '${data.entryCount} fuel ${data.entryCount == 1 ? 'entry' : 'entries'}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '${data.averageConsumption.toStringAsFixed(2)} L/100km',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Average',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => _buildLoadingPlaceholder(),
-                  error: (error, stack) => _buildErrorPlaceholder(error.toString()),
+          return ListView.separated(
+            itemCount: periodData.length,
+            separatorBuilder: (context, index) => const Divider(),
+            itemBuilder: (context, index) {
+              final data = periodData[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                title: Text(
+                  data.periodLabel,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(
+                  '${data.entryCount} fuel ${data.entryCount == 1 ? 'entry' : 'entries'}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${data.averageConsumption.toStringAsFixed(2)} L/100km',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Average',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+        loading: () => _buildLoadingPlaceholder(),
+        error: (error, stack) => _buildErrorPlaceholder(error.toString()),
       ),
     );
   }
@@ -740,45 +598,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     }
   }
 
-  void _showChartSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Chart Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SwitchListTile(
-              title: const Text('Show Statistics Panel'),
-              value: _showStatistics,
-              onChanged: (value) {
-                setState(() {
-                  _showStatistics = value;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-            SwitchListTile(
-              title: const Text('Show Numeric View'),
-              value: _showNumericView,
-              onChanged: (value) {
-                setState(() {
-                  _showNumericView = value;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _refreshData() {
     ref.invalidate(vehiclesNotifierProvider);
@@ -786,14 +605,6 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     ref.invalidate(consumptionStatisticsProvider);
   }
 
-  void _resetFilters() {
-    setState(() {
-      _selectedVehicle = null;
-      _selectedTimePeriod = TimePeriod.allTime;
-      _selectedPeriodType = PeriodType.monthly;
-      _hasInitializedVehicle = false;
-    });
-  }
 
   /// Get date range from selected time period starting from the last fuel entry
   DateTimeRange? _getDateRangeFromEntries(TimePeriod period, List<FuelEntryModel> entries) {
@@ -801,16 +612,28 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
       return null; // No date filtering for all time
     }
     
-    DateTime referenceDate;
     if (entries.isEmpty) {
-      // No entries, use current date as fallback
-      referenceDate = DateTime.now();
-    } else {
-      // Use the date of the most recent entry as the end date
-      referenceDate = entries.first.date;
+      final calculatedRange = _calculateDateRange(period, DateTime.now());
+      return calculatedRange;
     }
     
-    return _calculateDateRange(period, referenceDate);
+    // Use the MINIMUM of current date and most recent entry date as end date
+    // This prevents looking for data in the future beyond what exists
+    final now = DateTime.now();
+    final currentDate = DateTime(now.year, now.month, now.day);
+    
+    // Find the actual most recent entry date (entries might not be sorted as expected)
+    final mostRecentEntryDate = entries.isNotEmpty 
+        ? entries.map((e) => e.date).reduce((a, b) => a.isAfter(b) ? a : b)
+        : currentDate;
+        
+    // Use the earlier date to avoid looking beyond available data
+    final endDate = currentDate.isBefore(mostRecentEntryDate) 
+        ? currentDate 
+        : mostRecentEntryDate;
+    
+    final calculatedRange = _calculateDateRange(period, endDate);
+    return calculatedRange;
   }
   
   /// Calculate date range based on period and reference date
@@ -818,22 +641,22 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
     switch (period) {
       case TimePeriod.oneMonth:
         return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 1, referenceDate.day),
+          start: DateTime(referenceDate.year, referenceDate.month - 1, 1),
           end: referenceDate,
         );
       case TimePeriod.threeMonths:
         return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 3, referenceDate.day),
+          start: DateTime(referenceDate.year, referenceDate.month - 3, 1),
           end: referenceDate,
         );
       case TimePeriod.sixMonths:
         return DateTimeRange(
-          start: DateTime(referenceDate.year, referenceDate.month - 6, referenceDate.day),
+          start: DateTime(referenceDate.year, referenceDate.month - 6, 1),
           end: referenceDate,
         );
       case TimePeriod.oneYear:
         return DateTimeRange(
-          start: DateTime(referenceDate.year - 1, referenceDate.month, referenceDate.day),
+          start: DateTime(referenceDate.year - 1, referenceDate.month, 1),
           end: referenceDate,
         );
       case TimePeriod.allTime:

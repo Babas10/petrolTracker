@@ -7,7 +7,7 @@ class ChartManager {
         this.currentChart = null;
         this.currentData = null;
         this.currentType = null;
-        this.margin = { top: 40, right: 80, bottom: 60, left: 80 };
+        this.margin = { top: 20, right: 80, bottom: 120, left: 80 };
         this.tooltip = null;
         this.initializeTooltip();
     }
@@ -210,24 +210,45 @@ class ChartManager {
     renderBarChart(data, options) {
         const container = d3.select('#chart');
         const containerRect = container.node().getBoundingClientRect();
-        const width = containerRect.width - this.margin.left - this.margin.right;
-        const height = containerRect.height - this.margin.top - this.margin.bottom;
+        
+        // Handle case where container has zero or insufficient dimensions
+        if (containerRect.width <= 0 || containerRect.height <= 0) {
+            setTimeout(() => this.renderBarChart(data, options), 100);
+            return;
+        }
+        
+        // Use optimized margins for bar chart to maximize space usage (shifted down further)
+        const margin = { top: 45, right: 20, bottom: 60, left: 40 };
+        const width = containerRect.width - margin.left - margin.right;
+        const height = containerRect.height - margin.top - margin.bottom;
 
         const svg = container.append('svg')
-            .attr('width', containerRect.width)
-            .attr('height', containerRect.height);
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom + 50) // Extra space for year axis
+            .style('background-color', options.theme?.surfaceColor || '#ffffff'); // Match app background
 
         const g = svg.append('g')
-            .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
+            .attr('transform', `translate(${margin.left},${margin.top})`);
 
         // Ensure numeric values
         data.forEach(d => {
             d.value = +d.value;
         });
 
+        // Smart label extraction: create unique identifiers for positioning while preserving display labels
+        const monthOnlyLabels = data.map(d => {
+            // Extract just the month part from labels like "Mar 2025" -> "Mar"
+            return d.label ? d.label.split(' ')[0] : d.label;
+        });
+        
+        // Check for duplicates and create unique positioning keys
+        const hasDuplicates = monthOnlyLabels.length !== new Set(monthOnlyLabels).size;
+        const monthLabels = hasDuplicates 
+            ? data.map((d, i) => `${d.label || d.label}_${i}`) // Unique keys: "Jul 2024_0", "Aug 2024_1", etc.
+            : monthOnlyLabels; // Use month-only labels (e.g., "Jul", "Aug")
         // Scales
         const xScale = d3.scaleBand()
-            .domain(data.map(d => d.label))
+            .domain(monthLabels)
             .range([0, width])
             .padding(0.1);
 
@@ -236,10 +257,10 @@ class ChartManager {
             .nice()
             .range([height, 0]);
 
-        // Add grid
+        // Add grid (for bar chart with band scale)
         this.addGrid(g, xScale, yScale, width, height, true);
 
-        // Add axes
+        // Add axes (for bar chart with band scale)
         this.addAxes(g, xScale, yScale, width, height, options, true);
 
         // Add bars with visual distinction for period types
@@ -254,37 +275,28 @@ class ChartManager {
                     return `${baseClass} simple-period`;
                 }
             })
-            .attr('x', d => xScale(d.label))
+            .attr('x', (d, i) => xScale(monthLabels[i]))
             .attr('width', xScale.bandwidth())
             .attr('y', d => yScale(d.value))
             .attr('height', d => height - yScale(d.value))
-            .attr('fill', d => {
-                if (d.hasOwnProperty('isComplexPeriod')) {
-                    return d.isComplexPeriod ? '#FF8A50' : '#4A90E2'; // Orange for complex, blue for simple
-                } else {
-                    return '#4caf50'; // Default green for backward compatibility
-                }
-            })
-            .attr('stroke', d => {
-                if (d.hasOwnProperty('isComplexPeriod')) {
-                    return d.isComplexPeriod ? '#E6732A' : '#2C5E95'; // Darker border
-                } else {
-                    return '#fff'; // Default white border
-                }
-            })
+            .attr('fill', options.theme?.primaryColor || '#10b981')
+            .attr('stroke', options.theme?.primaryColor || '#10b981')
             .attr('stroke-width', 1)
-            .on('mouseover', (event, d) => this.showTooltip(event, d, options))
+            .attr('opacity', 0.8)
+            .on('mouseover', (event, d) => this.showBarTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
 
-        // Add title
-        if (options.title) {
-            svg.append('text')
-                .attr('class', 'chart-title')
-                .attr('x', containerRect.width / 2)
-                .attr('y', 25)
-                .text(options.title);
-        }
+        // Add year axis like area chart (pass monthLabels for positioning)
+        this.addYearAxisToBarChart(g, data, xScale, height, width, monthLabels);
+
+        // Add title (matching area chart styling)
+        svg.append('text')
+            .attr('class', 'chart-title')
+            .attr('x', (width + margin.left + margin.right) / 2)
+            .attr('y', 25)
+            .attr('text-anchor', 'middle')
+            .text('Monthly Average Consumption (L/100km)');
 
         this.currentChart = { svg, g, xScale, yScale, data };
     }
@@ -608,37 +620,19 @@ class ChartManager {
      * Returns array of indices that should show labels
      */
     getOptimalTickIndices(dataLength, maxTicks = 10) {
-        if (dataLength <= maxTicks) {
-            // If we have few data points, show all
+        // Always limit ticks regardless of data length to avoid overcrowding
+        if (dataLength <= 2) {
+            // If we have very few data points, show all
             return Array.from({ length: dataLength }, (_, i) => i);
         }
 
+        // For bar charts, show exactly every other label starting from index 0
         const ticks = [];
-        
-        // Always include first and last
-        ticks.push(0);
-        if (dataLength > 1) {
-            ticks.push(dataLength - 1);
+        for (let i = 0; i < dataLength; i += 2) {
+            ticks.push(i);
         }
-
-        // Calculate how many intermediate ticks we can fit
-        const intermediateTicks = maxTicks - 2; // Subtract first and last
         
-        if (intermediateTicks > 0) {
-            // Distribute intermediate ticks evenly across data points
-            for (let i = 1; i <= intermediateTicks; i++) {
-                const position = (dataLength - 1) * i / (intermediateTicks + 1);
-                const index = Math.round(position);
-                
-                // Avoid duplicates with first/last and ensure valid range
-                if (index > 0 && index < dataLength - 1 && !ticks.includes(index)) {
-                    ticks.push(index);
-                }
-            }
-        }
-
-        // Sort to ensure proper order
-        return ticks.sort((a, b) => a - b);
+        return ticks;
     }
 
     /**
@@ -664,10 +658,11 @@ class ChartManager {
                 );
         }
 
-        // Y grid
+        // Y grid with 5 ticks
         g.append('g')
             .attr('class', 'grid')
             .call(d3.axisLeft(yScale)
+                .ticks(5)
                 .tickSize(-width)
                 .tickFormat('')
             );
@@ -680,14 +675,36 @@ class ChartManager {
         // Create X axis with controlled tick count
         let xAxis;
         if (isBandScale) {
-            // For bar charts, control number of ticks
+            // For bar charts, show all labels if 6 or fewer, otherwise every other label
             const domain = xScale.domain();
-            const maxTicks = Math.min(6, domain.length);
-            const optimalTicks = this.getOptimalTickIndices(domain.length, maxTicks);
+            let tickValues;
+            
+            if (domain.length <= 8) {
+                // Show all labels for 6M chart (8 or fewer data points)
+                tickValues = domain;
+            } else {
+                // Show every other label for longer periods
+                tickValues = [];
+                for (let i = 0; i < domain.length; i += 2) {
+                    tickValues.push(domain[i]);
+                }
+            }
+            
+            // Clear any existing x-axis to prevent conflicts
+            g.selectAll('.axis').filter(function() {
+                return d3.select(this).attr('transform') && d3.select(this).attr('transform').includes(`translate(0,${height})`);
+            }).remove();
             
             xAxis = d3.axisBottom(xScale)
-                .tickValues(optimalTicks.map(i => domain[i]))
-                .tickFormat(d => d);
+                .tickValues(tickValues)
+                .tickFormat((d, i) => {
+                    // If using unique positioning keys, extract the display label
+                    if (d.includes('_')) {
+                        // Extract month from positioning key like "Jul 2024_0" -> "Jul"
+                        return d.split('_')[0].split(' ')[0];
+                    }
+                    return d;
+                });
         } else {
             // For time-based charts, control tick count directly
             const dataLength = this.currentData ? this.currentData.length : 0;
@@ -707,18 +724,56 @@ class ChartManager {
             }
         }
         
-        g.append('g')
-            .attr('class', 'axis')
-            .attr('transform', `translate(0,${height})`)
-            .call(xAxis);
+        if (isBandScale) {
+            // Bar chart axes - match area chart styling exactly
+            const outlineColor = (options.theme && options.theme.outlineColor) || '#9ca3af';
+            const onSurfaceColor = (options.theme && options.theme.onSurfaceColor) || '#374151';
+            
+            // X-axis with area chart text styling
+            g.append('g')
+                .attr('class', 'axis x-axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(xAxis)
+                .selectAll('text')
+                .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                .style('font-size', '13px')
+                .style('font-weight', '500')
+                .style('fill', onSurfaceColor);
+            
+            // Style X-axis lines and ticks
+            g.select('.x-axis')
+                .selectAll('path, line')
+                .style('stroke', outlineColor);
 
-        // Y axis (unchanged)
-        g.append('g')
-            .attr('class', 'axis')
-            .call(d3.axisLeft(yScale));
+            // Y-axis with area chart text styling
+            g.append('g')
+                .attr('class', 'axis y-axis')
+                .call(d3.axisLeft(yScale).ticks(5))
+                .selectAll('text')
+                .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
+                .style('font-size', '13px')
+                .style('font-weight', '500')
+                .style('fill', onSurfaceColor);
+                
+            // Style Y-axis lines and ticks
+            g.select('.y-axis')
+                .selectAll('path, line')
+                .style('stroke', outlineColor);
+        } else {
+            // Area chart axes - but area chart uses different implementation in chart_webview.dart
+            g.append('g')
+                .attr('class', 'axis x-axis')
+                .attr('transform', `translate(0,${height})`)
+                .call(xAxis);
 
-        // Axis labels
-        if (options.xLabel) {
+            // Y axis with limited ticks (5 maximum)
+            g.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(yScale).ticks(5));
+        }
+
+        // Axis labels (x-axis label removed for bar charts)
+        if (options.xLabel && !isBandScale) {
             g.append('text')
                 .attr('transform', `translate(${width / 2}, ${height + 50})`)
                 .style('text-anchor', 'middle')
@@ -911,6 +966,45 @@ class ChartManager {
     }
 
     /**
+     * Show tooltip specifically for bar charts
+     */
+    showBarTooltip(event, data, options) {
+        // Extract month and year from label (e.g., "Mar 2025" -> "March 2025")
+        let monthYear = data.label;
+        if (data.label && data.label.includes(' ')) {
+            const parts = data.label.split(' ');
+            const monthAbbr = parts[0];
+            const year = parts[1];
+            
+            // Convert abbreviation to full month name
+            const monthMap = {
+                'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
+                'Apr': 'April', 'May': 'May', 'Jun': 'June',
+                'Jul': 'July', 'Aug': 'August', 'Sep': 'September',
+                'Oct': 'October', 'Nov': 'November', 'Dec': 'December'
+            };
+            
+            monthYear = `${monthMap[monthAbbr] || monthAbbr} ${year}`;
+        }
+        
+        // Format consumption value
+        const valueText = data.value.toFixed(2);
+        const unit = options.unit || '';
+        
+        const content = `
+            <div class="tooltip-date">${monthYear}</div>
+            <div class="tooltip-value">${valueText}${unit ? ` ${unit}` : ''}</div>
+        `;
+
+        this.tooltip
+            .html(content)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px')
+            .style('opacity', 1)
+            .style('pointer-events', 'none');
+    }
+
+    /**
      * Update chart with new data
      */
     updateChart(newData) {
@@ -931,6 +1025,67 @@ class ChartManager {
         }
 
         this.renderChart(this.currentType, this.currentData, this.currentOptions);
+    }
+
+    /**
+     * Add year axis to bar chart (similar to area chart)
+     */
+    addYearAxisToBarChart(g, data, xScale, height, width, monthLabels) {
+        // Extract years from data labels (e.g., "Mar 2025" -> 2025)
+        const years = [...new Set(data.map(d => {
+            if (d.label && d.label.includes(' ')) {
+                return parseInt(d.label.split(' ')[1]);
+            }
+            return null;
+        }).filter(year => year !== null))].sort();
+
+        if (years.length === 0) return;
+
+        // Calculate year positions based on data distribution
+        const yearData = years.map(year => {
+            // Find all data points for this year
+            const yearDataPoints = data.filter(d => d.label && d.label.includes(year.toString()));
+            
+            if (yearDataPoints.length === 0) return null;
+            
+            // Calculate average position of this year's data points
+            const positions = yearDataPoints.map((d, i) => {
+                // Find the index of this data point in the original data array
+                const dataIndex = data.findIndex(item => item === d);
+                // Use the corresponding positioning key from monthLabels
+                const positioningKey = monthLabels[dataIndex];
+                return xScale(positioningKey) + xScale.bandwidth() / 2;
+            });
+            
+            const avgPosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+            
+            return {
+                year: year,
+                position: avgPosition
+            };
+        }).filter(d => d !== null);
+
+        // Position year axis below the main x-axis
+        const yearAxisY = height + 40;
+
+        // Create year axis group
+        const yearAxisGroup = g.append('g')
+            .attr('class', 'year-axis')
+            .attr('transform', `translate(0,${yearAxisY})`);
+
+        // Add year labels with same styling as area chart axis text
+        yearAxisGroup.selectAll('.year-label')
+            .data(yearData)
+            .enter()
+            .append('text')
+            .attr('class', 'year-label')
+            .attr('x', d => d.position)
+            .attr('y', 0)
+            .attr('text-anchor', 'middle')
+            .style('fill', '#666')
+            .style('font-size', '12px')
+            .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif')
+            .text(d => d.year);
     }
 
     /**

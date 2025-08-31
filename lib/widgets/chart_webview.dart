@@ -941,9 +941,9 @@ class _ChartWebViewState extends State<ChartWebView> {
 
   @override
   Widget build(BuildContext context) {
-    // Use D3.js WebView for area charts on mobile platforms only
+    // Use D3.js WebView for area and bar charts on mobile platforms
     // Keep fl_chart for other chart types and web platform until fully migrated
-    if (kIsWeb || widget.config.type != ChartType.area) {
+    if (kIsWeb || (widget.config.type != ChartType.area && widget.config.type != ChartType.bar)) {
       return _buildWebFallback(context);
     } else {
       return _buildWebViewForMobile(context);
@@ -1664,7 +1664,8 @@ class _ChartWebViewState extends State<ChartWebView> {
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 
-                if (index >= 0 && index < widget.data.length) {
+                // Show only alternating labels (every other bar)
+                if (index >= 0 && index < widget.data.length && index % 2 == 0) {
                   final item = widget.data[index];
                   
                   // Extract month name from date or label
