@@ -100,87 +100,35 @@ body {
     height: 100%;
 }
 
-/* Axis styles */
+/* Axis styles - LEGACY: These are now applied via centralized styling system */
+/* Keeping minimal fallbacks for compatibility */
 .axis {
-    font-size: 12px;
+    font-size: 13px; /* Updated to match area chart standard */
 }
 
-.axis text {
-    fill: #666;
-}
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #ddd;
-    shape-rendering: crispEdges;
-}
-
-/* Grid lines */
-.grid line {
-    stroke: #e0e0e0;
-    stroke-dasharray: 2,2;
-    shape-rendering: crispEdges;
-}
-
+/* Grid lines - LEGACY: These are now applied via centralized styling system */  
+/* Keeping minimal fallbacks for compatibility */
 .grid path {
     stroke-width: 0;
 }
 
-/* Line chart styles */
+/* Chart styles - LEGACY: Colors now applied via centralized styling system */
+/* Keeping structure for compatibility, colors applied via JavaScript */
 .line {
     fill: none;
-    stroke-width: 2;
+    stroke-width: 3; /* Updated to match area chart standard */
 }
 
-.line.consumption {
-    stroke: #4caf50;
-}
-
-.line.price {
-    stroke: #2196f3;
-}
-
-.line.cost {
-    stroke: #ff9800;
-}
-
-/* Area chart styles */
 .area {
     opacity: 0.3;
 }
 
-.area.consumption {
-    fill: #4caf50;
-}
-
-.area.price {
-    fill: #2196f3;
-}
-
-.area.cost {
-    fill: #ff9800;
-}
-
-/* Bar chart styles */
 .bar {
     transition: opacity 0.2s;
 }
 
 .bar:hover {
     opacity: 0.8;
-}
-
-.bar.consumption {
-    fill: #4caf50;
-}
-
-.bar.price {
-    fill: #2196f3;
-}
-
-.bar.cost {
-    fill: #ff9800;
 }
 
 /* Enhanced dot styles for line charts with period type distinction */
@@ -316,11 +264,11 @@ body {
 }
 
 .legend-item text {
-    fill: #666;
+    fill: currentColor;
 }
 
 .legend-item.disabled text {
-    fill: #ccc;
+    fill: rgba(102, 102, 102, 0.5);
 }
 
 .legend-item.disabled rect,
