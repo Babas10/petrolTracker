@@ -5,19 +5,23 @@ import 'package:petrol_tracker/navigation/app_router.dart';
 import 'package:petrol_tracker/screens/splash_screen.dart';
 import 'package:petrol_tracker/screens/initialization_error_screen.dart';
 import 'package:petrol_tracker/services/app_initialization_service.dart';
+import 'package:petrol_tracker/providers/theme_providers.dart' hide ThemeMode;
+import 'package:flutter/material.dart' as flutter show ThemeMode;
 
 /// Main application widget that handles initialization flow
 /// 
 /// This widget manages the application startup sequence, displaying
 /// appropriate screens based on the initialization state.
-class PetrolTrackerApp extends StatefulWidget {
+/// 
+/// The app now supports dynamic theming with light/dark/system modes.
+class PetrolTrackerApp extends ConsumerStatefulWidget {
   const PetrolTrackerApp({super.key});
 
   @override
-  State<PetrolTrackerApp> createState() => _PetrolTrackerAppState();
+  ConsumerState<PetrolTrackerApp> createState() => _PetrolTrackerAppState();
 }
 
-class _PetrolTrackerAppState extends State<PetrolTrackerApp> {
+class _PetrolTrackerAppState extends ConsumerState<PetrolTrackerApp> {
   AppInitializationState _initializationState = AppInitializationState.initializing;
   AppInitializationException? _initializationError;
   
@@ -63,12 +67,11 @@ class _PetrolTrackerAppState extends State<PetrolTrackerApp> {
   
   @override
   Widget build(BuildContext context) {
+    // Use a simple MaterialApp for the initialization flow
+    // The actual theming will be handled by _MainApp
     return MaterialApp(
       title: 'Petrol Tracker',
       debugShowCheckedModeBanner: false,
-      theme: _buildLightTheme(),
-      darkTheme: _buildDarkTheme(),
-      themeMode: ThemeMode.system,
       home: _buildInitializationFlow(),
     );
   }
@@ -101,42 +104,16 @@ class _PetrolTrackerAppState extends State<PetrolTrackerApp> {
         return const _MainApp();
     }
   }
-  
-  ThemeData _buildLightTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.green,
-        brightness: Brightness.light,
-      ),
-    );
-  }
-  
-  ThemeData _buildDarkTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.green,
-        brightness: Brightness.dark,
-      ),
-    );
-  }
 }
 
-/// Main application after successful initialization
+/// Main application after successful initialization - now just returns router content
 class _MainApp extends StatelessWidget {
   const _MainApp();
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp.router(
-        title: 'Petrol Tracker',
-        debugShowCheckedModeBanner: false,
-        theme: Theme.of(context),
-        routerConfig: appRouter,
-      ),
-    );
+    // Since main.dart handles theming, this just returns the router content
+    return Router.withConfig(config: appRouter);
   }
 }
 

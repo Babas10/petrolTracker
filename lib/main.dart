@@ -5,6 +5,8 @@ import 'package:petrol_tracker/navigation/app_router.dart';
 import 'package:petrol_tracker/api/rest_api_provider.dart';
 import 'package:petrol_tracker/debug/web_data_injector.dart';
 import 'package:petrol_tracker/debug/web_auto_population.dart';
+import 'package:petrol_tracker/providers/theme_providers.dart' hide ThemeMode;
+import 'package:flutter/material.dart' as flutter show ThemeMode;
 
 /// Main entry point for the Petrol Tracker application
 /// 
@@ -43,24 +45,21 @@ class PetrolTrackerApp extends ConsumerWidget {
       ref.watch(webAutoPopulationProvider);
     }
 
+    // Watch the theme providers for dynamic theming
+    final themeMode = ref.watch(themeModeProvider);
+    final lightTheme = ref.watch(lightThemeProvider);
+    final darkTheme = ref.watch(darkThemeProvider);
+
     return MaterialApp.router(
         title: 'Petrol Tracker',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.green,
-            brightness: Brightness.light,
-          ),
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: themeMode.when(
+          data: (mode) => mode.flutterThemeMode,
+          loading: () => flutter.ThemeMode.system,
+          error: (_, __) => flutter.ThemeMode.system,
         ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.green,
-            brightness: Brightness.dark,
-          ),
-        ),
-        themeMode: ThemeMode.system,
         routerConfig: appRouter,
         builder: (context, child) => WebDataInjector(child: child ?? const SizedBox()),
       );
