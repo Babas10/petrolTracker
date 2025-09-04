@@ -854,6 +854,64 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                       this._rendering = false;
                   }
               };
+              
+              // Save original renderBarChart method before overriding
+              if (ChartManager.prototype.renderBarChart && !ChartManager.prototype._originalRenderBarChart) {
+                  ChartManager.prototype._originalRenderBarChart = ChartManager.prototype.renderBarChart;
+              }
+              
+              // Override the renderBarChart method to ensure consistent title rendering
+              ChartManager.prototype.renderBarChart = function(data, options) {
+                  console.log('🔍 ENHANCED: Custom renderBarChart called with', data.length, 'data points');
+                  console.log('🔍 ENHANCED: Bar chart options:', options);
+                  
+                  // Call the original renderBarChart method first
+                  if (this._originalRenderBarChart) {
+                      this._originalRenderBarChart.call(this, data, options);
+                  } else {
+                      // Fallback: try to call parent method if available
+                      console.log('No original renderBarChart found, using default rendering');
+                      // This would be the default chart rendering logic
+                      this.renderChart(data, options);
+                  }
+                  
+                  // Add chart title after rendering (consistent with area chart)
+                  const chartContainer = d3.select('#chart');
+                  const containerWidth = chartContainer.node().getBoundingClientRect().width;
+                  
+                  // Find the SVG element
+                  const svg = chartContainer.select('svg');
+                  if (svg.empty()) {
+                      console.log('❌ No SVG found for bar chart title');
+                      return;
+                  }
+                  
+                  // Get theme colors from options
+                  const onSurfaceColor = options?.theme?.onSurface || '#1C1B1F';
+                  
+                  // Remove any existing title first
+                  svg.selectAll('.chart-title').remove();
+                  
+                  // Add centered chart title with titleMedium styling (consistent with area chart)
+                  if (options.title) {
+                      console.log('🎯 Setting bar chart title:', options.title);
+                      svg.append('text')
+                          .attr('class', 'chart-title')
+                          .attr('x', containerWidth / 2)
+                          .attr('y', 25)
+                          .style('text-anchor', 'middle')
+                          .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
+                          .style('font-size', '16px')
+                          .style('font-weight', '500')
+                          .style('line-height', '24px')
+                          .style('letter-spacing', '0.15px')
+                          .style('fill', onSurfaceColor)
+                          .text(options.title);
+                      console.log('✅ Bar chart title set successfully');
+                  } else {
+                      console.log('❌ No title provided for bar chart');
+                  }
+              };
           </script>
           <script>
               document.addEventListener('DOMContentLoaded', function() {
