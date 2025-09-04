@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:petrol_tracker/database/database.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 
 /// Data model for FuelEntry with validation and business logic
 class FuelEntryModel {
@@ -200,17 +201,36 @@ class FuelEntryModel {
   /// Average price per liter
   double get averagePricePerLiter => price / fuelAmount;
 
-  /// Formatted consumption string
+  /// Formatted consumption string with default metric units
+  /// Note: This will be overridden by UI components that have access to Riverpod ref
   String get formattedConsumption {
     if (consumption == null) return 'N/A';
     return '${consumption!.toStringAsFixed(1)} L/100km';
+  }
+  
+  /// Get formatted consumption with specific unit system
+  String getFormattedConsumption(UnitSystem unitSystem) {
+    if (consumption == null) return 'N/A';
+    final convertedConsumption = unitSystem == UnitSystem.metric 
+        ? consumption! 
+        : UnitConverter.consumptionToImperial(consumption!);
+    return UnitConverter.formatConsumption(convertedConsumption, unitSystem);
   }
 
   /// Formatted price string
   String get formattedPrice => '\$${price.toStringAsFixed(2)}';
 
-  /// Formatted fuel amount string  
+  /// Formatted fuel amount string with default metric units
+  /// Note: This will be overridden by UI components that have access to Riverpod ref
   String get formattedFuelAmount => '${fuelAmount.toStringAsFixed(1)}L';
+  
+  /// Get formatted fuel amount with specific unit system
+  String getFormattedFuelAmount(UnitSystem unitSystem) {
+    final convertedVolume = unitSystem == UnitSystem.metric 
+        ? fuelAmount 
+        : UnitConverter.volumeToImperial(fuelAmount);
+    return UnitConverter.formatVolume(convertedVolume, unitSystem);
+  }
 
   /// Creates a copy with updated values
   FuelEntryModel copyWith({

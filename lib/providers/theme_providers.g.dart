@@ -6,7 +6,7 @@ part of 'theme_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$lightThemeHash() => r'7168f66bbfd30685912b80466ec61539064957e8';
+String _$lightThemeHash() => r'56ef1e8b57e4d754c1cc87ee2a9b6006a71b0cd6';
 
 /// Provider for comprehensive light theme configuration
 ///
@@ -25,7 +25,7 @@ final lightThemeProvider = AutoDisposeProvider<ThemeData>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LightThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$darkThemeHash() => r'b3a1cac481335727281603e9113286afa321fdf9';
+String _$darkThemeHash() => r'd25429f73bca3d201992967cb60b89e0d9a81e6b';
 
 /// Provider for comprehensive dark theme configuration
 ///
@@ -44,7 +44,7 @@ final darkThemeProvider = AutoDisposeProvider<ThemeData>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DarkThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$chartThemeColorsHash() => r'820602131714fd319b4d55dab753200a4d4f9477';
+String _$chartThemeColorsHash() => r'f8beadd41a637502f34d61c42fc67eead86f9580';
 
 /// Provider that returns the appropriate theme colors for charts
 ///
@@ -64,7 +64,7 @@ final chartThemeColorsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ChartThemeColorsRef = AutoDisposeProviderRef<Map<String, String>>;
-String _$themeModeHash() => r'5878a1f0703b68330dabba6389fc5736e352fb09';
+String _$themeModeHash() => r'9ad4935da91bab626faecbbfac4e04d736140730';
 
 /// Provider for the current theme mode
 ///

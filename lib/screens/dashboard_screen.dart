@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 import 'package:petrol_tracker/services/chart_data_service.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
@@ -200,6 +201,7 @@ class _ChartSection extends ConsumerWidget {
     }
     
     final vehicleEntriesAsync = ref.watch(fuelEntriesByVehicleProvider(selectedVehicle!.id!));
+    final unitSystem = ref.watch(unitsProvider);
     
     return Card(
       child: Padding(
@@ -252,22 +254,55 @@ class _ChartSection extends ConsumerWidget {
                     maxPoints: 5,
                   );
                   
-                  return ChartWebView(
-                    data: chartData.toChartData(),
-                    config: const ChartConfig(
-                      type: ChartType.area,
-                      title: 'Fuel Consumption Over Time',
-                      xLabel: 'Date',
-                      yLabel: 'Consumption (L/100km)',
-                      unit: 'L/100km',
-                      className: 'consumption',
+                  return unitSystem.when(
+                    data: (units) {
+                      // Convert chart data values to selected units
+                      final convertedChartData = chartData.toChartData().map((point) {
+                        final originalValue = point['value'] as double;
+                        final convertedValue = units == UnitSystem.metric 
+                            ? originalValue 
+                            : UnitConverter.consumptionToImperial(originalValue);
+                        
+                        return Map<String, dynamic>.from(point)..['value'] = convertedValue;
+                      }).toList();
+                      
+                      return ChartWebView(
+                        key: ValueKey('area-chart-${units.name}'), // Force rebuild when units change
+                        data: convertedChartData,
+                        config: ChartConfig(
+                          type: ChartType.area,
+                          title: 'Fuel Consumption Over Time (${units.consumptionUnit})',
+                          xLabel: 'Date',
+                          yLabel: 'Consumption (${units.consumptionUnit})',
+                          unit: units.consumptionUnit,
+                          className: 'consumption',
+                        ),
+                        onChartEvent: (eventType, data) {
+                          _handleChartEvent(context, eventType, data);
+                        },
+                        onError: (error) {
+                          debugPrint('Chart error: $error');
+                        },
+                      );
+                    },
+                    loading: () => _buildLoadingPlaceholder(context),
+                    error: (_, __) => ChartWebView(
+                      data: chartData.toChartData(),
+                      config: const ChartConfig(
+                        type: ChartType.area,
+                        title: 'Fuel Consumption Over Time (L/100km)',
+                        xLabel: 'Date',
+                        yLabel: 'Consumption (L/100km)',
+                        unit: 'L/100km',
+                        className: 'consumption',
+                      ),
+                      onChartEvent: (eventType, data) {
+                        _handleChartEvent(context, eventType, data);
+                      },
+                      onError: (error) {
+                        debugPrint('Chart error: $error');
+                      },
                     ),
-                    onChartEvent: (eventType, data) {
-                      _handleChartEvent(context, eventType, data);
-                    },
-                    onError: (error) {
-                      debugPrint('Chart error: $error');
-                    },
                   );
                 },
                 loading: () => _buildLoadingPlaceholder(context),
@@ -449,38 +484,104 @@ class _ChartSection extends ConsumerWidget {
       vehicleId,
       countryFilter: null, // Show all countries on dashboard
     ));
+    final unitSystem = ref.watch(unitsProvider);
     
     return statisticsAsync.when(
       data: (stats) {
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Overall Average',
-                '${stats['average']?.toStringAsFixed(1)} L/100km',
-                Icons.analytics,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Best Efficiency',
-                '${stats['minimum']?.toStringAsFixed(1)} L/100km',
-                Icons.trending_down,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatPreviewCard(
-                context,
-                'Total Entries',
-                '${stats['count']?.toInt()}',
-                Icons.confirmation_num,
-              ),
-            ),
-          ],
+        return unitSystem.when(
+          data: (units) {
+            // Convert consumption values if needed
+            final averageConsumption = stats['average'] as double?;
+            final minimumConsumption = stats['minimum'] as double?;
+            
+            final displayAverage = averageConsumption != null 
+                ? (units == UnitSystem.metric 
+                    ? averageConsumption 
+                    : UnitConverter.consumptionToImperial(averageConsumption))
+                : null;
+                
+            final displayMinimum = minimumConsumption != null 
+                ? (units == UnitSystem.metric 
+                    ? minimumConsumption 
+                    : UnitConverter.consumptionToImperial(minimumConsumption))
+                : null;
+            
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Overall Average',
+                    displayAverage != null 
+                        ? '${displayAverage.toStringAsFixed(1)} ${units.consumptionUnit}'
+                        : 'N/A',
+                    Icons.analytics,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Best Efficiency',
+                    displayMinimum != null 
+                        ? '${displayMinimum.toStringAsFixed(1)} ${units.consumptionUnit}'
+                        : 'N/A',
+                    Icons.trending_down,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Total Entries',
+                    '${stats['count']?.toInt()}',
+                    Icons.confirmation_num,
+                  ),
+                ),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) {
+            // Fallback to metric units if units loading fails
+            final averageConsumption = stats['average'] as double?;
+            final minimumConsumption = stats['minimum'] as double?;
+            
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Overall Average',
+                    averageConsumption != null 
+                        ? '${averageConsumption.toStringAsFixed(1)} L/100km'
+                        : 'N/A',
+                    Icons.analytics,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Best Efficiency',
+                    minimumConsumption != null 
+                        ? '${minimumConsumption.toStringAsFixed(1)} L/100km'
+                        : 'N/A',
+                    Icons.trending_down,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatPreviewCard(
+                    context,
+                    'Total Entries',
+                    '${stats['count']?.toInt()}',
+                    Icons.confirmation_num,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -827,6 +928,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
       PeriodType.monthly, // Default to monthly view for dashboard
       countryFilter: null, // Show all countries on dashboard
     ));
+    final unitSystem = ref.watch(unitsProvider);
     
     return chartDataAsync.when(
       data: (periodData) {
@@ -834,35 +936,74 @@ class _AverageConsumptionSection extends ConsumerWidget {
           return _buildEmptyVehiclesPlaceholder(context);
         }
 
-        // Optimize data for dashboard display (max 6 monthly points to avoid label overlap)
-        final optimizedPeriodData = periodData.length > 6
-            ? _optimizePeriodData(periodData, maxPoints: 6)
-            : periodData;
+        return unitSystem.when(
+          data: (units) {
+            // Optimize data for dashboard display (max 6 monthly points to avoid label overlap)
+            final optimizedPeriodData = periodData.length > 6
+                ? _optimizePeriodData(periodData, maxPoints: 6)
+                : periodData;
 
-        // Transform to chart format
-        final chartData = optimizedPeriodData.map((point) => {
-          'date': point.date.toIso8601String().split('T')[0],
-          'value': point.averageConsumption,
-          'label': point.periodLabel,
-          'count': point.entryCount,
-        }).toList();
+            // Transform to chart format with unit conversion
+            final chartData = optimizedPeriodData.map((point) => {
+              'date': point.date.toIso8601String().split('T')[0],
+              'value': units == UnitSystem.metric 
+                  ? point.averageConsumption 
+                  : UnitConverter.consumptionToImperial(point.averageConsumption),
+              'label': point.periodLabel,
+              'count': point.entryCount,
+            }).toList();
 
-        return ChartWebView(
-          data: chartData,
-          config: const ChartConfig(
-            type: ChartType.bar,
-            title: 'Average Consumption by Month',
-            xLabel: 'Month',
-            yLabel: 'Average Consumption (L/100km)',
-            unit: 'L/100km',
-            className: 'period-average-chart',
-          ),
-          onChartEvent: (eventType, data) {
-            // Handle chart events if needed
-            debugPrint('Average consumption chart event: $eventType');
+            return ChartWebView(
+              key: ValueKey('bar-chart-${units.name}'), // Force rebuild when units change
+              data: chartData,
+              config: ChartConfig(
+                type: ChartType.bar,
+                title: 'Average Consumption by Month (${units.consumptionUnit})',
+                xLabel: 'Month', 
+                yLabel: 'Average Consumption (${units.consumptionUnit})',
+                unit: units.consumptionUnit,
+                className: 'period-average-chart',
+              ),
+              onChartEvent: (eventType, data) {
+                // Handle chart events if needed
+                debugPrint('Average consumption chart event: $eventType');
+              },
+              onError: (error) {
+                debugPrint('Average consumption chart error: $error');
+              },
+            );
           },
-          onError: (error) {
-            debugPrint('Average consumption chart error: $error');
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) {
+            // Fallback to metric units if units loading fails
+            final optimizedPeriodData = periodData.length > 6
+                ? _optimizePeriodData(periodData, maxPoints: 6)
+                : periodData;
+
+            final chartData = optimizedPeriodData.map((point) => {
+              'date': point.date.toIso8601String().split('T')[0],
+              'value': point.averageConsumption,
+              'label': point.periodLabel,
+              'count': point.entryCount,
+            }).toList();
+
+            return ChartWebView(
+              data: chartData,
+              config: const ChartConfig(
+                type: ChartType.bar,
+                title: 'Average Consumption by Month (L/100km)',
+                xLabel: 'Month',
+                yLabel: 'Average Consumption (L/100km)',
+                unit: 'L/100km',
+                className: 'period-average-chart',
+              ),
+              onChartEvent: (eventType, data) {
+                debugPrint('Average consumption chart event: $eventType');
+              },
+              onError: (error) {
+                debugPrint('Average consumption chart error: $error');
+              },
+            );
           },
         );
       },

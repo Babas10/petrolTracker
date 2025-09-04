@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/theme_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 
 /// Settings screen for app preferences and configuration
 /// 
@@ -18,7 +19,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  String _units = 'metric';
   bool _notificationsEnabled = true;
   bool _analyticsEnabled = false;
 
@@ -96,28 +96,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildUnitsSection() {
+    final currentUnits = ref.watch(unitsProvider);
+    
     return _SettingsSection(
       title: 'Units',
       icon: Icons.straighten_outlined,
       children: [
         ListTile(
           title: const Text('Unit System'),
-          subtitle: Text(_units == 'metric' ? 'Metric (L/100km, km)' : 'Imperial (MPG, miles)'),
-          trailing: DropdownButton<String>(
-            value: _units,
-            underline: const SizedBox(),
-            items: const [
-              DropdownMenuItem(value: 'metric', child: Text('Metric')),
-              DropdownMenuItem(value: 'imperial', child: Text('Imperial')),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _units = value;
-                });
-                // TODO: Apply units change
-              }
-            },
+          subtitle: Text(currentUnits.when(
+            data: (units) => '${units.displayName} (${units.shortDescription})',
+            loading: () => 'Loading...',
+            error: (_, __) => 'Metric (L/100km, km, L)',
+          )),
+          trailing: currentUnits.when(
+            data: (currentUnitSystem) => DropdownButton<UnitSystem>(
+              value: currentUnitSystem,
+              underline: const SizedBox(),
+              items: UnitSystem.values.map((system) => DropdownMenuItem(
+                value: system,
+                child: Text(system.displayName),
+              )).toList(),
+              onChanged: (newSystem) async {
+                if (newSystem != null) {
+                  // Show immediate visual feedback
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Switched to ${newSystem.displayName} units'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  
+                  // Apply units change
+                  await ref.read(unitsProvider.notifier).setUnitSystem(newSystem);
+                }
+              },
+            ),
+            loading: () => const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            error: (_, __) => const Icon(Icons.error_outline, color: Colors.red),
           ),
         ),
       ],

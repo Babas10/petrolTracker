@@ -4,6 +4,7 @@ import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/widgets/country_selection_widget.dart';
 import 'package:petrol_tracker/widgets/period_detail_modal.dart';
@@ -274,14 +275,16 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
           countryFilter: _selectedCountry,
         ));
         
-        return _buildSingleVehicleChartContent(chartDataAsync);
+        return _buildSingleVehicleChartContent(chartDataAsync, ref);
       },
       loading: () => _buildLoadingPlaceholder(),
       error: (error, stack) => _buildErrorPlaceholder(error.toString()),
     );
   }
   
-  Widget _buildSingleVehicleChartContent(AsyncValue<List<EnhancedConsumptionDataPoint>> chartDataAsync) {
+  Widget _buildSingleVehicleChartContent(AsyncValue<List<EnhancedConsumptionDataPoint>> chartDataAsync, WidgetRef ref) {
+    final unitSystem = ref.watch(unitsProvider);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,52 +298,119 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                   return _buildEmptyChartPlaceholder();
                 }
 
+                return unitSystem.when(
+                  data: (units) {
+                    // Transform to enhanced chart format with period metadata
+                    final chartData = consumptionData.map((point) => {
+                      'date': point.date.toIso8601String().split('T')[0],
+                      'value': units == UnitSystem.metric 
+                          ? point.consumption 
+                          : UnitConverter.consumptionToImperial(point.consumption),
+                      'km': units == UnitSystem.metric 
+                          ? point.kilometers 
+                          : UnitConverter.distanceToImperial(point.kilometers),
+                      // Enhanced metadata for visual distinction and tooltips
+                      'isComplexPeriod': point.isComplexPeriod,
+                      'isSimplePeriod': point.isSimplePeriod,
+                      'periodComposition': point.periodComposition,
+                      'totalEntries': point.totalEntries,
+                      'partialEntries': point.partialEntries,
+                      'totalFuel': units == UnitSystem.metric 
+                          ? point.totalFuel 
+                          : UnitConverter.volumeToImperial(point.totalFuel),
+                      'totalDistance': units == UnitSystem.metric 
+                          ? point.totalDistance 
+                          : UnitConverter.distanceToImperial(point.totalDistance),
+                      'formattedDuration': point.formattedDuration,
+                      // Data for period detail modal
+                      'periodData': {
+                        'date': point.date.toIso8601String(),
+                        'consumption': units == UnitSystem.metric 
+                            ? point.consumption 
+                            : UnitConverter.consumptionToImperial(point.consumption),
+                        'kilometers': units == UnitSystem.metric 
+                            ? point.kilometers 
+                            : UnitConverter.distanceToImperial(point.kilometers),
+                        'totalEntries': point.totalEntries,
+                        'partialEntries': point.partialEntries,
+                        'periodComposition': point.periodComposition,
+                        'entryIds': point.entryIds,
+                        'periodStart': point.periodStart.toIso8601String(),
+                        'periodEnd': point.periodEnd.toIso8601String(),
+                        'totalFuel': units == UnitSystem.metric 
+                            ? point.totalFuel 
+                            : UnitConverter.volumeToImperial(point.totalFuel),
+                        'totalDistance': units == UnitSystem.metric 
+                            ? point.totalDistance 
+                            : UnitConverter.distanceToImperial(point.totalDistance),
+                        'totalCost': point.totalCost,
+                        'hasPartialRefuels': point.hasPartialRefuels,
+                      },
+                    }).toList();
 
-                // Transform to enhanced chart format with period metadata
-                final chartData = consumptionData.map((point) => {
-                  'date': point.date.toIso8601String().split('T')[0],
-                  'value': point.consumption,
-                  'km': point.kilometers,
-                  // Enhanced metadata for visual distinction and tooltips
-                  'isComplexPeriod': point.isComplexPeriod,
-                  'isSimplePeriod': point.isSimplePeriod,
-                  'periodComposition': point.periodComposition,
-                  'totalEntries': point.totalEntries,
-                  'partialEntries': point.partialEntries,
-                  'totalFuel': point.totalFuel,
-                  'totalDistance': point.totalDistance,
-                  'formattedDuration': point.formattedDuration,
-                  // Data for period detail modal
-                  'periodData': {
-                    'date': point.date.toIso8601String(),
-                    'consumption': point.consumption,
-                    'kilometers': point.kilometers,
-                    'totalEntries': point.totalEntries,
-                    'partialEntries': point.partialEntries,
-                    'periodComposition': point.periodComposition,
-                    'entryIds': point.entryIds,
-                    'periodStart': point.periodStart.toIso8601String(),
-                    'periodEnd': point.periodEnd.toIso8601String(),
-                    'totalFuel': point.totalFuel,
-                    'totalDistance': point.totalDistance,
-                    'totalCost': point.totalCost,
-                    'hasPartialRefuels': point.hasPartialRefuels,
+                    return ChartWebView(
+                      data: chartData,
+                      config: ChartConfig(
+                        type: _selectedChartType,
+                        title: 'Consumption Analysis (${units.consumptionUnit})',
+                        xLabel: 'Date',
+                        yLabel: 'Consumption (${units.consumptionUnit})',
+                        unit: units.consumptionUnit,
+                        className: 'consumption-chart',
+                      ),
+                      onChartEvent: _handleChartEvent,
+                      onError: (error) {
+                        debugPrint('Chart error: $error');
+                      },
+                    );
                   },
-                }).toList();
+                  loading: () => _buildLoadingPlaceholder(),
+                  error: (_, __) {
+                    // Fallback to metric units if units loading fails
+                    final chartData = consumptionData.map((point) => {
+                      'date': point.date.toIso8601String().split('T')[0],
+                      'value': point.consumption,
+                      'km': point.kilometers,
+                      'isComplexPeriod': point.isComplexPeriod,
+                      'isSimplePeriod': point.isSimplePeriod,
+                      'periodComposition': point.periodComposition,
+                      'totalEntries': point.totalEntries,
+                      'partialEntries': point.partialEntries,
+                      'totalFuel': point.totalFuel,
+                      'totalDistance': point.totalDistance,
+                      'formattedDuration': point.formattedDuration,
+                      'periodData': {
+                        'date': point.date.toIso8601String(),
+                        'consumption': point.consumption,
+                        'kilometers': point.kilometers,
+                        'totalEntries': point.totalEntries,
+                        'partialEntries': point.partialEntries,
+                        'periodComposition': point.periodComposition,
+                        'entryIds': point.entryIds,
+                        'periodStart': point.periodStart.toIso8601String(),
+                        'periodEnd': point.periodEnd.toIso8601String(),
+                        'totalFuel': point.totalFuel,
+                        'totalDistance': point.totalDistance,
+                        'totalCost': point.totalCost,
+                        'hasPartialRefuels': point.hasPartialRefuels,
+                      },
+                    }).toList();
 
-                return ChartWebView(
-                  data: chartData,
-                  config: ChartConfig(
-                    type: _selectedChartType,
-                    title: null, // Remove title since we have it above
-                    xLabel: 'Date',
-                    yLabel: 'Consumption (L/100km)',
-                    unit: 'L/100km',
-                    className: 'consumption-chart',
-                  ),
-                  onChartEvent: _handleChartEvent,
-                  onError: (error) {
-                    debugPrint('Chart error: $error');
+                    return ChartWebView(
+                      data: chartData,
+                      config: const ChartConfig(
+                        type: ChartType.area,
+                        title: 'Consumption Analysis (L/100km)',
+                        xLabel: 'Date',
+                        yLabel: 'Consumption (L/100km)',
+                        unit: 'L/100km',
+                        className: 'consumption-chart',
+                      ),
+                      onChartEvent: _handleChartEvent,
+                      onError: (error) {
+                        debugPrint('Chart error: $error');
+                      },
+                    );
                   },
                 );
               },

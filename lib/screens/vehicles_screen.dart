@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 
 /// Vehicles screen for managing user's vehicles
@@ -542,7 +543,21 @@ class _VehicleCard extends ConsumerWidget {
                 final avgConsumption = entries.isNotEmpty 
                   ? entries.map((e) => e.consumption ?? 0.0).reduce((a, b) => a + b) / entries.length
                   : 0.0;
-                return Text('Entries: ${entries.length} • Avg: ${avgConsumption.toStringAsFixed(1)}L/100km');
+                return Consumer(
+                  builder: (context, ref, child) {
+                    final unitSystem = ref.watch(unitsProvider);
+                    return unitSystem.when(
+                      data: (units) {
+                        final displayConsumption = units == UnitSystem.metric 
+                            ? avgConsumption 
+                            : UnitConverter.consumptionToImperial(avgConsumption);
+                        return Text('Entries: ${entries.length} • Avg: ${displayConsumption.toStringAsFixed(1)}${units.consumptionUnit}');
+                      },
+                      loading: () => Text('Entries: ${entries.length} • Avg: ${avgConsumption.toStringAsFixed(1)}L/100km'),
+                      error: (_, __) => Text('Entries: ${entries.length} • Avg: ${avgConsumption.toStringAsFixed(1)}L/100km'),
+                    );
+                  },
+                );
               },
               loading: () => const Text('Loading entries...'),
               error: (_, __) => const Text('Entries: 0'),
