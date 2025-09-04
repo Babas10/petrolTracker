@@ -293,7 +293,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
                 data: chartData,
                 config: ChartConfig(
                   type: ChartType.bar,
-                  title: null,
+                  title: 'Average Consumption by ${_getPeriodDisplayName()} (${units.consumptionUnit})',
                   xLabel: _getPeriodDisplayName(),
                   yLabel: 'Average Consumption (${units.consumptionUnit})',
                   unit: units.consumptionUnit,
@@ -319,7 +319,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
                 data: chartData,
                 config: const ChartConfig(
                   type: ChartType.bar,
-                  title: null,
+                  title: 'Average Consumption (L/100km)',
                   xLabel: null,
                   yLabel: 'Average Consumption (L/100km)',
                   unit: 'L/100km',

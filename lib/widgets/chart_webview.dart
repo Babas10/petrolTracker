@@ -781,18 +781,20 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                   console.log('🔥 CACHE BUSTER: Chart rendered at', timestamp);
                   
                   // Add centered chart title with titleMedium styling (h2/h3 level)
-                  svg.append('text')
-                      .attr('class', 'chart-title')
-                      .attr('x', containerWidth / 2)
-                      .attr('y', 25)
-                      .style('text-anchor', 'middle')
-                      .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
-                      .style('font-size', '16px')
-                      .style('font-weight', '500')
-                      .style('line-height', '24px')
-                      .style('letter-spacing', '0.15px')
-                      .style('fill', onSurfaceColor)
-                      .text('Consumption (L/100km) Over Time');
+                  if (options.title) {
+                    svg.append('text')
+                        .attr('class', 'chart-title')
+                        .attr('x', containerWidth / 2)
+                        .attr('y', 25)
+                        .style('text-anchor', 'middle')
+                        .style('font-family', 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
+                        .style('font-size', '16px')
+                        .style('font-weight', '500')
+                        .style('line-height', '24px')
+                        .style('letter-spacing', '0.15px')
+                        .style('fill', onSurfaceColor)
+                        .text(options.title);
+                  }
                   
                       // Legend removed per user request - color distinction now only on hover/click
 

@@ -352,7 +352,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                       data: chartData,
                       config: ChartConfig(
                         type: _selectedChartType,
-                        title: null, // Remove title since we have it above
+                        title: 'Consumption Analysis (${units.consumptionUnit})', // Add dynamic title
                         xLabel: 'Date',
                         yLabel: 'Consumption (${units.consumptionUnit})',
                         unit: units.consumptionUnit,
@@ -400,7 +400,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                       data: chartData,
                       config: const ChartConfig(
                         type: ChartType.area,
-                        title: null,
+                        title: 'Consumption Analysis (L/100km)',
                         xLabel: 'Date',
                         yLabel: 'Consumption (L/100km)',
                         unit: 'L/100km',

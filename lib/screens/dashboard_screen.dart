@@ -255,29 +255,41 @@ class _ChartSection extends ConsumerWidget {
                   );
                   
                   return unitSystem.when(
-                    data: (units) => ChartWebView(
-                      data: chartData.toChartData(),
-                      config: ChartConfig(
-                        type: ChartType.area,
-                        title: 'Fuel Consumption Over Time',
-                        xLabel: 'Date',
-                        yLabel: 'Consumption (${units.consumptionUnit})',
-                        unit: units.consumptionUnit,
-                        className: 'consumption',
-                      ),
-                      onChartEvent: (eventType, data) {
-                        _handleChartEvent(context, eventType, data);
-                      },
-                      onError: (error) {
-                        debugPrint('Chart error: $error');
-                      },
-                    ),
+                    data: (units) {
+                      // Convert chart data values to selected units
+                      final convertedChartData = chartData.toChartData().map((point) {
+                        final originalValue = point['value'] as double;
+                        final convertedValue = units == UnitSystem.metric 
+                            ? originalValue 
+                            : UnitConverter.consumptionToImperial(originalValue);
+                        
+                        return Map<String, dynamic>.from(point)..['value'] = convertedValue;
+                      }).toList();
+                      
+                      return ChartWebView(
+                        data: convertedChartData,
+                        config: ChartConfig(
+                          type: ChartType.area,
+                          title: 'Fuel Consumption Over Time (${units.consumptionUnit})',
+                          xLabel: 'Date',
+                          yLabel: 'Consumption (${units.consumptionUnit})',
+                          unit: units.consumptionUnit,
+                          className: 'consumption',
+                        ),
+                        onChartEvent: (eventType, data) {
+                          _handleChartEvent(context, eventType, data);
+                        },
+                        onError: (error) {
+                          debugPrint('Chart error: $error');
+                        },
+                      );
+                    },
                     loading: () => _buildLoadingPlaceholder(context),
                     error: (_, __) => ChartWebView(
                       data: chartData.toChartData(),
                       config: const ChartConfig(
                         type: ChartType.area,
-                        title: 'Fuel Consumption Over Time',
+                        title: 'Fuel Consumption Over Time (L/100km)',
                         xLabel: 'Date',
                         yLabel: 'Consumption (L/100km)',
                         unit: 'L/100km',
@@ -944,7 +956,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
               data: chartData,
               config: ChartConfig(
                 type: ChartType.bar,
-                title: 'Average Consumption by Month',
+                title: 'Average Consumption by Month (${units.consumptionUnit})',
                 xLabel: 'Month',
                 yLabel: 'Average Consumption (${units.consumptionUnit})',
                 unit: units.consumptionUnit,
@@ -977,7 +989,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
               data: chartData,
               config: const ChartConfig(
                 type: ChartType.bar,
-                title: 'Average Consumption by Month',
+                title: 'Average Consumption by Month (L/100km)',
                 xLabel: 'Month',
                 yLabel: 'Average Consumption (L/100km)',
                 unit: 'L/100km',
