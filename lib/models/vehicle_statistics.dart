@@ -1,3 +1,5 @@
+import 'package:petrol_tracker/providers/units_providers.dart';
+
 /// Statistics model for vehicles
 /// 
 /// Contains aggregated data about a vehicle's fuel consumption,
@@ -134,10 +136,20 @@ class VehicleStatistics {
     );
   }
 
-  /// Get formatted average consumption string
+  /// Get formatted average consumption string with default metric units
+  /// Note: This will be overridden by UI components that have access to Riverpod ref
   String get formattedAverageConsumption {
     if (averageConsumption == 0.0) return 'N/A';
     return '${averageConsumption.toStringAsFixed(1)}L/100km';
+  }
+  
+  /// Get formatted average consumption with specific unit system
+  String getFormattedAverageConsumption(UnitSystem unitSystem) {
+    if (averageConsumption == 0.0) return 'N/A';
+    final convertedConsumption = unitSystem == UnitSystem.metric 
+        ? averageConsumption 
+        : UnitConverter.consumptionToImperial(averageConsumption);
+    return UnitConverter.formatConsumption(convertedConsumption, unitSystem);
   }
 
   /// Get formatted total cost string

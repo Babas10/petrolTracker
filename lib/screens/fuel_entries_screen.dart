@@ -7,6 +7,7 @@ import 'package:petrol_tracker/models/fuel_entry_model.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 
 /// Fuel entries screen displaying list of all fuel entries
 /// 
@@ -1069,13 +1070,41 @@ class _FuelEntryCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Flexible(
-                            child: Text(
-                              '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final unitSystem = ref.watch(unitsProvider);
+                                return unitSystem.when(
+                                  data: (units) {
+                                    final displayConsumption = units == UnitSystem.metric 
+                                        ? entry.consumption! 
+                                        : UnitConverter.consumptionToImperial(entry.consumption!);
+                                    return Text(
+                                      '${displayConsumption.toStringAsFixed(1)} ${units.consumptionUnit}',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    );
+                                  },
+                                  loading: () => Text(
+                                    '${entry.consumption!.toStringAsFixed(1)} L/100km',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  error: (_, __) => Text(
+                                    '${entry.consumption!.toStringAsFixed(1)} L/100km',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -1450,11 +1479,35 @@ class _EntryDetailsDialog extends ConsumerWidget {
             ),
             if (entry.consumption != null) ...[
               const SizedBox(height: 12),
-              _buildDetailRow(
-                context,
-                'Consumption',
-                '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                Icons.trending_up,
+              Consumer(
+                builder: (context, ref, child) {
+                  final unitSystem = ref.watch(unitsProvider);
+                  return unitSystem.when(
+                    data: (units) {
+                      final displayConsumption = units == UnitSystem.metric 
+                          ? entry.consumption! 
+                          : UnitConverter.consumptionToImperial(entry.consumption!);
+                      return _buildDetailRow(
+                        context,
+                        'Consumption',
+                        '${displayConsumption.toStringAsFixed(1)} ${units.consumptionUnit}',
+                        Icons.trending_up,
+                      );
+                    },
+                    loading: () => _buildDetailRow(
+                      context,
+                      'Consumption',
+                      '${entry.consumption!.toStringAsFixed(1)} L/100km',
+                      Icons.trending_up,
+                    ),
+                    error: (_, __) => _buildDetailRow(
+                      context,
+                      'Consumption',
+                      '${entry.consumption!.toStringAsFixed(1)} L/100km',
+                      Icons.trending_up,
+                    ),
+                  );
+                },
               ),
             ],
           ],

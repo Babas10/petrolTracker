@@ -1,5 +1,6 @@
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 
 /// Represents a consumption period ending at a full tank
 class ConsumptionPeriod {
@@ -24,8 +25,17 @@ class ConsumptionPeriod {
   /// Get all entries in this period (partials + end full tank)
   List<FuelEntryModel> get allEntries => [...partialEntries, endFullTank];
 
-  /// Formatted consumption string
+  /// Formatted consumption string with current units
+  /// Note: This will be overridden by UI components that have access to Riverpod ref
   String get formattedConsumption => '${consumption.toStringAsFixed(1)} L/100km';
+  
+  /// Get formatted consumption with specific unit system
+  String getFormattedConsumption(UnitSystem unitSystem) {
+    final convertedConsumption = unitSystem == UnitSystem.metric 
+        ? consumption 
+        : UnitConverter.consumptionToImperial(consumption);
+    return UnitConverter.formatConsumption(convertedConsumption, unitSystem);
+  }
 
   /// Formatted total cost string
   String get formattedTotalCost => '\$${totalCost.toStringAsFixed(2)}';
@@ -36,6 +46,18 @@ class ConsumptionPeriod {
     final endDate = endFullTank.date;
     final days = endDate.difference(startDate).inDays;
     return '${totalDistance.toStringAsFixed(0)} km over $days days';
+  }
+  
+  /// Get period description with specific unit system
+  String getPeriodDescription(UnitSystem unitSystem) {
+    final startDate = startEntry.date;
+    final endDate = endFullTank.date;
+    final days = endDate.difference(startDate).inDays;
+    final convertedDistance = unitSystem == UnitSystem.metric 
+        ? totalDistance 
+        : UnitConverter.distanceToImperial(totalDistance);
+    final unit = unitSystem.distanceUnit;
+    return '${convertedDistance.toStringAsFixed(0)} $unit over $days days';
   }
 }
 

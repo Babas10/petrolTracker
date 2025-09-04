@@ -4,6 +4,7 @@ import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/widgets/country_selection_widget.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
@@ -258,14 +259,16 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
           countryFilter: _selectedCountry,
         ));
         
-        return _buildChartContent(chartDataAsync);
+        return _buildChartContent(chartDataAsync, ref);
       },
       loading: () => _buildLoadingPlaceholder(),
       error: (error, stack) => _buildErrorPlaceholder(error.toString()),
     );
   }
   
-  Widget _buildChartContent(AsyncValue<List<PeriodAverageDataPoint>> chartDataAsync) {
+  Widget _buildChartContent(AsyncValue<List<PeriodAverageDataPoint>> chartDataAsync, WidgetRef ref) {
+    final unitSystem = ref.watch(unitsProvider);
+    
     return Container(
       padding: const EdgeInsets.all(16),
       child: chartDataAsync.when(
@@ -274,27 +277,59 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
             return _buildEmptyChartPlaceholder();
           }
 
-          // Transform to chart format
-          final chartData = periodData.map((point) => {
-            'date': point.date.toIso8601String().split('T')[0],
-            'value': point.averageConsumption,
-            'label': point.periodLabel,
-            'count': point.entryCount,
-          }).toList();
+          return unitSystem.when(
+            data: (units) {
+              // Transform to chart format with unit conversion
+              final chartData = periodData.map((point) => {
+                'date': point.date.toIso8601String().split('T')[0],
+                'value': units == UnitSystem.metric 
+                    ? point.averageConsumption 
+                    : UnitConverter.consumptionToImperial(point.averageConsumption),
+                'label': point.periodLabel,
+                'count': point.entryCount,
+              }).toList();
 
-          return ChartWebView(
-            data: chartData,
-            config: ChartConfig(
-              type: ChartType.bar,
-              title: null,
-              xLabel: _getPeriodDisplayName(),
-              yLabel: 'Average Consumption (L/100km)',
-              unit: 'L/100km',
-              className: 'period-average-chart',
-            ),
-            onChartEvent: _handleChartEvent,
-            onError: (error) {
-              debugPrint('Chart error: $error');
+              return ChartWebView(
+                data: chartData,
+                config: ChartConfig(
+                  type: ChartType.bar,
+                  title: null,
+                  xLabel: _getPeriodDisplayName(),
+                  yLabel: 'Average Consumption (${units.consumptionUnit})',
+                  unit: units.consumptionUnit,
+                  className: 'period-average-chart',
+                ),
+                onChartEvent: _handleChartEvent,
+                onError: (error) {
+                  debugPrint('Chart error: $error');
+                },
+              );
+            },
+            loading: () => _buildLoadingPlaceholder(),
+            error: (_, __) {
+              // Fallback to metric units if units loading fails
+              final chartData = periodData.map((point) => {
+                'date': point.date.toIso8601String().split('T')[0],
+                'value': point.averageConsumption,
+                'label': point.periodLabel,
+                'count': point.entryCount,
+              }).toList();
+
+              return ChartWebView(
+                data: chartData,
+                config: const ChartConfig(
+                  type: ChartType.bar,
+                  title: null,
+                  xLabel: null,
+                  yLabel: 'Average Consumption (L/100km)',
+                  unit: 'L/100km',
+                  className: 'period-average-chart',
+                ),
+                onChartEvent: _handleChartEvent,
+                onError: (error) {
+                  debugPrint('Chart error: $error');
+                },
+              );
             },
           );
         },

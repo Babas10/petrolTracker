@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:petrol_tracker/providers/theme_providers.dart';
+import 'package:petrol_tracker/providers/units_providers.dart';
 
 // No conditional imports - handle platform differences in code
 
