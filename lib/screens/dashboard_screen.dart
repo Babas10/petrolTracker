@@ -267,6 +267,7 @@ class _ChartSection extends ConsumerWidget {
                       }).toList();
                       
                       return ChartWebView(
+                        key: ValueKey('area-chart-${units.name}'), // Force rebuild when units change
                         data: convertedChartData,
                         config: ChartConfig(
                           type: ChartType.area,
@@ -953,11 +954,12 @@ class _AverageConsumptionSection extends ConsumerWidget {
             }).toList();
 
             return ChartWebView(
+              key: ValueKey('bar-chart-${units.name}'), // Force rebuild when units change
               data: chartData,
               config: ChartConfig(
                 type: ChartType.bar,
                 title: 'Average Consumption by Month (${units.consumptionUnit})',
-                xLabel: 'Month',
+                xLabel: 'Month', 
                 yLabel: 'Average Consumption (${units.consumptionUnit})',
                 unit: units.consumptionUnit,
                 className: 'period-average-chart',

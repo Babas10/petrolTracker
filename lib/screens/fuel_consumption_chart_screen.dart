@@ -352,7 +352,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
                       data: chartData,
                       config: ChartConfig(
                         type: _selectedChartType,
-                        title: 'Consumption Analysis (${units.consumptionUnit})', // Add dynamic title
+                        title: 'Consumption Analysis (${units.consumptionUnit})',
                         xLabel: 'Date',
                         yLabel: 'Consumption (${units.consumptionUnit})',
                         unit: units.consumptionUnit,

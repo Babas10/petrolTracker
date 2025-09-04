@@ -1052,6 +1052,8 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
     };
     
     print('Sending chart data: ${widget.data.length} points, type: ${widget.config.type.name}');
+    print('Chart title: ${widget.config.title}');
+    print('Chart unit: ${widget.config.unit}');
     
     _controller?.runJavaScript('window.postMessage(${jsonEncode(jsonEncode(message))}, "*");');
   }
