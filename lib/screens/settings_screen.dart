@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
+import 'package:petrol_tracker/providers/theme_providers.dart';
 
 /// Settings screen for app preferences and configuration
 /// 
 /// This screen provides:
-/// - Theme settings (light/dark/system)
+/// - Theme settings (light/dark/system) with real-time switching
 /// - Units preferences (metric/imperial)
 /// - Data management options
 /// - App information and version
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  String _themeMode = 'system';
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String _units = 'metric';
   bool _notificationsEnabled = true;
   bool _analyticsEnabled = false;
@@ -45,29 +46,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAppearanceSection() {
+    final currentTheme = ref.watch(themeModeProvider);
+    
     return _SettingsSection(
       title: 'Appearance',
       icon: Icons.palette_outlined,
       children: [
         ListTile(
           title: const Text('Theme'),
-          subtitle: Text(_getThemeDisplayName(_themeMode)),
-          trailing: DropdownButton<String>(
-            value: _themeMode,
-            underline: const SizedBox(),
-            items: const [
-              DropdownMenuItem(value: 'system', child: Text('System')),
-              DropdownMenuItem(value: 'light', child: Text('Light')),
-              DropdownMenuItem(value: 'dark', child: Text('Dark')),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _themeMode = value;
-                });
-                // TODO: Apply theme change
-              }
-            },
+          subtitle: Text(currentTheme.when(
+            data: (theme) => theme.displayName,
+            loading: () => 'Loading...',
+            error: (_, __) => 'System',
+          )),
+          trailing: currentTheme.when(
+            data: (currentMode) => DropdownButton<AppThemeMode>(
+              value: currentMode,
+              underline: const SizedBox(),
+              items: AppThemeMode.values.map((mode) => DropdownMenuItem(
+                value: mode,
+                child: Text(mode.displayName),
+              )).toList(),
+              onChanged: (newMode) async {
+                if (newMode != null) {
+                  // Show immediate visual feedback
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Switched to ${newMode.displayName} theme'),
+                      duration: const Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  
+                  // Apply theme change
+                  await ref.read(themeModeProvider.notifier).setThemeMode(newMode);
+                }
+              },
+            ),
+            loading: () => const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            error: (_, __) => const Icon(Icons.error_outline, color: Colors.red),
           ),
         ),
       ],
@@ -217,17 +238,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _getThemeDisplayName(String themeMode) {
-    switch (themeMode) {
-      case 'light':
-        return 'Light';
-      case 'dark':
-        return 'Dark';
-      case 'system':
-      default:
-        return 'Follow system';
-    }
-  }
 
   void _exportData() {
     // TODO: Implement data export

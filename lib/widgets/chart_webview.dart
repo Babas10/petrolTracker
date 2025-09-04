@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:petrol_tracker/providers/theme_providers.dart';
 
 // No conditional imports - handle platform differences in code
 
@@ -58,7 +60,7 @@ class ChartConfig {
 typedef ChartEventCallback = void Function(String eventType, Map<String, dynamic> data);
 
 /// WebView widget for displaying D3.js charts
-class ChartWebView extends StatefulWidget {
+class ChartWebView extends ConsumerStatefulWidget {
   final List<Map<String, dynamic>> data;
   final ChartConfig config;
   final ChartEventCallback? onChartEvent;
@@ -79,10 +81,10 @@ class ChartWebView extends StatefulWidget {
   });
 
   @override
-  State<ChartWebView> createState() => _ChartWebViewState();
+  ConsumerState<ChartWebView> createState() => _ChartWebViewState();
 }
 
-class _ChartWebViewState extends State<ChartWebView> {
+class _ChartWebViewState extends ConsumerState<ChartWebView> {
   WebViewController? _controller;
   bool _isLoading = true;
   bool _hasError = false;
@@ -1028,12 +1030,8 @@ class _ChartWebViewState extends State<ChartWebView> {
       return;
     }
     
-    // Get Flutter theme colors to pass to D3.js
-    final theme = Theme.of(context);
-    final primaryColor = '#${theme.colorScheme.primary.value.toRadixString(16).substring(2)}';
-    final surfaceColor = '#${theme.colorScheme.surface.value.toRadixString(16).substring(2)}';
-    final onSurfaceColor = '#${theme.colorScheme.onSurface.value.toRadixString(16).substring(2)}';
-    final outlineColor = '#${theme.colorScheme.outline.value.toRadixString(16).substring(2)}';
+    // Use theme provider colors instead of extracting from context
+    final themeColors = ref.read(chartThemeColorsProvider);
     
     // Send chart data to D3.js in mobile WebView
     final message = {
@@ -1046,12 +1044,7 @@ class _ChartWebViewState extends State<ChartWebView> {
         'yLabel': widget.config.yLabel,
         'unit': widget.config.unit,
         'className': widget.config.className,
-        'theme': {
-          'primaryColor': primaryColor,
-          'surfaceColor': surfaceColor,
-          'onSurfaceColor': onSurfaceColor,
-          'outlineColor': outlineColor,
-        }
+        'theme': themeColors
       }
     };
     
