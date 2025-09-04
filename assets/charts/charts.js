@@ -1,6 +1,7 @@
 /**
  * Chart Manager for Petrol Tracker D3.js Charts
  * Handles chart rendering, data processing, and Flutter communication
+ * Uses centralized styling system for consistency across all chart types
  */
 class ChartManager {
     constructor() {
@@ -27,7 +28,6 @@ class ChartManager {
     handleFlutterMessage(message) {
         try {
             const { type, data, chartType, options } = message;
-            
             switch (type) {
                 case 'renderChart':
                     this.renderChart(chartType, data, options);
@@ -45,7 +45,8 @@ class ChartManager {
                     console.warn('Unknown message type:', type);
             }
         } catch (error) {
-            console.error('Error handling Flutter message:', error);
+            console.error('🔥 HANDLE MESSAGE ERROR:', error);
+            console.error('🔥 HANDLE MESSAGE ERROR: Message was:', message);
             this.showError('Error processing chart data');
         }
     }
@@ -138,7 +139,7 @@ class ChartManager {
             .curve(d3.curveMonotoneX);
 
         // Add grid
-        this.addGrid(g, xScale, yScale, width, height);
+        this.addGrid(g, xScale, yScale, width, height, false, options);
 
         // Add axes
         this.addAxes(g, xScale, yScale, width, height, options);
@@ -209,6 +210,12 @@ class ChartManager {
      */
     renderBarChart(data, options) {
         const container = d3.select('#chart');
+        
+        if (!container.node()) {
+            console.error('Chart container not found');
+            return;
+        }
+        
         const containerRect = container.node().getBoundingClientRect();
         
         // Handle case where container has zero or insufficient dimensions
@@ -217,15 +224,74 @@ class ChartManager {
             return;
         }
         
-        // Use optimized margins for bar chart to maximize space usage (shifted down further)
-        const margin = { top: 45, right: 20, bottom: 60, left: 40 };
+        // Get standardized styling based on theme
+        let styles;
+        try {
+            const styleFunction = (typeof getChartStyles !== 'undefined' ? getChartStyles : window.getChartStyles);
+            
+            if (typeof styleFunction === 'undefined') {
+                
+                // Create emergency fallback styles
+                const theme = options.theme || {};
+                const primaryColor = theme.primaryColor || '#10b981';
+                const surfaceColor = theme.surfaceColor || '#f7fbf1';
+                const onSurfaceColor = theme.onSurfaceColor || '#374151';
+                const outlineColor = theme.outlineColor || '#9ca3af';
+                
+                styles = {
+                    colors: {
+                        primary: primaryColor,
+                        surface: surfaceColor,
+                        onSurface: onSurfaceColor,
+                        outline: outlineColor,
+                        background: surfaceColor,
+                        text: onSurfaceColor,
+                        border: outlineColor
+                    },
+                    fonts: {
+                        family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        axis: { size: '13px', weight: '500', color: onSurfaceColor },
+                        year: { size: '12px', weight: 'normal', color: '#666' },
+                        title: { size: '16px', weight: '600', color: onSurfaceColor },
+                        tooltip: { size: '13px', weight: 'normal', color: '#ffffff' }
+                    },
+                    axis: { stroke: outlineColor, strokeWidth: 1 },
+                    grid: { stroke: '#e0e0e0', strokeDasharray: '2,2', strokeWidth: 1 },
+                    charts: {
+                        bar: { fill: primaryColor, stroke: primaryColor, strokeWidth: 1, opacity: 0.8 },
+                        area: { fill: primaryColor, stroke: primaryColor, strokeWidth: 3, opacity: 0.3 },
+                        line: { stroke: primaryColor, strokeWidth: 3, fill: 'none' }
+                    },
+                    layout: {
+                        margin: { top: 38, right: 20, bottom: 90, left: 50 },
+                        barMargin: { top: 45, right: 20, bottom: 60, left: 40 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        fontSize: '13px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    }
+                };
+            } else {
+                styles = styleFunction(options.theme);
+            }
+        } catch (error) {
+            console.error('Error getting chart styles:', error);
+            return;
+        }
+        
+        // Use standardized margins for bar charts
+        const margin = styles.layout.barMargin;
         const width = containerRect.width - margin.left - margin.right;
         const height = containerRect.height - margin.top - margin.bottom;
 
         const svg = container.append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.top + margin.bottom + 50) // Extra space for year axis
-            .style('background-color', options.theme?.surfaceColor || '#ffffff'); // Match app background
+            .style('background-color', styles.colors.background);
 
         const g = svg.append('g')
             .attr('transform', `translate(${margin.left},${margin.top})`);
@@ -243,28 +309,42 @@ class ChartManager {
         
         // Check for duplicates and create unique positioning keys
         const hasDuplicates = monthOnlyLabels.length !== new Set(monthOnlyLabels).size;
+        
         const monthLabels = hasDuplicates 
             ? data.map((d, i) => `${d.label || d.label}_${i}`) // Unique keys: "Jul 2024_0", "Aug 2024_1", etc.
             : monthOnlyLabels; // Use month-only labels (e.g., "Jul", "Aug")
+        
         // Scales
         const xScale = d3.scaleBand()
             .domain(monthLabels)
             .range([0, width])
             .padding(0.1);
 
+        const maxValue = d3.max(data, d => d.value);
+        
         const yScale = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d.value)])
+            .domain([0, maxValue])
             .nice()
             .range([height, 0]);
 
         // Add grid (for bar chart with band scale)
-        this.addGrid(g, xScale, yScale, width, height, true);
+        try {
+            this.addGrid(g, xScale, yScale, width, height, true, options);
+        } catch (error) {
+            console.error('Error adding grid:', error);
+            return;
+        }
 
         // Add axes (for bar chart with band scale)
-        this.addAxes(g, xScale, yScale, width, height, options, true);
+        try {
+            this.addAxes(g, xScale, yScale, width, height, options, true);
+        } catch (error) {
+            console.error('Error adding axes:', error);
+            return;
+        }
 
         // Add bars with visual distinction for period types
-        g.selectAll('.bar')
+        const bars = g.selectAll('.bar')
             .data(data)
             .enter().append('rect')
             .attr('class', d => {
@@ -279,24 +359,33 @@ class ChartManager {
             .attr('width', xScale.bandwidth())
             .attr('y', d => yScale(d.value))
             .attr('height', d => height - yScale(d.value))
-            .attr('fill', options.theme?.primaryColor || '#10b981')
-            .attr('stroke', options.theme?.primaryColor || '#10b981')
-            .attr('stroke-width', 1)
-            .attr('opacity', 0.8)
+            .attr('fill', styles.charts.bar.fill)
+            .attr('stroke', styles.charts.bar.stroke)
+            .attr('stroke-width', styles.charts.bar.strokeWidth)
+            .attr('opacity', styles.charts.bar.opacity)
             .on('mouseover', (event, d) => this.showBarTooltip(event, d, options))
             .on('mouseout', () => this.hideTooltip())
             .on('click', (event, d) => this.notifyFlutter('dataPointClicked', d));
 
         // Add year axis like area chart (pass monthLabels for positioning)
-        this.addYearAxisToBarChart(g, data, xScale, height, width, monthLabels);
+        try {
+            this.addYearAxisToBarChart(g, data, xScale, height, width, monthLabels, options.theme);
+        } catch (error) {
+            console.error('Error adding year axis:', error);
+            // Don't return here, continue with title
+        }
 
         // Add title (matching area chart styling)
-        svg.append('text')
-            .attr('class', 'chart-title')
-            .attr('x', (width + margin.left + margin.right) / 2)
-            .attr('y', 25)
-            .attr('text-anchor', 'middle')
-            .text('Monthly Average Consumption (L/100km)');
+        try {
+            svg.append('text')
+                .attr('class', 'chart-title')
+                .attr('x', (width + margin.left + margin.right) / 2)
+                .attr('y', 25)
+                .attr('text-anchor', 'middle')
+                .text('Monthly Average Consumption (L/100km)');
+        } catch (error) {
+            console.error('Error adding title:', error);
+        }
 
         this.currentChart = { svg, g, xScale, yScale, data };
     }
@@ -353,7 +442,7 @@ class ChartManager {
             .curve(d3.curveMonotoneX);
 
         // Add grid
-        this.addGrid(g, xScale, yScale, width, height);
+        this.addGrid(g, xScale, yScale, width, height, false, options);
 
         // Add axes
         this.addAxes(g, xScale, yScale, width, height, options);
@@ -572,7 +661,7 @@ class ChartManager {
             .curve(d3.curveMonotoneX);
 
         // Add grid
-        this.addGrid(g, xScale, yScale, width, height);
+        this.addGrid(g, xScale, yScale, width, height, false, options);
 
         // Add axes
         this.addAxes(g, xScale, yScale, width, height, options);
@@ -646,32 +735,100 @@ class ChartManager {
     /**
      * Add grid lines
      */
-    addGrid(g, xScale, yScale, width, height, isBandScale = false) {
-        // X grid
+    addGrid(g, xScale, yScale, width, height, isBandScale = false, options = {}) {
+        // Get styles with emergency fallback
+        let styles;
+        try {
+            const styleFunction = (typeof getChartStyles !== 'undefined' ? getChartStyles : window.getChartStyles);
+            if (typeof styleFunction === 'undefined') {
+                // Emergency fallback styles
+                styles = {
+                    grid: { stroke: '#e0e0e0', strokeDasharray: '2,2', strokeWidth: 1 }
+                };
+            } else {
+                styles = styleFunction(options.theme);
+            }
+        } catch (error) {
+            console.error('Error getting grid styles, using fallback:', error);
+            styles = {
+                grid: { stroke: '#e0e0e0', strokeDasharray: '2,2', strokeWidth: 1 }
+            };
+        }
+        
+        // X grid with standardized styling
         if (!isBandScale) {
-            g.append('g')
+            const xGridSelection = g.append('g')
                 .attr('class', 'grid')
                 .attr('transform', `translate(0,${height})`)
                 .call(d3.axisBottom(xScale)
                     .tickSize(-height)
                     .tickFormat('')
                 );
+                
+            // Apply grid styling manually (fallback for applyGridStyling)
+            xGridSelection.selectAll('line')
+                .style('stroke', styles.grid.stroke)
+                .style('stroke-dasharray', styles.grid.strokeDasharray)
+                .style('stroke-width', styles.grid.strokeWidth);
+            xGridSelection.selectAll('path')
+                .style('stroke-width', 0);
         }
 
-        // Y grid with 5 ticks
-        g.append('g')
+        // Y grid with 5 ticks and standardized styling
+        const yGridSelection = g.append('g')
             .attr('class', 'grid')
             .call(d3.axisLeft(yScale)
                 .ticks(5)
                 .tickSize(-width)
                 .tickFormat('')
             );
+            
+        // Apply grid styling manually (fallback for applyGridStyling)
+        yGridSelection.selectAll('line')
+            .style('stroke', styles.grid.stroke)
+            .style('stroke-dasharray', styles.grid.strokeDasharray)
+            .style('stroke-width', styles.grid.strokeWidth);
+        yGridSelection.selectAll('path')
+            .style('stroke-width', 0);
     }
 
     /**
      * Add axes with smart tick selection
      */
     addAxes(g, xScale, yScale, width, height, options, isBandScale = false) {
+        // Get styles with emergency fallback
+        let styles;
+        try {
+            const styleFunction = (typeof getChartStyles !== 'undefined' ? getChartStyles : window.getChartStyles);
+            if (typeof styleFunction === 'undefined') {
+                // Emergency fallback styles
+                const theme = options.theme || {};
+                const onSurfaceColor = theme.onSurfaceColor || '#374151';
+                const outlineColor = theme.outlineColor || '#9ca3af';
+                styles = {
+                    fonts: {
+                        family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                        axis: { size: '13px', weight: '500', color: onSurfaceColor }
+                    },
+                    axis: { stroke: outlineColor, strokeWidth: 1 }
+                };
+            } else {
+                styles = styleFunction(options.theme);
+            }
+        } catch (error) {
+            console.error('Error getting axis styles, using fallback:', error);
+            const theme = options.theme || {};
+            const onSurfaceColor = theme.onSurfaceColor || '#374151';
+            const outlineColor = theme.outlineColor || '#9ca3af';
+            styles = {
+                fonts: {
+                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                    axis: { size: '13px', weight: '500', color: onSurfaceColor }
+                },
+                axis: { stroke: outlineColor, strokeWidth: 1 }
+            };
+        }
+        
         // Create X axis with controlled tick count
         let xAxis;
         if (isBandScale) {
@@ -725,40 +882,36 @@ class ChartManager {
         }
         
         if (isBandScale) {
-            // Bar chart axes - match area chart styling exactly
-            const outlineColor = (options.theme && options.theme.outlineColor) || '#9ca3af';
-            const onSurfaceColor = (options.theme && options.theme.onSurfaceColor) || '#374151';
-            
-            // X-axis with area chart text styling
-            g.append('g')
+            // X-axis with manual styling (fallback for applyAxisStyling)
+            const xAxisSelection = g.append('g')
                 .attr('class', 'axis x-axis')
                 .attr('transform', `translate(0,${height})`)
-                .call(xAxis)
-                .selectAll('text')
-                .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
-                .style('font-size', '13px')
-                .style('font-weight', '500')
-                .style('fill', onSurfaceColor);
+                .call(xAxis);
             
-            // Style X-axis lines and ticks
-            g.select('.x-axis')
-                .selectAll('path, line')
-                .style('stroke', outlineColor);
+            // Apply axis styling manually
+            xAxisSelection.selectAll('text')
+                .style('font-family', styles.fonts.family)
+                .style('font-size', styles.fonts.axis.size)
+                .style('font-weight', styles.fonts.axis.weight)
+                .style('fill', styles.fonts.axis.color);
+            xAxisSelection.selectAll('path, line')
+                .style('stroke', styles.axis.stroke)
+                .style('stroke-width', styles.axis.strokeWidth);
 
-            // Y-axis with area chart text styling
-            g.append('g')
+            // Y-axis with manual styling
+            const yAxisSelection = g.append('g')
                 .attr('class', 'axis y-axis')
-                .call(d3.axisLeft(yScale).ticks(5))
-                .selectAll('text')
-                .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif')
-                .style('font-size', '13px')
-                .style('font-weight', '500')
-                .style('fill', onSurfaceColor);
+                .call(d3.axisLeft(yScale).ticks(5));
                 
-            // Style Y-axis lines and ticks
-            g.select('.y-axis')
-                .selectAll('path, line')
-                .style('stroke', outlineColor);
+            // Apply axis styling manually
+            yAxisSelection.selectAll('text')
+                .style('font-family', styles.fonts.family)
+                .style('font-size', styles.fonts.axis.size)
+                .style('font-weight', styles.fonts.axis.weight)
+                .style('fill', styles.fonts.axis.color);
+            yAxisSelection.selectAll('path, line')
+                .style('stroke', styles.axis.stroke)
+                .style('stroke-width', styles.axis.strokeWidth);
         } else {
             // Area chart axes - but area chart uses different implementation in chart_webview.dart
             g.append('g')
@@ -777,8 +930,8 @@ class ChartManager {
             g.append('text')
                 .attr('transform', `translate(${width / 2}, ${height + 50})`)
                 .style('text-anchor', 'middle')
-                .style('font-size', '12px')
-                .style('fill', '#666')
+                .style('font-size', styles.fonts.axis.size)
+                .style('fill', styles.fonts.axis.color)
                 .text(options.xLabel);
         }
 
@@ -788,10 +941,11 @@ class ChartManager {
                 .attr('y', 0 - this.margin.left + 20)
                 .attr('x', 0 - (height / 2))
                 .style('text-anchor', 'middle')
-                .style('font-size', '12px')
-                .style('fill', '#666')
+                .style('font-size', styles.fonts.axis.size)
+                .style('fill', styles.fonts.axis.color)
                 .text(options.yLabel);
         }
+        
     }
 
     /**
@@ -841,7 +995,7 @@ class ChartManager {
             .attr('width', 180)
             .attr('height', 50)
             .attr('fill', 'rgba(255, 255, 255, 0.9)')
-            .attr('stroke', '#ddd')
+            .attr('stroke', styles.colors.outline)
             .attr('stroke-width', 1)
             .attr('rx', 4);
 
@@ -942,7 +1096,7 @@ class ChartManager {
         // Add simple period information if available
         if (data.totalEntries && data.totalEntries > 1) {
             content += `<div class="tooltip-separator"></div>`;
-            content += `<div class="tooltip-period-info" style="color: #666;">`;
+            content += `<div class="tooltip-period-info">`;
             content += `${data.totalEntries} entries`;
             content += `</div>`;
         }
@@ -1030,7 +1184,7 @@ class ChartManager {
     /**
      * Add year axis to bar chart (similar to area chart)
      */
-    addYearAxisToBarChart(g, data, xScale, height, width, monthLabels) {
+    addYearAxisToBarChart(g, data, xScale, height, width, monthLabels, theme) {
         // Extract years from data labels (e.g., "Mar 2025" -> 2025)
         const years = [...new Set(data.map(d => {
             if (d.label && d.label.includes(' ')) {
@@ -1073,19 +1227,9 @@ class ChartManager {
             .attr('class', 'year-axis')
             .attr('transform', `translate(0,${yearAxisY})`);
 
-        // Add year labels with same styling as area chart axis text
-        yearAxisGroup.selectAll('.year-label')
-            .data(yearData)
-            .enter()
-            .append('text')
-            .attr('class', 'year-label')
-            .attr('x', d => d.position)
-            .attr('y', 0)
-            .attr('text-anchor', 'middle')
-            .style('fill', '#666')
-            .style('font-size', '12px')
-            .style('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif')
-            .text(d => d.year);
+        // Add year labels with standardized styling
+        const styles = getChartStyles(theme);
+        createYearLabels(yearAxisGroup, yearData, styles);
     }
 
     /**
