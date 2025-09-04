@@ -395,6 +395,9 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                   // Clear any existing content first
                   container.selectAll('*').remove();
                   
+                  // Also clear any chart titles specifically
+                  d3.selectAll('.chart-title').remove();
+                  
                   // Set the container to fill ALL available space with app surface color
                   container
                       .style('width', '100%')
@@ -782,6 +785,7 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                   
                   // Add centered chart title with titleMedium styling (h2/h3 level)
                   if (options.title) {
+                    console.log('🎯 Setting chart title:', options.title);
                     svg.append('text')
                         .attr('class', 'chart-title')
                         .attr('x', containerWidth / 2)
@@ -794,6 +798,9 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                         .style('letter-spacing', '0.15px')
                         .style('fill', onSurfaceColor)
                         .text(options.title);
+                    console.log('✅ Chart title set successfully');
+                  } else {
+                    console.log('❌ No title provided in options');
                   }
                   
                       // Legend removed per user request - color distinction now only on hover/click
