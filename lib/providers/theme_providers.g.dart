@@ -6,7 +6,7 @@ part of 'theme_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$lightThemeHash() => r'56ef1e8b57e4d754c1cc87ee2a9b6006a71b0cd6';
+String _$lightThemeHash() => r'2916a6dade0511569853d07cdb5bcbffda4b597e';
 
 /// Provider for comprehensive light theme configuration
 ///
@@ -44,7 +44,7 @@ final darkThemeProvider = AutoDisposeProvider<ThemeData>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DarkThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$chartThemeColorsHash() => r'f8beadd41a637502f34d61c42fc67eead86f9580';
+String _$chartThemeColorsHash() => r'7e7ef820125087a32f3bd356cccf3ac43da28905';
 
 /// Provider that returns the appropriate theme colors for charts
 ///
