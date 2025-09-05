@@ -520,11 +520,11 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                       .curve(d3.curveMonotoneX);
                   console.log('Generators created');
                   
-                  // Add visible horizontal grid lines first (behind everything)
+                  // Add subtle horizontal grid lines first (behind everything)
                   console.log('Adding horizontal grid lines...');
                   g.append('g')
                       .attr('class', 'grid horizontal-grid')
-                      .attr('opacity', 0.5)
+                      .attr('opacity', 0.2)
                       .call(d3.axisLeft(yScale)
                           .tickValues(yTickValues)
                           .tickSize(-width)
@@ -532,11 +532,11 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
                       );
                   console.log('Horizontal grid lines added');
                   
-                  // Add visible vertical grid lines
+                  // Add subtle vertical grid lines
                   console.log('Adding vertical grid lines...');
                   g.append('g')
                       .attr('class', 'grid vertical-grid')
-                      .attr('opacity', 0.5)
+                      .attr('opacity', 0.2)
                       .attr('transform', 'translate(0,' + height + ')')
                       .call(d3.axisBottom(xScale)
                           .tickValues(xTickValues)
