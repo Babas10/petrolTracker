@@ -136,21 +136,21 @@ ThemeData lightTheme(LightThemeRef ref) {
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF059669), // Green-600 (emerald)
+      seedColor: Colors.green, // Original seed color (0xFF4CAF50)
       brightness: Brightness.light,
-      // Override specific colors for better contrast and branding
-      primary: const Color(0xFF059669), // Green-600
-      primaryContainer: const Color(0xFFD1FAE5), // Green-100
-      secondary: const Color(0xFF0D9488), // Teal-600
-      secondaryContainer: const Color(0xFFCCFBF1), // Teal-100
-      surface: const Color(0xFFF7FDF7), // Very light green tint
-      surfaceContainer: const Color(0xFFF0FDF4), // Light green tint
-      surfaceContainerHighest: const Color(0xFFE6FFFA), // Very light teal
+      // Restore original Material Design 3 colors generated from Colors.green
+      primary: const Color(0xFF366A3C), // Original MD3 green primary
+      primaryContainer: const Color(0xFFB7F2BD), // Original MD3 green primary container
+      secondary: const Color(0xFF526451), // Original MD3 green secondary
+      secondaryContainer: const Color(0xFFD5E8D3), // Original MD3 green secondary container
+      surface: const Color(0xFFFCFDF6), // Original MD3 surface
+      surfaceContainer: const Color(0xFFF0F1EA), // Original MD3 surface container
+      surfaceContainerHighest: const Color(0xFFE0E2DB), // Original MD3 surface container highest
     ),
     
     // Enhanced app bar theme
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF059669),
+      backgroundColor: Color(0xFF366A3C), // Original MD3 primary color
       foregroundColor: Colors.white,
       elevation: 2,
       shadowColor: Colors.black26,
@@ -172,35 +172,35 @@ ThemeData lightTheme(LightThemeRef ref) {
     
     // Enhanced floating action button
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFF059669),
+      backgroundColor: Color(0xFF366A3C), // Original MD3 primary color
       foregroundColor: Colors.white,
       elevation: 4,
     ),
     
-    // Enhanced text themes
+    // Enhanced text themes with original MD3 colors
     textTheme: const TextTheme(
       displayLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF065F46), // Dark green
+        color: Color(0xFF1D1B20), // Original MD3 on-surface
       ),
       titleLarge: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF064E3B), // Darker green
+        color: Color(0xFF1D1B20), // Original MD3 on-surface
       ),
       titleMedium: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w500,
-        color: Color(0xFF065F46), // Dark green
+        color: Color(0xFF1D1B20), // Original MD3 on-surface
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
-        color: Color(0xFF374151), // Gray-700
+        color: Color(0xFF1D1B20), // Original MD3 on-surface
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
-        color: Color(0xFF4B5563), // Gray-600
+        color: Color(0xFF49454F), // Original MD3 on-surface variant
       ),
     ),
   );
@@ -333,12 +333,12 @@ Map<String, String> chartThemeColors(ChartThemeColorsRef ref) {
       'outlineColor': '#6E6E6E',      // Medium gray outlines
     };
   } else {
-    // Light theme colors  
+    // Light theme colors - restored original MD3 colors
     return {
-      'primaryColor': '#059669',      // Green-600
-      'surfaceColor': '#F7FDF7',      // Very light green tint
-      'onSurfaceColor': '#374151',    // Gray-700
-      'outlineColor': '#9CA3AF',      // Gray-400
+      'primaryColor': '#366A3C',      // Original MD3 green primary
+      'surfaceColor': '#FCFDF6',      // Original MD3 surface
+      'onSurfaceColor': '#1D1B20',    // Original MD3 on-surface
+      'outlineColor': '#79747E',      // Original MD3 outline
     };
   }
 }
