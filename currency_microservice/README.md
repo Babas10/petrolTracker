@@ -116,6 +116,19 @@ GET /api/v1/admin/cache/stats
 ```
 Returns cache performance metrics and daily optimization info.
 
+#### Test Data Management (Debug Mode Only)
+```bash
+# Seed realistic test currency data
+POST /api/v1/admin/seed-test-data?base_currency=USD&clear_existing=true
+
+# Check seeding status and system readiness
+GET /api/v1/admin/seeding-status
+
+# Generate sample currency conversions to test data flow
+GET /api/v1/admin/test-conversions?base_currency=USD
+```
+These endpoints are only available when `DEBUG=True` and provide comprehensive testing tools.
+
 ## Configuration
 
 ### Environment Variables
@@ -159,7 +172,69 @@ USD, EUR, GBP, CAD, AUD, JPY, CHF, CNY, INR, MXN, BRL, KRW, SGD, NZD, NOK, SEK, 
 
 ## Development
 
-### Running Tests
+### Testing the Complete Data Flow
+
+The microservice includes comprehensive testing tools to verify the entire data flow from database → cache → API → Flutter integration.
+
+#### 1. **Automatic Test Data (Debug Mode)**
+When `DEBUG=True`, the microservice automatically seeds test data on startup:
+
+```bash
+# Enable debug mode in .env
+DEBUG=True
+
+# Start the application
+uvicorn app.main:app --reload
+
+# Check logs for: "✅ Test data initialized: 23 currency rates"
+```
+
+#### 2. **Manual Test Data Seeding**
+```bash
+# Seed fresh test data
+POST /api/v1/admin/seed-test-data?base_currency=USD
+
+# Response shows realistic exchange rates created
+{
+  "status": "success",
+  "rates_created": 23,
+  "currencies": ["EUR", "GBP", "JPY", "CAD", ...],
+  "cache_warmed": true
+}
+```
+
+#### 3. **Verify Complete Data Flow**
+```bash
+# 1. Check seeding status
+GET /api/v1/admin/seeding-status
+
+# 2. Test sample conversions (DB → Cache → API)
+GET /api/v1/admin/test-conversions
+
+# 3. Monitor cache performance  
+GET /api/v1/admin/cache/stats
+
+# 4. Test Flutter daily pattern - fetch all rates
+GET /api/v1/rates/latest
+```
+
+#### 4. **End-to-End Testing Workflow**
+```bash
+# Complete testing sequence
+curl -H "Authorization: Bearer your-api-key" http://localhost:8000/api/v1/admin/seed-test-data
+curl -H "Authorization: Bearer your-api-key" http://localhost:8000/api/v1/admin/test-conversions  
+curl -H "Authorization: Bearer your-api-key" http://localhost:8000/api/v1/rates/latest
+curl -H "Authorization: Bearer your-api-key" http://localhost:8000/api/v1/admin/cache/stats
+```
+
+**Expected Results:**
+- ✅ Database populated with 20+ realistic currency rates
+- ✅ Cache warmed with 24-hour TTL
+- ✅ Sample conversions show accurate calculations
+- ✅ `/rates/latest` returns all cached rates instantly (Flutter pattern)
+- ✅ Cache stats show high hit rates and 24-hour TTL
+
+### Running Unit Tests
 ```bash
 pytest tests/ -v
 ```

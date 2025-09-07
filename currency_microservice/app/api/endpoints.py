@@ -12,6 +12,7 @@ from app.database.connection import get_db, check_database_connection
 from app.services.exchange_rate_service import exchange_rate_service
 from app.services.cache_service import cache_service
 from app.services.external_api_service import ExternalAPIService
+from app.services.seeding_service import seeding_service
 from app.models.exchange_rate import (
     ExchangeRateResponse, 
     CurrencyConversion, 
@@ -300,6 +301,93 @@ async def get_cache_stats():
             "daily_cache_pattern": True,
             "cache_ttl_hours": settings.cache_ttl_seconds // 3600,
             "designed_for": "Flutter daily fetch pattern - 1 API call per day"
+        }
+    }
+
+
+@router.post(
+    "/admin/seed-test-data",
+    summary="Seed Test Currency Data",
+    description="Populate database with realistic test currency data for development and testing.",
+    dependencies=[Depends(rate_limit)]
+)
+async def seed_test_data(
+    db: AsyncSession = Depends(get_db),
+    base_currency: str = Query("USD", description="Base currency for exchange rates"),
+    clear_existing: bool = Query(True, description="Clear existing data for today before seeding")
+):
+    """Seed database with test currency data for development and testing."""
+    
+    if not settings.debug:
+        raise HTTPException(
+            status_code=403,
+            detail="Test data seeding only available in debug mode"
+        )
+    
+    result = await seeding_service.seed_test_currency_data(
+        db=db,
+        base_currency=base_currency,
+        clear_existing=clear_existing
+    )
+    
+    if result["status"] == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=result["message"]
+        )
+    
+    return result
+
+
+@router.get(
+    "/admin/test-conversions",
+    summary="Generate Test Currency Conversions", 
+    description="Generate sample currency conversions to test the complete data flow.",
+    dependencies=[Depends(rate_limit)]
+)
+async def generate_test_conversions(
+    db: AsyncSession = Depends(get_db),
+    base_currency: str = Query("USD", description="Base currency for conversions")
+):
+    """Generate sample currency conversions for testing."""
+    
+    try:
+        conversions = await seeding_service.generate_sample_conversions(db, base_currency)
+        
+        return {
+            "base_currency": base_currency,
+            "sample_conversions": conversions,
+            "total_conversions": len(conversions),
+            "message": "Sample conversions generated successfully - data flow working!"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating test conversions: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate test conversions: {str(e)}"
+        )
+
+
+@router.get(
+    "/admin/seeding-status",
+    summary="Get Seeding Status",
+    description="Check current test data seeding status and system readiness.",
+    dependencies=[Depends(rate_limit)]
+)
+async def get_seeding_status(db: AsyncSession = Depends(get_db)):
+    """Get current seeding status and data overview."""
+    
+    status = await seeding_service.get_seeding_status(db)
+    
+    return {
+        "seeding_status": status,
+        "testing_ready": status.get("ready_for_testing", False),
+        "instructions": {
+            "seed_data": "POST /api/v1/admin/seed-test-data to populate test currency data",
+            "test_flow": "GET /api/v1/admin/test-conversions to verify complete data flow",
+            "check_cache": "GET /api/v1/admin/cache/stats to monitor cache performance",
+            "get_rates": "GET /api/v1/rates/latest to fetch all cached rates (Flutter pattern)"
         }
     }
 

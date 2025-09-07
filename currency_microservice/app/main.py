@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.database.connection import init_database, close_database_connection
 from app.services.cache_service import cache_service
 from app.services.scheduler_service import scheduler_service
+from app.services.seeding_service import seeding_service
 from app.api.endpoints import router
 
 
@@ -47,6 +48,10 @@ async def lifespan(app: FastAPI):
         # Start background scheduler
         await scheduler_service.start()
         logger.info("Scheduler service started")
+        
+        # Initialize test data in debug mode
+        if settings.debug:
+            await _initialize_test_data()
         
         logger.info("Application startup completed successfully")
         
@@ -146,6 +151,38 @@ async def root():
         "status": "running",
         "docs": "/docs" if settings.debug else "disabled",
     }
+
+
+async def _initialize_test_data():
+    """Initialize test data for development and testing."""
+    try:
+        from app.database.connection import async_session_factory
+        
+        logger.info("🧪 Debug mode: Initializing test currency data")
+        
+        async with async_session_factory() as db:
+            # Check if we already have today's data
+            status = await seeding_service.get_seeding_status(db)
+            
+            if not status.get("test_data_available", False):
+                logger.info("📊 Seeding test currency data...")
+                
+                result = await seeding_service.seed_test_currency_data(
+                    db=db,
+                    base_currency=settings.base_currency,
+                    clear_existing=False  # Don't clear existing data on startup
+                )
+                
+                if result["status"] == "success":
+                    logger.info(f"✅ Test data initialized: {result['rates_created']} currency rates")
+                else:
+                    logger.warning(f"⚠️ Test data initialization failed: {result.get('message')}")
+            else:
+                logger.info("✅ Test data already available")
+                
+    except Exception as e:
+        logger.error(f"❌ Error initializing test data: {e}")
+        # Don't fail startup if test data initialization fails
 
 
 if __name__ == "__main__":
