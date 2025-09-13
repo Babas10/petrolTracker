@@ -65,6 +65,9 @@ dependencies:
   http: ^1.1.2
   json_annotation: ^4.8.1
   
+  # Local storage for currency rate caching
+  shared_preferences: ^2.2.2
+  
   # Country Selection
   country_picker: ^2.0.25
 
