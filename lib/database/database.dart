@@ -6,6 +6,8 @@ import 'tables/fuel_entries_table.dart';
 import 'tables/maintenance_categories_table.dart';
 import 'tables/maintenance_logs_table.dart';
 import 'tables/maintenance_schedules_table.dart';
+import 'tables/user_settings_table.dart';
+import 'tables/exchange_rates_cache_table.dart';
 
 part 'database.g.dart';
 
@@ -13,15 +15,18 @@ part 'database.g.dart';
 /// 
 /// This class handles all database operations using Drift ORM with SQLite.
 /// It includes tables for vehicles, fuel entries, and maintenance tracking with proper relationships.
-@DriftDatabase(tables: [Vehicles, FuelEntries, MaintenanceCategories, MaintenanceLogs, MaintenanceSchedules])
+@DriftDatabase(tables: [Vehicles, FuelEntries, MaintenanceCategories, MaintenanceLogs, MaintenanceSchedules, UserSettings, ExchangeRatesCache])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
   
   /// Test constructor for in-memory database (native platforms only)
   AppDatabase.memory() : super(openConnection());
 
+  /// Test constructor with custom executor for testing
+  AppDatabase.forTesting(super.executor);
+
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -60,6 +65,36 @@ class AppDatabase extends _$AppDatabase {
           CREATE INDEX IF NOT EXISTS idx_maintenance_schedules_vehicle_id 
           ON maintenance_schedules (vehicle_id);
         ''');
+        
+        // Create indexes for multi-currency support
+        await customStatement('''
+          CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_base_currency 
+          ON exchange_rates_cache (base_currency);
+        ''');
+        
+        await customStatement('''
+          CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_target_currency 
+          ON exchange_rates_cache (target_currency);
+        ''');
+        
+        await customStatement('''
+          CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_last_updated 
+          ON exchange_rates_cache (last_updated);
+        ''');
+        
+        await customStatement('''
+          CREATE INDEX IF NOT EXISTS idx_fuel_entries_currency 
+          ON fuel_entries (currency);
+        ''');
+        
+        // Insert default user settings (single row for single-user app)
+        await customStatement('''
+          INSERT INTO user_settings (primary_currency, created_at, updated_at) 
+          VALUES ('USD', unixepoch(), unixepoch());
+        ''');
+        
+        // Insert default maintenance categories
+        await _insertDefaultMaintenanceCategories();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
@@ -101,6 +136,49 @@ class AppDatabase extends _$AppDatabase {
           // Clear existing basic categories and insert comprehensive ones
           await customStatement('DELETE FROM maintenance_categories WHERE is_system = 1');
           await _insertDefaultMaintenanceCategories();
+        }
+        
+        if (from < 5) {
+          // Migration from v4 to v5: Add multi-currency support
+          
+          // Create new tables
+          await m.createTable(userSettings);
+          await m.createTable(exchangeRatesCache);
+          
+          // Add new columns to fuel_entries table
+          await m.addColumn(fuelEntries, fuelEntries.originalAmount);
+          await m.addColumn(fuelEntries, fuelEntries.currency);
+          
+          // Create indexes for multi-currency support
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_base_currency 
+            ON exchange_rates_cache (base_currency);
+          ''');
+          
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_target_currency 
+            ON exchange_rates_cache (target_currency);
+          ''');
+          
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_exchange_rates_cache_last_updated 
+            ON exchange_rates_cache (last_updated);
+          ''');
+          
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_fuel_entries_currency 
+            ON fuel_entries (currency);
+          ''');
+          
+          // Insert default user settings (single row for single-user app)
+          await customStatement('''
+            INSERT INTO user_settings (primary_currency, created_at, updated_at) 
+            VALUES ('USD', unixepoch(), unixepoch());
+          ''');
+          
+          // Backfill existing fuel entries with default currency 'USD'
+          // The column already has a default, but we update explicitly for clarity
+          await customStatement('UPDATE fuel_entries SET currency = \'USD\' WHERE currency IS NULL');
         }
       },
       beforeOpen: (details) async {
@@ -218,6 +296,8 @@ class AppDatabase extends _$AppDatabase {
     final maintenanceLogCount = await (select(maintenanceLogs).get()).then((list) => list.length);
     final maintenanceCategoryCount = await (select(maintenanceCategories).get()).then((list) => list.length);
     final maintenanceScheduleCount = await (select(maintenanceSchedules).get()).then((list) => list.length);
+    final userSettingCount = await (select(userSettings).get()).then((list) => list.length);
+    final exchangeRatesCacheCount = await (select(exchangeRatesCache).get()).then((list) => list.length);
     
     return {
       'vehicles': vehicleCount,
@@ -225,6 +305,8 @@ class AppDatabase extends _$AppDatabase {
       'maintenance_logs': maintenanceLogCount,
       'maintenance_categories': maintenanceCategoryCount,
       'maintenance_schedules': maintenanceScheduleCount,
+      'user_settings': userSettingCount,
+      'exchange_rates_cache': exchangeRatesCacheCount,
       'database_version': schemaVersion,
     };
   }
@@ -236,7 +318,15 @@ class AppDatabase extends _$AppDatabase {
       await delete(maintenanceLogs).go();
       await delete(fuelEntries).go();
       await delete(vehicles).go();
+      await delete(exchangeRatesCache).go();
+      await delete(userSettings).go();
       // Don't delete categories as they are system-defined
+      
+      // Re-insert default user settings after clearing
+      await customStatement('''
+        INSERT INTO user_settings (primary_currency, created_at, updated_at) 
+        VALUES ('USD', datetime('now'), datetime('now'));
+      ''');
     });
   }
 }

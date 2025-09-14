@@ -14,9 +14,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       expect(entry.id, equals(1));
@@ -38,9 +40,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final entry = FuelEntryModel.fromEntity(entity);
@@ -110,9 +114,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final companion = entry.toUpdateCompanion();
@@ -454,9 +460,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.5,
         price: 58.73,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       expect(entry.formattedConsumption, equals('8.5 L/100km'));
@@ -487,9 +495,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final copied = original.copyWith(
@@ -512,9 +522,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final entry2 = FuelEntryModel(
@@ -524,9 +536,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final entry3 = entry1.copyWith(id: 2);
@@ -543,9 +557,11 @@ void main() {
         currentKm: 50200.0,
         fuelAmount: 40.0,
         price: 58.0,
+        currency: 'USD',
         country: 'Canada',
         pricePerLiter: 1.45,
         consumption: 8.5,
+        isFullTank: true,
       );
 
       final result = entry.toString();
