@@ -25,12 +25,20 @@ class FuelEntries extends Table {
   /// Must be a positive number
   RealColumn get fuelAmount => real()();
 
-  /// Total price paid for the fuel purchase
+  /// Total price paid for the fuel purchase (converted to user's primary currency)
   /// Must be a positive number
   RealColumn get price => real()();
 
+  /// Original amount paid in the local currency at time of purchase
+  /// If null, the price field contains the original amount (no conversion needed)
+  RealColumn get originalAmount => real().nullable()();
+
+  /// Currency code for the transaction (3-character ISO 4217 code)
+  /// E.g., 'USD', 'EUR', 'CHF'. Defaults to 'USD' for backward compatibility.
+  TextColumn get currency => text().withLength(min: 3, max: 3).withDefault(const Constant('USD'))();
+
   /// Country where the fuel was purchased
-  /// Used for price comparison analysis
+  /// Used for price comparison analysis and smart currency filtering
   TextColumn get country => text().withLength(min: 2, max: 50)();
 
   /// Price per liter (calculated or manually entered)
@@ -54,5 +62,9 @@ class FuelEntries extends Table {
     // Ensure the combination of vehicle and date is unique
     // (prevents duplicate entries for the same vehicle on the same date)
     'UNIQUE(vehicle_id, date)',
+    // Ensure currency code is uppercase (standard for currency codes)
+    'CHECK(currency = UPPER(currency))',
+    // Ensure original amount is positive if provided
+    'CHECK(original_amount IS NULL OR original_amount > 0)',
   ];
 }

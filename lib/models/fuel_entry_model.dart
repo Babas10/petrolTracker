@@ -10,6 +10,8 @@ class FuelEntryModel {
   final double currentKm;
   final double fuelAmount;
   final double price;
+  final double? originalAmount;
+  final String currency;
   final String country;
   final double pricePerLiter;
   final double? consumption;
@@ -22,6 +24,8 @@ class FuelEntryModel {
     required this.currentKm,
     required this.fuelAmount,
     required this.price,
+    this.originalAmount,
+    this.currency = 'USD',
     required this.country,
     required this.pricePerLiter,
     this.consumption,
@@ -37,6 +41,8 @@ class FuelEntryModel {
       currentKm: entity.currentKm,
       fuelAmount: entity.fuelAmount,
       price: entity.price,
+      originalAmount: entity.originalAmount,
+      currency: entity.currency,
       country: entity.country,
       pricePerLiter: entity.pricePerLiter,
       consumption: entity.consumption,
@@ -51,6 +57,8 @@ class FuelEntryModel {
     required double currentKm,
     required double fuelAmount,
     required double price,
+    double? originalAmount,
+    String currency = 'USD',
     required String country,
     required double pricePerLiter,
     double? consumption,
@@ -62,6 +70,8 @@ class FuelEntryModel {
       currentKm: currentKm,
       fuelAmount: fuelAmount,
       price: price,
+      originalAmount: originalAmount,
+      currency: currency,
       country: country,
       pricePerLiter: pricePerLiter,
       consumption: consumption,
@@ -77,6 +87,8 @@ class FuelEntryModel {
       currentKm: Value(currentKm),
       fuelAmount: Value(fuelAmount),
       price: Value(price),
+      originalAmount: Value(originalAmount),
+      currency: Value(currency),
       country: Value(country),
       pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
@@ -93,6 +105,8 @@ class FuelEntryModel {
       currentKm: Value(currentKm),
       fuelAmount: Value(fuelAmount),
       price: Value(price),
+      originalAmount: Value(originalAmount),
+      currency: Value(currency),
       country: Value(country),
       pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
@@ -172,6 +186,24 @@ class FuelEntryModel {
       errors.add('Price per liter seems unusually high (>${pricePerLiter.toStringAsFixed(2)}). Please verify.');
     }
 
+    // Currency validation
+    if (currency.trim().isEmpty) {
+      errors.add('Currency is required');
+    } else if (currency.trim().length != 3) {
+      errors.add('Currency must be a 3-character currency code (e.g., USD, EUR)');
+    } else if (currency != currency.toUpperCase()) {
+      errors.add('Currency code must be uppercase (e.g., USD, not usd)');
+    }
+
+    // Original amount validation (if provided)
+    if (originalAmount != null) {
+      if (originalAmount! <= 0) {
+        errors.add('Original amount must be greater than 0');
+      }
+      // If both price and original amount are provided, they should be consistent
+      // unless this is a converted amount scenario
+    }
+
     // Country validation
     if (country.trim().isEmpty) {
       errors.add('Country is required');
@@ -240,6 +272,8 @@ class FuelEntryModel {
     double? currentKm,
     double? fuelAmount,
     double? price,
+    double? originalAmount,
+    String? currency,
     String? country,
     double? pricePerLiter,
     double? consumption,
@@ -252,6 +286,8 @@ class FuelEntryModel {
       currentKm: currentKm ?? this.currentKm,
       fuelAmount: fuelAmount ?? this.fuelAmount,
       price: price ?? this.price,
+      originalAmount: originalAmount ?? this.originalAmount,
+      currency: currency ?? this.currency,
       country: country ?? this.country,
       pricePerLiter: pricePerLiter ?? this.pricePerLiter,
       consumption: consumption ?? this.consumption,
@@ -269,6 +305,8 @@ class FuelEntryModel {
         other.currentKm == currentKm &&
         other.fuelAmount == fuelAmount &&
         other.price == price &&
+        other.originalAmount == originalAmount &&
+        other.currency == currency &&
         other.country == country &&
         other.pricePerLiter == pricePerLiter &&
         other.consumption == consumption &&
@@ -284,6 +322,8 @@ class FuelEntryModel {
       currentKm,
       fuelAmount,
       price,
+      originalAmount,
+      currency,
       country,
       pricePerLiter,
       consumption,
@@ -293,6 +333,25 @@ class FuelEntryModel {
 
   @override
   String toString() {
-    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption, isFullTank: $isFullTank)';
+    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, originalAmount: $originalAmount, currency: $currency, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption, isFullTank: $isFullTank)';
+  }
+
+  /// Check if this entry has been converted from a different currency
+  bool get isConverted => originalAmount != null && originalAmount != price;
+
+  /// Get the formatted original price with currency
+  String get formattedOriginalPrice {
+    if (originalAmount != null) {
+      return '${originalAmount!.toStringAsFixed(2)} $currency';
+    }
+    return '${price.toStringAsFixed(2)} $currency';
+  }
+
+  /// Get the formatted converted price (if different from original)
+  String get formattedConvertedPrice {
+    if (isConverted) {
+      return '\$${price.toStringAsFixed(2)}'; // Assuming user's primary currency display
+    }
+    return formattedOriginalPrice;
   }
 }
