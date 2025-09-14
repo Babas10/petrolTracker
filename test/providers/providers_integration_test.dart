@@ -37,10 +37,10 @@ void main() {
     });
 
     test('Vehicle providers state management works', () async {
-      final notifier = container.read(vehiclesNotifierProvider.notifier);
+      final notifier = container.read(vehiclesProvider.notifier);
       
       // Test initial empty state
-      final initialState = await container.read(vehiclesNotifierProvider.future);
+      final initialState = await container.read(vehiclesProvider.future);
       expect(initialState.vehicles, isEmpty);
       expect(initialState.isLoading, isFalse);
       expect(initialState.error, isNull);
@@ -52,7 +52,7 @@ void main() {
       );
 
       await notifier.addVehicle(vehicle);
-      final stateAfterAdd = await container.read(vehiclesNotifierProvider.future);
+      final stateAfterAdd = await container.read(vehiclesProvider.future);
 
       expect(stateAfterAdd.vehicles, hasLength(1));
       expect(stateAfterAdd.vehicles.first.name, equals('Test Car'));
@@ -61,20 +61,20 @@ void main() {
 
     test('Fuel entry providers state management works', () async {
       // First add a vehicle
-      final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+      final vehicleNotifier = container.read(vehiclesProvider.notifier);
       final vehicle = VehicleModel.create(
         name: 'Test Car for Fuel',
         initialKm: 50000.0,
       );
       await vehicleNotifier.addVehicle(vehicle);
-      final vehicleState = await container.read(vehiclesNotifierProvider.future);
+      final vehicleState = await container.read(vehiclesProvider.future);
       final vehicleId = vehicleState.vehicles.first.id!;
 
       // Test fuel entry operations
-      final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = container.read(fuelEntriesProvider.notifier);
       
       // Test initial empty state
-      final initialState = await container.read(fuelEntriesNotifierProvider.future);
+      final initialState = await container.read(fuelEntriesProvider.future);
       expect(initialState.entries, isEmpty);
 
       // Test adding a fuel entry
@@ -89,7 +89,7 @@ void main() {
       );
 
       await fuelNotifier.addFuelEntry(entry);
-      final stateAfterAdd = await container.read(fuelEntriesNotifierProvider.future);
+      final stateAfterAdd = await container.read(fuelEntriesProvider.future);
 
       expect(stateAfterAdd.entries, hasLength(1));
       expect(stateAfterAdd.entries.first.vehicleId, equals(vehicleId));
@@ -98,15 +98,15 @@ void main() {
 
     test('Chart providers work with data', () async {
       // Setup data
-      final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-      final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+      final vehicleNotifier = container.read(vehiclesProvider.notifier);
+      final fuelNotifier = container.read(fuelEntriesProvider.notifier);
       
       final vehicle = VehicleModel.create(
         name: 'Chart Test Car',
         initialKm: 50000.0,
       );
       await vehicleNotifier.addVehicle(vehicle);
-      final vehicleState = await container.read(vehiclesNotifierProvider.future);
+      final vehicleState = await container.read(vehiclesProvider.future);
       final vehicleId = vehicleState.vehicles.first.id!;
 
       // Add fuel entries with consumption data
@@ -152,7 +152,7 @@ void main() {
     });
 
     test('Provider error handling works', () async {
-      final notifier = container.read(vehiclesNotifierProvider.notifier);
+      final notifier = container.read(vehiclesProvider.notifier);
       
       // Test invalid vehicle (should pass through as the validation is in repository)
       final invalidVehicle = VehicleModel.create(
@@ -162,7 +162,7 @@ void main() {
 
       try {
         await notifier.addVehicle(invalidVehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         // Should have error in state
         expect(state.error, isNotNull);
       } catch (e) {

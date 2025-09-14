@@ -21,7 +21,7 @@ class WebAutoPopulation {
 
     try {
       // Check if data already exists
-      final vehicleState = await ref.read(vehiclesNotifierProvider.future);
+      final vehicleState = await ref.read(vehiclesProvider.future);
       if (vehicleState.vehicles.isNotEmpty) {
         // Check if Tesla Model 3 already exists
         final hasTestla = vehicleState.vehicles.any((v) => v.name.contains('Tesla Model 3'));
@@ -54,8 +54,8 @@ class WebAutoPopulation {
       initialKm: 45200.0,
     );
 
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    final createdVehicle = await ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesProvider.notifier);
     
     // Generate 25 entries over 14 months with 6.5-7.5 L/100km consumption
     await _generateFuelEntries(
@@ -81,8 +81,8 @@ class WebAutoPopulation {
       initialKm: 98510.0,
     );
 
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    final createdVehicle = await ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesProvider.notifier);
     
     // Generate 30 entries over 18 months with 11-14 L/100km consumption
     await _generateFuelEntries(
@@ -108,8 +108,8 @@ class WebAutoPopulation {
       initialKm: 75000.0,
     );
 
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    final createdVehicle = await ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesProvider.notifier);
     
     // Create entries that demonstrate consumption periods clearly
     final baseDate = DateTime.now().subtract(const Duration(days: 50));
@@ -188,8 +188,8 @@ class WebAutoPopulation {
       initialKm: 18750.0,
     );
 
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    final createdVehicle = await ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesProvider.notifier);
     
     // Generate 28 entries over 16 months with 4.2-5.8 L/100km consumption
     await _generateFuelEntries(
@@ -217,8 +217,8 @@ class WebAutoPopulation {
       initialKm: 25680.0,
     );
 
-    final createdVehicle = await ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
-    final fuelNotifier = ref.read(fuelEntriesNotifierProvider.notifier);
+    final createdVehicle = await ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
+    final fuelNotifier = ref.read(fuelEntriesProvider.notifier);
     
     // Generate entries spanning from October 2024 to March 2025 for year transition testing
     await _generateYearSpanningEntries(

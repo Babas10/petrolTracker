@@ -102,7 +102,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildVehicleSelector() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    final vehiclesState = ref.watch(vehiclesProvider);
     
     return vehiclesState.when(
       data: (vehicleState) {
@@ -424,7 +424,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
   }
 
   Widget _buildMultiVehicleChart() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    final vehiclesState = ref.watch(vehiclesProvider);
     
     return vehiclesState.when(
       data: (vehicleState) {
@@ -908,7 +908,7 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
 
   void _refreshData() {
-    ref.invalidate(vehiclesNotifierProvider);
+    ref.invalidate(vehiclesProvider);
     ref.invalidate(enhancedConsumptionChartDataProvider);
   }
 

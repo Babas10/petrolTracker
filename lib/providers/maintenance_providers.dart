@@ -204,23 +204,15 @@ final maintenanceStatisticsProvider = FutureProvider.family<Map<String, dynamic>
 });
 
 // Notifier for state management of maintenance categories (ephemeral)
-class MaintenanceCategoriesNotifier extends StateNotifier<AsyncValue<List<MaintenanceCategoryModel>>> {
-  final Ref _ref;
-
-  MaintenanceCategoriesNotifier(this._ref) : super(const AsyncValue.loading()) {
-    loadCategories();
+class MaintenanceCategoriesNotifier extends AsyncNotifier<List<MaintenanceCategoryModel>> {
+  @override
+  Future<List<MaintenanceCategoryModel>> build() async {
+    _initializeDefaultCategories();
+    final categories = _ephemeralCategoryStorage.values.toList();
+    categories.sort((a, b) => a.name.compareTo(b.name));
+    return categories;
   }
 
-  Future<void> loadCategories() async {
-    try {
-      _initializeDefaultCategories();
-      final categories = _ephemeralCategoryStorage.values.toList();
-      categories.sort((a, b) => a.name.compareTo(b.name));
-      state = AsyncValue.data(categories);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
 
   Future<MaintenanceCategoryModel> addCategory(MaintenanceCategoryModel category) async {
     final id = _getNextCategoryId();
@@ -233,39 +225,30 @@ class MaintenanceCategoriesNotifier extends StateNotifier<AsyncValue<List<Mainte
     _ephemeralCategoryStorage[id] = newCategory;
     
     // Refresh the state
-    await loadCategories();
+    ref.invalidateSelf();
     return newCategory;
   }
 
   Future<void> updateCategory(MaintenanceCategoryModel category) async {
     if (category.id != null) {
       _ephemeralCategoryStorage[category.id!] = category;
-      await loadCategories();
+      ref.invalidateSelf();
     }
   }
 
   Future<void> deleteCategory(int categoryId) async {
     _ephemeralCategoryStorage.remove(categoryId);
-    await loadCategories();
+    ref.invalidateSelf();
   }
 }
 
 // Notifier for state management of maintenance logs (ephemeral)
-class MaintenanceLogsNotifier extends StateNotifier<AsyncValue<List<MaintenanceLogModel>>> {
-  final Ref _ref;
-
-  MaintenanceLogsNotifier(this._ref) : super(const AsyncValue.loading()) {
-    loadMaintenanceLogs();
-  }
-
-  Future<void> loadMaintenanceLogs() async {
-    try {
-      final logs = _ephemeralMaintenanceLogStorage.values.toList();
-      logs.sort((a, b) => b.serviceDate.compareTo(a.serviceDate));
-      state = AsyncValue.data(logs);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
+class MaintenanceLogsNotifier extends AsyncNotifier<List<MaintenanceLogModel>> {
+  @override
+  Future<List<MaintenanceLogModel>> build() async {
+    final logs = _ephemeralMaintenanceLogStorage.values.toList();
+    logs.sort((a, b) => b.serviceDate.compareTo(a.serviceDate));
+    return logs;
   }
 
   Future<MaintenanceLogModel> addMaintenanceLog(MaintenanceLogModel log) async {
@@ -280,16 +263,16 @@ class MaintenanceLogsNotifier extends StateNotifier<AsyncValue<List<MaintenanceL
     _ephemeralMaintenanceLogStorage[id] = newLog;
     
     // Refresh the state
-    await loadMaintenanceLogs();
+    ref.invalidateSelf();
     
     // Invalidate related providers
-    _ref.invalidate(maintenanceLogsProvider);
-    _ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
-    _ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
-    _ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
-    _ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
-    _ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
-    _ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
+    ref.invalidate(maintenanceLogsProvider);
+    ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
+    ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
+    ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
+    ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
+    ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
+    ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
     
     return newLog;
   }
@@ -300,16 +283,16 @@ class MaintenanceLogsNotifier extends StateNotifier<AsyncValue<List<MaintenanceL
       _ephemeralMaintenanceLogStorage[log.id!] = updatedLog;
       
       // Refresh the state
-      await loadMaintenanceLogs();
+      ref.invalidateSelf();
       
       // Invalidate related providers
-      _ref.invalidate(maintenanceLogsProvider);
-      _ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
-      _ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
-      _ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
-      _ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
-      _ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
-      _ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
+      ref.invalidate(maintenanceLogsProvider);
+      ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
+      ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
+      ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
+      ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
+      ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
+      ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
     }
   }
 
@@ -318,26 +301,26 @@ class MaintenanceLogsNotifier extends StateNotifier<AsyncValue<List<MaintenanceL
       _ephemeralMaintenanceLogStorage.remove(log.id!);
       
       // Refresh the state
-      await loadMaintenanceLogs();
+      ref.invalidateSelf();
       
       // Invalidate related providers
-      _ref.invalidate(maintenanceLogsProvider);
-      _ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
-      _ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
-      _ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
-      _ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
-      _ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
-      _ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
+      ref.invalidate(maintenanceLogsProvider);
+      ref.invalidate(maintenanceLogsByVehicleProvider(log.vehicleId));
+      ref.invalidate(maintenanceLogsByCategoryProvider(log.categoryId));
+      ref.invalidate(recentMaintenanceLogsProvider((vehicleId: log.vehicleId, limit: 10)));
+      ref.invalidate(totalMaintenanceCostsProvider(log.vehicleId));
+      ref.invalidate(maintenanceCostsByCategoryProvider(log.vehicleId));
+      ref.invalidate(maintenanceStatisticsProvider(log.vehicleId));
     }
   }
 }
 
 /// Provider for maintenance categories notifier (ephemeral)
-final maintenanceCategoriesNotifierProvider = StateNotifierProvider<MaintenanceCategoriesNotifier, AsyncValue<List<MaintenanceCategoryModel>>>((ref) {
-  return MaintenanceCategoriesNotifier(ref);
+final maintenanceCategoriesNotifierProvider = AsyncNotifierProvider<MaintenanceCategoriesNotifier, List<MaintenanceCategoryModel>>(() {
+  return MaintenanceCategoriesNotifier();
 });
 
 /// Provider for maintenance logs notifier (ephemeral)
-final maintenanceLogsNotifierProvider = StateNotifierProvider<MaintenanceLogsNotifier, AsyncValue<List<MaintenanceLogModel>>>((ref) {
-  return MaintenanceLogsNotifier(ref);
+final maintenanceLogsNotifierProvider = AsyncNotifierProvider<MaintenanceLogsNotifier, List<MaintenanceLogModel>>(() {
+  return MaintenanceLogsNotifier();
 });

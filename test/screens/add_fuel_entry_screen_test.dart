@@ -63,8 +63,8 @@ void main() {
     Widget createTestWidget({List<Override> overrides = const []}) {
       return ProviderScope(
         overrides: [
-          vehiclesNotifierProvider.overrideWith(() => MockVehiclesNotifier()),
-          fuelEntriesNotifierProvider.overrideWith(() => MockFuelEntriesNotifier()),
+          vehiclesProvider.overrideWith(() => MockVehiclesNotifier()),
+          fuelEntriesProvider.overrideWith(() => MockFuelEntriesNotifier()),
           latestFuelEntryForVehicleProvider.overrideWith((ref, vehicleId) async {
             return FuelEntryModel.create(
               vehicleId: vehicleId,
@@ -393,7 +393,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifier()
                 ..state = const AsyncValue.data(VehicleState(vehicles: []));
             }),
@@ -411,7 +411,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifier()
                 ..state = const AsyncValue.error('Test error', StackTrace.empty);
             }),
@@ -431,7 +431,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            fuelEntriesNotifierProvider.overrideWith(() => slowMockNotifier),
+            fuelEntriesProvider.overrideWith(() => slowMockNotifier),
           ],
         ),
       );

@@ -77,7 +77,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
                 });
               },
               onRefreshPressed: () {
-                ref.refresh(fuelEntriesNotifierProvider);
+                ref.refresh(fuelEntriesProvider);
               },
               showSearch: _showSearch,
               sortBy: _sortBy,
@@ -250,7 +250,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
       IconButton(
         icon: const Icon(Icons.refresh),
         onPressed: () {
-          ref.refresh(fuelEntriesNotifierProvider);
+          ref.refresh(fuelEntriesProvider);
         },
       ),
     ];
@@ -596,7 +596,7 @@ class _EntriesList extends ConsumerWidget {
   }
 
   Widget _buildAllEntries(BuildContext context, WidgetRef ref) {
-    final entriesAsync = ref.watch(fuelEntriesNotifierProvider);
+    final entriesAsync = ref.watch(fuelEntriesProvider);
 
     return entriesAsync.when(
       data: (entryState) {
@@ -627,7 +627,7 @@ class _EntriesList extends ConsumerWidget {
 
         return RefreshIndicator(
           onRefresh: () async {
-            await ref.refresh(fuelEntriesNotifierProvider.future);
+            await ref.refresh(fuelEntriesProvider.future);
           },
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -805,7 +805,7 @@ class _EntriesList extends ConsumerWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                ref.refresh(fuelEntriesNotifierProvider);
+                ref.refresh(fuelEntriesProvider);
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
@@ -1213,7 +1213,7 @@ class _FuelEntryCard extends ConsumerWidget {
     final confirmed = await _showDeleteConfirmation(context);
     if (confirmed == true && entry.id != null) {
       try {
-        await ref.read(fuelEntriesNotifierProvider.notifier).deleteFuelEntry(entry.id!);
+        await ref.read(fuelEntriesProvider.notifier).deleteFuelEntry(entry.id!);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

@@ -79,7 +79,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
   /// Add a new fuel entry
   Future<FuelEntryModel> addFuelEntry(FuelEntryModel entry) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
+      state.value?.copyWith(isLoading: true) ?? 
       const FuelEntryState(isLoading: true)
     );
 
@@ -89,7 +89,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       final newEntry = entry.copyWith(id: id);
       _ephemeralFuelEntryStorage[id] = newEntry;
       
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       final updatedEntries = [newEntry, ...currentState.entries];
       
       state = AsyncValue.data(
@@ -103,7 +103,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       return newEntry;
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       state = AsyncValue.data(
         currentState.copyWith(
           isLoading: false,
@@ -121,7 +121,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
     }
 
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
+      state.value?.copyWith(isLoading: true) ?? 
       const FuelEntryState(isLoading: true)
     );
 
@@ -129,7 +129,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       // Update in ephemeral storage
       _ephemeralFuelEntryStorage[entry.id!] = entry;
       
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       final updatedEntries = currentState.entries
           .map((e) => e.id == entry.id ? entry : e)
           .toList();
@@ -143,7 +143,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       state = AsyncValue.data(
         currentState.copyWith(
           isLoading: false,
@@ -156,7 +156,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
   /// Delete a fuel entry
   Future<void> deleteFuelEntry(int entryId) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
+      state.value?.copyWith(isLoading: true) ?? 
       const FuelEntryState(isLoading: true)
     );
 
@@ -164,7 +164,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       // Remove from ephemeral storage
       _ephemeralFuelEntryStorage.remove(entryId);
       
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       final updatedEntries = currentState.entries
           .where((e) => e.id != entryId)
           .toList();
@@ -178,7 +178,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       state = AsyncValue.data(
         currentState.copyWith(
           isLoading: false,
@@ -190,7 +190,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
 
   /// Clear any error state
   void clearError() {
-    final currentState = state.valueOrNull;
+    final currentState = state.value;
     if (currentState != null && currentState.error != null) {
       state = AsyncValue.data(currentState.copyWith(error: null));
     }
@@ -199,7 +199,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
   /// Clear all fuel entries (for testing purposes)
   Future<void> clearAllEntries() async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(isLoading: true) ?? 
+      state.value?.copyWith(isLoading: true) ?? 
       const FuelEntryState(isLoading: true)
     );
 
@@ -216,7 +216,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const FuelEntryState();
+      final currentState = state.value ?? const FuelEntryState();
       state = AsyncValue.data(
         currentState.copyWith(
           isLoading: false,
@@ -235,7 +235,7 @@ class FuelEntriesNotifier extends _$FuelEntriesNotifier {
 /// Provider for getting fuel entries by vehicle
 @riverpod
 Future<List<FuelEntryModel>> fuelEntriesByVehicle(
-  FuelEntriesByVehicleRef ref,
+  Ref ref,
   int vehicleId,
 ) async {
   final allEntries = _ephemeralFuelEntryStorage.values.toList();
@@ -248,7 +248,7 @@ Future<List<FuelEntryModel>> fuelEntriesByVehicle(
 /// Provider for getting fuel entries by date range
 @riverpod
 Future<List<FuelEntryModel>> fuelEntriesByDateRange(
-  FuelEntriesByDateRangeRef ref,
+  Ref ref,
   DateTime startDate,
   DateTime endDate,
 ) async {
@@ -265,7 +265,7 @@ Future<List<FuelEntryModel>> fuelEntriesByDateRange(
 /// Provider for getting fuel entries by vehicle and date range
 @riverpod
 Future<List<FuelEntryModel>> fuelEntriesByVehicleAndDateRange(
-  FuelEntriesByVehicleAndDateRangeRef ref,
+  Ref ref,
   int vehicleId,
   DateTime startDate,
   DateTime endDate,
@@ -284,7 +284,7 @@ Future<List<FuelEntryModel>> fuelEntriesByVehicleAndDateRange(
 /// Provider for getting the latest fuel entry for a vehicle
 @riverpod
 Future<FuelEntryModel?> latestFuelEntryForVehicle(
-  LatestFuelEntryForVehicleRef ref,
+  Ref ref,
   int vehicleId,
 ) async {
   final allEntries = _ephemeralFuelEntryStorage.values.toList();
@@ -298,20 +298,20 @@ Future<FuelEntryModel?> latestFuelEntryForVehicle(
 
 /// Provider for getting a specific fuel entry by ID
 @riverpod
-Future<FuelEntryModel?> fuelEntry(FuelEntryRef ref, int entryId) async {
+Future<FuelEntryModel?> fuelEntry(Ref ref, int entryId) async {
   return _ephemeralFuelEntryStorage[entryId];
 }
 
 /// Provider for getting fuel entry count
 @riverpod
-Future<int> fuelEntryCount(FuelEntryCountRef ref) async {
+Future<int> fuelEntryCount(Ref ref) async {
   return _ephemeralFuelEntryStorage.length;
 }
 
 /// Provider for getting fuel entry count for a specific vehicle
 @riverpod
 Future<int> fuelEntryCountForVehicle(
-  FuelEntryCountForVehicleRef ref,
+  Ref ref,
   int vehicleId,
 ) async {
   final allEntries = _ephemeralFuelEntryStorage.values;
@@ -321,7 +321,7 @@ Future<int> fuelEntryCountForVehicle(
 /// Provider for getting fuel entries grouped by country
 @riverpod
 Future<Map<String, List<FuelEntryModel>>> fuelEntriesGroupedByCountry(
-  FuelEntriesGroupedByCountryRef ref,
+  Ref ref,
 ) async {
   final allEntries = _ephemeralFuelEntryStorage.values.toList();
   final Map<String, List<FuelEntryModel>> groupedEntries = {};
@@ -345,7 +345,7 @@ Future<Map<String, List<FuelEntryModel>>> fuelEntriesGroupedByCountry(
 /// Provider for getting average consumption for a vehicle
 @riverpod
 Future<double?> averageConsumptionForVehicle(
-  AverageConsumptionForVehicleRef ref,
+  Ref ref,
   int vehicleId,
 ) async {
   final allEntries = _ephemeralFuelEntryStorage.values.toList();

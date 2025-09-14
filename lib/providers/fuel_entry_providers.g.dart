@@ -6,1111 +6,759 @@ part of 'fuel_entry_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fuelEntriesByVehicleHash() =>
-    r'184f291dca5c0a1b28fa0d340e521e2e17a1b023';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Notifier for managing fuel entries state
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(FuelEntriesNotifier)
+const fuelEntriesProvider = FuelEntriesNotifierProvider._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// Provider for getting fuel entries by vehicle
-///
-/// Copied from [fuelEntriesByVehicle].
-@ProviderFor(fuelEntriesByVehicle)
-const fuelEntriesByVehicleProvider = FuelEntriesByVehicleFamily();
-
-/// Provider for getting fuel entries by vehicle
-///
-/// Copied from [fuelEntriesByVehicle].
-class FuelEntriesByVehicleFamily
-    extends Family<AsyncValue<List<FuelEntryModel>>> {
-  /// Provider for getting fuel entries by vehicle
-  ///
-  /// Copied from [fuelEntriesByVehicle].
-  const FuelEntriesByVehicleFamily();
-
-  /// Provider for getting fuel entries by vehicle
-  ///
-  /// Copied from [fuelEntriesByVehicle].
-  FuelEntriesByVehicleProvider call(int vehicleId) {
-    return FuelEntriesByVehicleProvider(vehicleId);
-  }
-
-  @override
-  FuelEntriesByVehicleProvider getProviderOverride(
-    covariant FuelEntriesByVehicleProvider provider,
-  ) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fuelEntriesByVehicleProvider';
-}
-
-/// Provider for getting fuel entries by vehicle
-///
-/// Copied from [fuelEntriesByVehicle].
-class FuelEntriesByVehicleProvider
-    extends AutoDisposeFutureProvider<List<FuelEntryModel>> {
-  /// Provider for getting fuel entries by vehicle
-  ///
-  /// Copied from [fuelEntriesByVehicle].
-  FuelEntriesByVehicleProvider(int vehicleId)
-    : this._internal(
-        (ref) =>
-            fuelEntriesByVehicle(ref as FuelEntriesByVehicleRef, vehicleId),
-        from: fuelEntriesByVehicleProvider,
-        name: r'fuelEntriesByVehicleProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$fuelEntriesByVehicleHash,
-        dependencies: FuelEntriesByVehicleFamily._dependencies,
-        allTransitiveDependencies:
-            FuelEntriesByVehicleFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
+/// Notifier for managing fuel entries state
+final class FuelEntriesNotifierProvider
+    extends $AsyncNotifierProvider<FuelEntriesNotifier, FuelEntryState> {
+  /// Notifier for managing fuel entries state
+  const FuelEntriesNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fuelEntriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
       );
 
-  FuelEntriesByVehicleProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntriesNotifierHash();
 
-  final int vehicleId;
+  @$internal
+  @override
+  FuelEntriesNotifier create() => FuelEntriesNotifier();
+}
+
+String _$fuelEntriesNotifierHash() =>
+    r'184d95053cdbf2051480f8015e6b576a2ca23ef0';
+
+/// Notifier for managing fuel entries state
+
+abstract class _$FuelEntriesNotifier extends $AsyncNotifier<FuelEntryState> {
+  FutureOr<FuelEntryState> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<FuelEntryState>, FuelEntryState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<FuelEntryState>, FuelEntryState>,
+              AsyncValue<FuelEntryState>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Provider for getting fuel entries by vehicle
+
+@ProviderFor(fuelEntriesByVehicle)
+const fuelEntriesByVehicleProvider = FuelEntriesByVehicleFamily._();
+
+/// Provider for getting fuel entries by vehicle
+
+final class FuelEntriesByVehicleProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FuelEntryModel>>,
+          List<FuelEntryModel>,
+          FutureOr<List<FuelEntryModel>>
+        >
+    with
+        $FutureModifier<List<FuelEntryModel>>,
+        $FutureProvider<List<FuelEntryModel>> {
+  /// Provider for getting fuel entries by vehicle
+  const FuelEntriesByVehicleProvider._({
+    required FuelEntriesByVehicleFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'fuelEntriesByVehicleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  Override overrideWith(
-    FutureOr<List<FuelEntryModel>> Function(FuelEntriesByVehicleRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FuelEntriesByVehicleProvider._internal(
-        (ref) => create(ref as FuelEntriesByVehicleRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
+  String debugGetCreateSourceHash() => _$fuelEntriesByVehicleHash();
+
+  @override
+  String toString() {
+    return r'fuelEntriesByVehicleProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<FuelEntryModel>> createElement() {
-    return _FuelEntriesByVehicleProviderElement(this);
+  $FutureProviderElement<List<FuelEntryModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<FuelEntryModel>> create(Ref ref) {
+    final argument = this.argument as int;
+    return fuelEntriesByVehicle(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FuelEntriesByVehicleProvider &&
-        other.vehicleId == vehicleId;
+    return other is FuelEntriesByVehicleProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FuelEntriesByVehicleRef
-    on AutoDisposeFutureProviderRef<List<FuelEntryModel>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
+String _$fuelEntriesByVehicleHash() =>
+    r'5fd2b79b3161a90d6c817393961cce114ff7dc63';
 
-class _FuelEntriesByVehicleProviderElement
-    extends AutoDisposeFutureProviderElement<List<FuelEntryModel>>
-    with FuelEntriesByVehicleRef {
-  _FuelEntriesByVehicleProviderElement(super.provider);
+/// Provider for getting fuel entries by vehicle
 
-  @override
-  int get vehicleId => (origin as FuelEntriesByVehicleProvider).vehicleId;
-}
-
-String _$fuelEntriesByDateRangeHash() =>
-    r'6b64b2bd210dacf3214445241abb543e3cb29122';
-
-/// Provider for getting fuel entries by date range
-///
-/// Copied from [fuelEntriesByDateRange].
-@ProviderFor(fuelEntriesByDateRange)
-const fuelEntriesByDateRangeProvider = FuelEntriesByDateRangeFamily();
-
-/// Provider for getting fuel entries by date range
-///
-/// Copied from [fuelEntriesByDateRange].
-class FuelEntriesByDateRangeFamily
-    extends Family<AsyncValue<List<FuelEntryModel>>> {
-  /// Provider for getting fuel entries by date range
-  ///
-  /// Copied from [fuelEntriesByDateRange].
-  const FuelEntriesByDateRangeFamily();
-
-  /// Provider for getting fuel entries by date range
-  ///
-  /// Copied from [fuelEntriesByDateRange].
-  FuelEntriesByDateRangeProvider call(DateTime startDate, DateTime endDate) {
-    return FuelEntriesByDateRangeProvider(startDate, endDate);
-  }
-
-  @override
-  FuelEntriesByDateRangeProvider getProviderOverride(
-    covariant FuelEntriesByDateRangeProvider provider,
-  ) {
-    return call(provider.startDate, provider.endDate);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fuelEntriesByDateRangeProvider';
-}
-
-/// Provider for getting fuel entries by date range
-///
-/// Copied from [fuelEntriesByDateRange].
-class FuelEntriesByDateRangeProvider
-    extends AutoDisposeFutureProvider<List<FuelEntryModel>> {
-  /// Provider for getting fuel entries by date range
-  ///
-  /// Copied from [fuelEntriesByDateRange].
-  FuelEntriesByDateRangeProvider(DateTime startDate, DateTime endDate)
-    : this._internal(
-        (ref) => fuelEntriesByDateRange(
-          ref as FuelEntriesByDateRangeRef,
-          startDate,
-          endDate,
-        ),
-        from: fuelEntriesByDateRangeProvider,
-        name: r'fuelEntriesByDateRangeProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$fuelEntriesByDateRangeHash,
-        dependencies: FuelEntriesByDateRangeFamily._dependencies,
-        allTransitiveDependencies:
-            FuelEntriesByDateRangeFamily._allTransitiveDependencies,
-        startDate: startDate,
-        endDate: endDate,
+final class FuelEntriesByVehicleFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<FuelEntryModel>>, int> {
+  const FuelEntriesByVehicleFamily._()
+    : super(
+        retry: null,
+        name: r'fuelEntriesByVehicleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FuelEntriesByDateRangeProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
+  /// Provider for getting fuel entries by vehicle
 
-  final DateTime startDate;
-  final DateTime endDate;
+  FuelEntriesByVehicleProvider call(int vehicleId) =>
+      FuelEntriesByVehicleProvider._(argument: vehicleId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<List<FuelEntryModel>> Function(FuelEntriesByDateRangeRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FuelEntriesByDateRangeProvider._internal(
-        (ref) => create(ref as FuelEntriesByDateRangeRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() => r'fuelEntriesByVehicleProvider';
+}
+
+/// Provider for getting fuel entries by date range
+
+@ProviderFor(fuelEntriesByDateRange)
+const fuelEntriesByDateRangeProvider = FuelEntriesByDateRangeFamily._();
+
+/// Provider for getting fuel entries by date range
+
+final class FuelEntriesByDateRangeProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FuelEntryModel>>,
+          List<FuelEntryModel>,
+          FutureOr<List<FuelEntryModel>>
+        >
+    with
+        $FutureModifier<List<FuelEntryModel>>,
+        $FutureProvider<List<FuelEntryModel>> {
+  /// Provider for getting fuel entries by date range
+  const FuelEntriesByDateRangeProvider._({
+    required FuelEntriesByDateRangeFamily super.from,
+    required (DateTime, DateTime) super.argument,
+  }) : super(
+         retry: null,
+         name: r'fuelEntriesByDateRangeProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntriesByDateRangeHash();
+
+  @override
+  String toString() {
+    return r'fuelEntriesByDateRangeProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<FuelEntryModel>> createElement() {
-    return _FuelEntriesByDateRangeProviderElement(this);
+  $FutureProviderElement<List<FuelEntryModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<FuelEntryModel>> create(Ref ref) {
+    final argument = this.argument as (DateTime, DateTime);
+    return fuelEntriesByDateRange(ref, argument.$1, argument.$2);
   }
 
   @override
   bool operator ==(Object other) {
     return other is FuelEntriesByDateRangeProvider &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FuelEntriesByDateRangeRef
-    on AutoDisposeFutureProviderRef<List<FuelEntryModel>> {
-  /// The parameter `startDate` of this provider.
-  DateTime get startDate;
+String _$fuelEntriesByDateRangeHash() =>
+    r'6b627459117190925fbf3a749ba133946f9b9a44';
 
-  /// The parameter `endDate` of this provider.
-  DateTime get endDate;
-}
+/// Provider for getting fuel entries by date range
 
-class _FuelEntriesByDateRangeProviderElement
-    extends AutoDisposeFutureProviderElement<List<FuelEntryModel>>
-    with FuelEntriesByDateRangeRef {
-  _FuelEntriesByDateRangeProviderElement(super.provider);
-
-  @override
-  DateTime get startDate =>
-      (origin as FuelEntriesByDateRangeProvider).startDate;
-  @override
-  DateTime get endDate => (origin as FuelEntriesByDateRangeProvider).endDate;
-}
-
-String _$fuelEntriesByVehicleAndDateRangeHash() =>
-    r'aac7cc58ac2794ac2fbfb99b11de20c53d196fbc';
-
-/// Provider for getting fuel entries by vehicle and date range
-///
-/// Copied from [fuelEntriesByVehicleAndDateRange].
-@ProviderFor(fuelEntriesByVehicleAndDateRange)
-const fuelEntriesByVehicleAndDateRangeProvider =
-    FuelEntriesByVehicleAndDateRangeFamily();
-
-/// Provider for getting fuel entries by vehicle and date range
-///
-/// Copied from [fuelEntriesByVehicleAndDateRange].
-class FuelEntriesByVehicleAndDateRangeFamily
-    extends Family<AsyncValue<List<FuelEntryModel>>> {
-  /// Provider for getting fuel entries by vehicle and date range
-  ///
-  /// Copied from [fuelEntriesByVehicleAndDateRange].
-  const FuelEntriesByVehicleAndDateRangeFamily();
-
-  /// Provider for getting fuel entries by vehicle and date range
-  ///
-  /// Copied from [fuelEntriesByVehicleAndDateRange].
-  FuelEntriesByVehicleAndDateRangeProvider call(
-    int vehicleId,
-    DateTime startDate,
-    DateTime endDate,
-  ) {
-    return FuelEntriesByVehicleAndDateRangeProvider(
-      vehicleId,
-      startDate,
-      endDate,
-    );
-  }
-
-  @override
-  FuelEntriesByVehicleAndDateRangeProvider getProviderOverride(
-    covariant FuelEntriesByVehicleAndDateRangeProvider provider,
-  ) {
-    return call(provider.vehicleId, provider.startDate, provider.endDate);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fuelEntriesByVehicleAndDateRangeProvider';
-}
-
-/// Provider for getting fuel entries by vehicle and date range
-///
-/// Copied from [fuelEntriesByVehicleAndDateRange].
-class FuelEntriesByVehicleAndDateRangeProvider
-    extends AutoDisposeFutureProvider<List<FuelEntryModel>> {
-  /// Provider for getting fuel entries by vehicle and date range
-  ///
-  /// Copied from [fuelEntriesByVehicleAndDateRange].
-  FuelEntriesByVehicleAndDateRangeProvider(
-    int vehicleId,
-    DateTime startDate,
-    DateTime endDate,
-  ) : this._internal(
-        (ref) => fuelEntriesByVehicleAndDateRange(
-          ref as FuelEntriesByVehicleAndDateRangeRef,
-          vehicleId,
-          startDate,
-          endDate,
-        ),
-        from: fuelEntriesByVehicleAndDateRangeProvider,
-        name: r'fuelEntriesByVehicleAndDateRangeProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$fuelEntriesByVehicleAndDateRangeHash,
-        dependencies: FuelEntriesByVehicleAndDateRangeFamily._dependencies,
-        allTransitiveDependencies:
-            FuelEntriesByVehicleAndDateRangeFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
+final class FuelEntriesByDateRangeFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<FuelEntryModel>>,
+          (DateTime, DateTime)
+        > {
+  const FuelEntriesByDateRangeFamily._()
+    : super(
+        retry: null,
+        name: r'fuelEntriesByDateRangeProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FuelEntriesByVehicleAndDateRangeProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
+  /// Provider for getting fuel entries by date range
 
-  final int vehicleId;
-  final DateTime startDate;
-  final DateTime endDate;
+  FuelEntriesByDateRangeProvider call(DateTime startDate, DateTime endDate) =>
+      FuelEntriesByDateRangeProvider._(
+        argument: (startDate, endDate),
+        from: this,
+      );
 
   @override
-  Override overrideWith(
-    FutureOr<List<FuelEntryModel>> Function(
-      FuelEntriesByVehicleAndDateRangeRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FuelEntriesByVehicleAndDateRangeProvider._internal(
-        (ref) => create(ref as FuelEntriesByVehicleAndDateRangeRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() => r'fuelEntriesByDateRangeProvider';
+}
+
+/// Provider for getting fuel entries by vehicle and date range
+
+@ProviderFor(fuelEntriesByVehicleAndDateRange)
+const fuelEntriesByVehicleAndDateRangeProvider =
+    FuelEntriesByVehicleAndDateRangeFamily._();
+
+/// Provider for getting fuel entries by vehicle and date range
+
+final class FuelEntriesByVehicleAndDateRangeProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FuelEntryModel>>,
+          List<FuelEntryModel>,
+          FutureOr<List<FuelEntryModel>>
+        >
+    with
+        $FutureModifier<List<FuelEntryModel>>,
+        $FutureProvider<List<FuelEntryModel>> {
+  /// Provider for getting fuel entries by vehicle and date range
+  const FuelEntriesByVehicleAndDateRangeProvider._({
+    required FuelEntriesByVehicleAndDateRangeFamily super.from,
+    required (int, DateTime, DateTime) super.argument,
+  }) : super(
+         retry: null,
+         name: r'fuelEntriesByVehicleAndDateRangeProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntriesByVehicleAndDateRangeHash();
+
+  @override
+  String toString() {
+    return r'fuelEntriesByVehicleAndDateRangeProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<FuelEntryModel>> createElement() {
-    return _FuelEntriesByVehicleAndDateRangeProviderElement(this);
+  $FutureProviderElement<List<FuelEntryModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<FuelEntryModel>> create(Ref ref) {
+    final argument = this.argument as (int, DateTime, DateTime);
+    return fuelEntriesByVehicleAndDateRange(
+      ref,
+      argument.$1,
+      argument.$2,
+      argument.$3,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is FuelEntriesByVehicleAndDateRangeProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FuelEntriesByVehicleAndDateRangeRef
-    on AutoDisposeFutureProviderRef<List<FuelEntryModel>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$fuelEntriesByVehicleAndDateRangeHash() =>
+    r'e961efb61828e184051945e456e3e404b168051d';
 
-  /// The parameter `startDate` of this provider.
-  DateTime get startDate;
+/// Provider for getting fuel entries by vehicle and date range
 
-  /// The parameter `endDate` of this provider.
-  DateTime get endDate;
-}
-
-class _FuelEntriesByVehicleAndDateRangeProviderElement
-    extends AutoDisposeFutureProviderElement<List<FuelEntryModel>>
-    with FuelEntriesByVehicleAndDateRangeRef {
-  _FuelEntriesByVehicleAndDateRangeProviderElement(super.provider);
-
-  @override
-  int get vehicleId =>
-      (origin as FuelEntriesByVehicleAndDateRangeProvider).vehicleId;
-  @override
-  DateTime get startDate =>
-      (origin as FuelEntriesByVehicleAndDateRangeProvider).startDate;
-  @override
-  DateTime get endDate =>
-      (origin as FuelEntriesByVehicleAndDateRangeProvider).endDate;
-}
-
-String _$latestFuelEntryForVehicleHash() =>
-    r'395f7be9c772aae6b47475ce0405de0f4ae2d1f8';
-
-/// Provider for getting the latest fuel entry for a vehicle
-///
-/// Copied from [latestFuelEntryForVehicle].
-@ProviderFor(latestFuelEntryForVehicle)
-const latestFuelEntryForVehicleProvider = LatestFuelEntryForVehicleFamily();
-
-/// Provider for getting the latest fuel entry for a vehicle
-///
-/// Copied from [latestFuelEntryForVehicle].
-class LatestFuelEntryForVehicleFamily
-    extends Family<AsyncValue<FuelEntryModel?>> {
-  /// Provider for getting the latest fuel entry for a vehicle
-  ///
-  /// Copied from [latestFuelEntryForVehicle].
-  const LatestFuelEntryForVehicleFamily();
-
-  /// Provider for getting the latest fuel entry for a vehicle
-  ///
-  /// Copied from [latestFuelEntryForVehicle].
-  LatestFuelEntryForVehicleProvider call(int vehicleId) {
-    return LatestFuelEntryForVehicleProvider(vehicleId);
-  }
-
-  @override
-  LatestFuelEntryForVehicleProvider getProviderOverride(
-    covariant LatestFuelEntryForVehicleProvider provider,
-  ) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'latestFuelEntryForVehicleProvider';
-}
-
-/// Provider for getting the latest fuel entry for a vehicle
-///
-/// Copied from [latestFuelEntryForVehicle].
-class LatestFuelEntryForVehicleProvider
-    extends AutoDisposeFutureProvider<FuelEntryModel?> {
-  /// Provider for getting the latest fuel entry for a vehicle
-  ///
-  /// Copied from [latestFuelEntryForVehicle].
-  LatestFuelEntryForVehicleProvider(int vehicleId)
-    : this._internal(
-        (ref) => latestFuelEntryForVehicle(
-          ref as LatestFuelEntryForVehicleRef,
-          vehicleId,
-        ),
-        from: latestFuelEntryForVehicleProvider,
-        name: r'latestFuelEntryForVehicleProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$latestFuelEntryForVehicleHash,
-        dependencies: LatestFuelEntryForVehicleFamily._dependencies,
-        allTransitiveDependencies:
-            LatestFuelEntryForVehicleFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
+final class FuelEntriesByVehicleAndDateRangeFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<FuelEntryModel>>,
+          (int, DateTime, DateTime)
+        > {
+  const FuelEntriesByVehicleAndDateRangeFamily._()
+    : super(
+        retry: null,
+        name: r'fuelEntriesByVehicleAndDateRangeProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  LatestFuelEntryForVehicleProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
+  /// Provider for getting fuel entries by vehicle and date range
 
-  final int vehicleId;
+  FuelEntriesByVehicleAndDateRangeProvider call(
+    int vehicleId,
+    DateTime startDate,
+    DateTime endDate,
+  ) => FuelEntriesByVehicleAndDateRangeProvider._(
+    argument: (vehicleId, startDate, endDate),
+    from: this,
+  );
 
   @override
-  Override overrideWith(
-    FutureOr<FuelEntryModel?> Function(LatestFuelEntryForVehicleRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: LatestFuelEntryForVehicleProvider._internal(
-        (ref) => create(ref as LatestFuelEntryForVehicleRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
+  String toString() => r'fuelEntriesByVehicleAndDateRangeProvider';
+}
+
+/// Provider for getting the latest fuel entry for a vehicle
+
+@ProviderFor(latestFuelEntryForVehicle)
+const latestFuelEntryForVehicleProvider = LatestFuelEntryForVehicleFamily._();
+
+/// Provider for getting the latest fuel entry for a vehicle
+
+final class LatestFuelEntryForVehicleProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<FuelEntryModel?>,
+          FuelEntryModel?,
+          FutureOr<FuelEntryModel?>
+        >
+    with $FutureModifier<FuelEntryModel?>, $FutureProvider<FuelEntryModel?> {
+  /// Provider for getting the latest fuel entry for a vehicle
+  const LatestFuelEntryForVehicleProvider._({
+    required LatestFuelEntryForVehicleFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'latestFuelEntryForVehicleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$latestFuelEntryForVehicleHash();
+
+  @override
+  String toString() {
+    return r'latestFuelEntryForVehicleProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<FuelEntryModel?> createElement() {
-    return _LatestFuelEntryForVehicleProviderElement(this);
+  $FutureProviderElement<FuelEntryModel?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<FuelEntryModel?> create(Ref ref) {
+    final argument = this.argument as int;
+    return latestFuelEntryForVehicle(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
     return other is LatestFuelEntryForVehicleProvider &&
-        other.vehicleId == vehicleId;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin LatestFuelEntryForVehicleRef
-    on AutoDisposeFutureProviderRef<FuelEntryModel?> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
+String _$latestFuelEntryForVehicleHash() =>
+    r'b5c25b484f301c78308dda7f4e97de3c4f2d17c9';
 
-class _LatestFuelEntryForVehicleProviderElement
-    extends AutoDisposeFutureProviderElement<FuelEntryModel?>
-    with LatestFuelEntryForVehicleRef {
-  _LatestFuelEntryForVehicleProviderElement(super.provider);
+/// Provider for getting the latest fuel entry for a vehicle
 
-  @override
-  int get vehicleId => (origin as LatestFuelEntryForVehicleProvider).vehicleId;
-}
-
-String _$fuelEntryHash() => r'9beb777b7d6ad88adbc9ce0770cf2c4856bdb34c';
-
-/// Provider for getting a specific fuel entry by ID
-///
-/// Copied from [fuelEntry].
-@ProviderFor(fuelEntry)
-const fuelEntryProvider = FuelEntryFamily();
-
-/// Provider for getting a specific fuel entry by ID
-///
-/// Copied from [fuelEntry].
-class FuelEntryFamily extends Family<AsyncValue<FuelEntryModel?>> {
-  /// Provider for getting a specific fuel entry by ID
-  ///
-  /// Copied from [fuelEntry].
-  const FuelEntryFamily();
-
-  /// Provider for getting a specific fuel entry by ID
-  ///
-  /// Copied from [fuelEntry].
-  FuelEntryProvider call(int entryId) {
-    return FuelEntryProvider(entryId);
-  }
-
-  @override
-  FuelEntryProvider getProviderOverride(covariant FuelEntryProvider provider) {
-    return call(provider.entryId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fuelEntryProvider';
-}
-
-/// Provider for getting a specific fuel entry by ID
-///
-/// Copied from [fuelEntry].
-class FuelEntryProvider extends AutoDisposeFutureProvider<FuelEntryModel?> {
-  /// Provider for getting a specific fuel entry by ID
-  ///
-  /// Copied from [fuelEntry].
-  FuelEntryProvider(int entryId)
-    : this._internal(
-        (ref) => fuelEntry(ref as FuelEntryRef, entryId),
-        from: fuelEntryProvider,
-        name: r'fuelEntryProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$fuelEntryHash,
-        dependencies: FuelEntryFamily._dependencies,
-        allTransitiveDependencies: FuelEntryFamily._allTransitiveDependencies,
-        entryId: entryId,
+final class LatestFuelEntryForVehicleFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<FuelEntryModel?>, int> {
+  const LatestFuelEntryForVehicleFamily._()
+    : super(
+        retry: null,
+        name: r'latestFuelEntryForVehicleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FuelEntryProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.entryId,
-  }) : super.internal();
+  /// Provider for getting the latest fuel entry for a vehicle
 
-  final int entryId;
+  LatestFuelEntryForVehicleProvider call(int vehicleId) =>
+      LatestFuelEntryForVehicleProvider._(argument: vehicleId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<FuelEntryModel?> Function(FuelEntryRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FuelEntryProvider._internal(
-        (ref) => create(ref as FuelEntryRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        entryId: entryId,
-      ),
-    );
+  String toString() => r'latestFuelEntryForVehicleProvider';
+}
+
+/// Provider for getting a specific fuel entry by ID
+
+@ProviderFor(fuelEntry)
+const fuelEntryProvider = FuelEntryFamily._();
+
+/// Provider for getting a specific fuel entry by ID
+
+final class FuelEntryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<FuelEntryModel?>,
+          FuelEntryModel?,
+          FutureOr<FuelEntryModel?>
+        >
+    with $FutureModifier<FuelEntryModel?>, $FutureProvider<FuelEntryModel?> {
+  /// Provider for getting a specific fuel entry by ID
+  const FuelEntryProvider._({
+    required FuelEntryFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'fuelEntryProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntryHash();
+
+  @override
+  String toString() {
+    return r'fuelEntryProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<FuelEntryModel?> createElement() {
-    return _FuelEntryProviderElement(this);
+  $FutureProviderElement<FuelEntryModel?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<FuelEntryModel?> create(Ref ref) {
+    final argument = this.argument as int;
+    return fuelEntry(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FuelEntryProvider && other.entryId == entryId;
+    return other is FuelEntryProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, entryId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FuelEntryRef on AutoDisposeFutureProviderRef<FuelEntryModel?> {
-  /// The parameter `entryId` of this provider.
-  int get entryId;
-}
+String _$fuelEntryHash() => r'34f4a7c390c9587e6a4adb842a39a6d5a95a7f43';
 
-class _FuelEntryProviderElement
-    extends AutoDisposeFutureProviderElement<FuelEntryModel?>
-    with FuelEntryRef {
-  _FuelEntryProviderElement(super.provider);
+/// Provider for getting a specific fuel entry by ID
 
-  @override
-  int get entryId => (origin as FuelEntryProvider).entryId;
-}
-
-String _$fuelEntryCountHash() => r'e0965c2487be3acd611f6893529de7fd51df91b0';
-
-/// Provider for getting fuel entry count
-///
-/// Copied from [fuelEntryCount].
-@ProviderFor(fuelEntryCount)
-final fuelEntryCountProvider = AutoDisposeFutureProvider<int>.internal(
-  fuelEntryCount,
-  name: r'fuelEntryCountProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$fuelEntryCountHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FuelEntryCountRef = AutoDisposeFutureProviderRef<int>;
-String _$fuelEntryCountForVehicleHash() =>
-    r'51a29fda6491a197bfd95634712cbd5737359c6f';
-
-/// Provider for getting fuel entry count for a specific vehicle
-///
-/// Copied from [fuelEntryCountForVehicle].
-@ProviderFor(fuelEntryCountForVehicle)
-const fuelEntryCountForVehicleProvider = FuelEntryCountForVehicleFamily();
-
-/// Provider for getting fuel entry count for a specific vehicle
-///
-/// Copied from [fuelEntryCountForVehicle].
-class FuelEntryCountForVehicleFamily extends Family<AsyncValue<int>> {
-  /// Provider for getting fuel entry count for a specific vehicle
-  ///
-  /// Copied from [fuelEntryCountForVehicle].
-  const FuelEntryCountForVehicleFamily();
-
-  /// Provider for getting fuel entry count for a specific vehicle
-  ///
-  /// Copied from [fuelEntryCountForVehicle].
-  FuelEntryCountForVehicleProvider call(int vehicleId) {
-    return FuelEntryCountForVehicleProvider(vehicleId);
-  }
-
-  @override
-  FuelEntryCountForVehicleProvider getProviderOverride(
-    covariant FuelEntryCountForVehicleProvider provider,
-  ) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fuelEntryCountForVehicleProvider';
-}
-
-/// Provider for getting fuel entry count for a specific vehicle
-///
-/// Copied from [fuelEntryCountForVehicle].
-class FuelEntryCountForVehicleProvider extends AutoDisposeFutureProvider<int> {
-  /// Provider for getting fuel entry count for a specific vehicle
-  ///
-  /// Copied from [fuelEntryCountForVehicle].
-  FuelEntryCountForVehicleProvider(int vehicleId)
-    : this._internal(
-        (ref) => fuelEntryCountForVehicle(
-          ref as FuelEntryCountForVehicleRef,
-          vehicleId,
-        ),
-        from: fuelEntryCountForVehicleProvider,
-        name: r'fuelEntryCountForVehicleProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$fuelEntryCountForVehicleHash,
-        dependencies: FuelEntryCountForVehicleFamily._dependencies,
-        allTransitiveDependencies:
-            FuelEntryCountForVehicleFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
+final class FuelEntryFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<FuelEntryModel?>, int> {
+  const FuelEntryFamily._()
+    : super(
+        retry: null,
+        name: r'fuelEntryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FuelEntryCountForVehicleProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
+  /// Provider for getting a specific fuel entry by ID
 
-  final int vehicleId;
+  FuelEntryProvider call(int entryId) =>
+      FuelEntryProvider._(argument: entryId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<int> Function(FuelEntryCountForVehicleRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FuelEntryCountForVehicleProvider._internal(
-        (ref) => create(ref as FuelEntryCountForVehicleRef),
-        from: from,
-        name: null,
+  String toString() => r'fuelEntryProvider';
+}
+
+/// Provider for getting fuel entry count
+
+@ProviderFor(fuelEntryCount)
+const fuelEntryCountProvider = FuelEntryCountProvider._();
+
+/// Provider for getting fuel entry count
+
+final class FuelEntryCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
+    with $FutureModifier<int>, $FutureProvider<int> {
+  /// Provider for getting fuel entry count
+  const FuelEntryCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fuelEntryCountProvider',
+        isAutoDispose: true,
         dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntryCountHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<int> create(Ref ref) {
+    return fuelEntryCount(ref);
+  }
+}
+
+String _$fuelEntryCountHash() => r'39b48514e8ee5bb726028a1abe442d9d1c5bedcd';
+
+/// Provider for getting fuel entry count for a specific vehicle
+
+@ProviderFor(fuelEntryCountForVehicle)
+const fuelEntryCountForVehicleProvider = FuelEntryCountForVehicleFamily._();
+
+/// Provider for getting fuel entry count for a specific vehicle
+
+final class FuelEntryCountForVehicleProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
+    with $FutureModifier<int>, $FutureProvider<int> {
+  /// Provider for getting fuel entry count for a specific vehicle
+  const FuelEntryCountForVehicleProvider._({
+    required FuelEntryCountForVehicleFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'fuelEntryCountForVehicleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntryCountForVehicleHash();
+
+  @override
+  String toString() {
+    return r'fuelEntryCountForVehicleProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<int> createElement() {
-    return _FuelEntryCountForVehicleProviderElement(this);
+  $FutureProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<int> create(Ref ref) {
+    final argument = this.argument as int;
+    return fuelEntryCountForVehicle(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
     return other is FuelEntryCountForVehicleProvider &&
-        other.vehicleId == vehicleId;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FuelEntryCountForVehicleRef on AutoDisposeFutureProviderRef<int> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
+String _$fuelEntryCountForVehicleHash() =>
+    r'5aa2e9016c401f8eb67def0325696f0d984a037a';
 
-class _FuelEntryCountForVehicleProviderElement
-    extends AutoDisposeFutureProviderElement<int>
-    with FuelEntryCountForVehicleRef {
-  _FuelEntryCountForVehicleProviderElement(super.provider);
+/// Provider for getting fuel entry count for a specific vehicle
+
+final class FuelEntryCountForVehicleFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<int>, int> {
+  const FuelEntryCountForVehicleFamily._()
+    : super(
+        retry: null,
+        name: r'fuelEntryCountForVehicleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for getting fuel entry count for a specific vehicle
+
+  FuelEntryCountForVehicleProvider call(int vehicleId) =>
+      FuelEntryCountForVehicleProvider._(argument: vehicleId, from: this);
 
   @override
-  int get vehicleId => (origin as FuelEntryCountForVehicleProvider).vehicleId;
+  String toString() => r'fuelEntryCountForVehicleProvider';
+}
+
+/// Provider for getting fuel entries grouped by country
+
+@ProviderFor(fuelEntriesGroupedByCountry)
+const fuelEntriesGroupedByCountryProvider =
+    FuelEntriesGroupedByCountryProvider._();
+
+/// Provider for getting fuel entries grouped by country
+
+final class FuelEntriesGroupedByCountryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, List<FuelEntryModel>>>,
+          Map<String, List<FuelEntryModel>>,
+          FutureOr<Map<String, List<FuelEntryModel>>>
+        >
+    with
+        $FutureModifier<Map<String, List<FuelEntryModel>>>,
+        $FutureProvider<Map<String, List<FuelEntryModel>>> {
+  /// Provider for getting fuel entries grouped by country
+  const FuelEntriesGroupedByCountryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'fuelEntriesGroupedByCountryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$fuelEntriesGroupedByCountryHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Map<String, List<FuelEntryModel>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, List<FuelEntryModel>>> create(Ref ref) {
+    return fuelEntriesGroupedByCountry(ref);
+  }
 }
 
 String _$fuelEntriesGroupedByCountryHash() =>
-    r'6603dbba502b3e2eab4dd29feca3e1879c94ea87';
-
-/// Provider for getting fuel entries grouped by country
-///
-/// Copied from [fuelEntriesGroupedByCountry].
-@ProviderFor(fuelEntriesGroupedByCountry)
-final fuelEntriesGroupedByCountryProvider =
-    AutoDisposeFutureProvider<Map<String, List<FuelEntryModel>>>.internal(
-      fuelEntriesGroupedByCountry,
-      name: r'fuelEntriesGroupedByCountryProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$fuelEntriesGroupedByCountryHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FuelEntriesGroupedByCountryRef =
-    AutoDisposeFutureProviderRef<Map<String, List<FuelEntryModel>>>;
-String _$averageConsumptionForVehicleHash() =>
-    r'7ef76ff3050459bd4dd8ec508c2844ad5417e9f2';
+    r'faa29a1192fbb8820ed5994eb02ecaec9248cb2e';
 
 /// Provider for getting average consumption for a vehicle
-///
-/// Copied from [averageConsumptionForVehicle].
+
 @ProviderFor(averageConsumptionForVehicle)
 const averageConsumptionForVehicleProvider =
-    AverageConsumptionForVehicleFamily();
+    AverageConsumptionForVehicleFamily._();
 
 /// Provider for getting average consumption for a vehicle
-///
-/// Copied from [averageConsumptionForVehicle].
-class AverageConsumptionForVehicleFamily extends Family<AsyncValue<double?>> {
-  /// Provider for getting average consumption for a vehicle
-  ///
-  /// Copied from [averageConsumptionForVehicle].
-  const AverageConsumptionForVehicleFamily();
 
+final class AverageConsumptionForVehicleProvider
+    extends $FunctionalProvider<AsyncValue<double?>, double?, FutureOr<double?>>
+    with $FutureModifier<double?>, $FutureProvider<double?> {
   /// Provider for getting average consumption for a vehicle
-  ///
-  /// Copied from [averageConsumptionForVehicle].
-  AverageConsumptionForVehicleProvider call(int vehicleId) {
-    return AverageConsumptionForVehicleProvider(vehicleId);
+  const AverageConsumptionForVehicleProvider._({
+    required AverageConsumptionForVehicleFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'averageConsumptionForVehicleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$averageConsumptionForVehicleHash();
+
+  @override
+  String toString() {
+    return r'averageConsumptionForVehicleProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AverageConsumptionForVehicleProvider getProviderOverride(
-    covariant AverageConsumptionForVehicleProvider provider,
-  ) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
+  $FutureProviderElement<double?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'averageConsumptionForVehicleProvider';
-}
-
-/// Provider for getting average consumption for a vehicle
-///
-/// Copied from [averageConsumptionForVehicle].
-class AverageConsumptionForVehicleProvider
-    extends AutoDisposeFutureProvider<double?> {
-  /// Provider for getting average consumption for a vehicle
-  ///
-  /// Copied from [averageConsumptionForVehicle].
-  AverageConsumptionForVehicleProvider(int vehicleId)
-    : this._internal(
-        (ref) => averageConsumptionForVehicle(
-          ref as AverageConsumptionForVehicleRef,
-          vehicleId,
-        ),
-        from: averageConsumptionForVehicleProvider,
-        name: r'averageConsumptionForVehicleProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$averageConsumptionForVehicleHash,
-        dependencies: AverageConsumptionForVehicleFamily._dependencies,
-        allTransitiveDependencies:
-            AverageConsumptionForVehicleFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
-      );
-
-  AverageConsumptionForVehicleProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
-
-  final int vehicleId;
-
-  @override
-  Override overrideWith(
-    FutureOr<double?> Function(AverageConsumptionForVehicleRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: AverageConsumptionForVehicleProvider._internal(
-        (ref) => create(ref as AverageConsumptionForVehicleRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<double?> createElement() {
-    return _AverageConsumptionForVehicleProviderElement(this);
+  FutureOr<double?> create(Ref ref) {
+    final argument = this.argument as int;
+    return averageConsumptionForVehicle(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
     return other is AverageConsumptionForVehicleProvider &&
-        other.vehicleId == vehicleId;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin AverageConsumptionForVehicleRef on AutoDisposeFutureProviderRef<double?> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
+String _$averageConsumptionForVehicleHash() =>
+    r'be55a727345fa8a74dc20fd27be9bee6ffd91657';
 
-class _AverageConsumptionForVehicleProviderElement
-    extends AutoDisposeFutureProviderElement<double?>
-    with AverageConsumptionForVehicleRef {
-  _AverageConsumptionForVehicleProviderElement(super.provider);
+/// Provider for getting average consumption for a vehicle
+
+final class AverageConsumptionForVehicleFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<double?>, int> {
+  const AverageConsumptionForVehicleFamily._()
+    : super(
+        retry: null,
+        name: r'averageConsumptionForVehicleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for getting average consumption for a vehicle
+
+  AverageConsumptionForVehicleProvider call(int vehicleId) =>
+      AverageConsumptionForVehicleProvider._(argument: vehicleId, from: this);
 
   @override
-  int get vehicleId =>
-      (origin as AverageConsumptionForVehicleProvider).vehicleId;
+  String toString() => r'averageConsumptionForVehicleProvider';
 }
-
-String _$fuelEntriesNotifierHash() =>
-    r'f8ea71485b63028b8481d1cee00e9188cd5b4f04';
-
-/// Notifier for managing fuel entries state
-///
-/// Copied from [FuelEntriesNotifier].
-@ProviderFor(FuelEntriesNotifier)
-final fuelEntriesNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<
-      FuelEntriesNotifier,
-      FuelEntryState
-    >.internal(
-      FuelEntriesNotifier.new,
-      name: r'fuelEntriesNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$fuelEntriesNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FuelEntriesNotifier = AutoDisposeAsyncNotifier<FuelEntryState>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

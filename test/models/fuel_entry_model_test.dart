@@ -570,5 +570,337 @@ void main() {
       expect(result, contains('vehicleId: 1'));
       expect(result, contains('fuelAmount: 40.0'));
     });
+
+    group('Multi-currency support', () {
+      test('should detect converted entries correctly', () {
+        final normalEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+        );
+
+        final convertedEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        expect(normalEntry.isConverted, false);
+        expect(convertedEntry.isConverted, true);
+      });
+
+      test('should validate exchange rate correctly', () {
+        final entryWithInvalidRate = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+          exchangeRate: -1.0, // Invalid negative rate
+        );
+
+        final errors = entryWithInvalidRate.validate();
+        expect(errors, contains(contains('Exchange rate must be greater than 0')));
+      });
+
+      test('should validate high exchange rate', () {
+        final entryWithHighRate = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+          exchangeRate: 15000.0, // Unreasonably high rate
+        );
+
+        final errors = entryWithHighRate.validate();
+        expect(errors, contains(contains('unreasonably high')));
+      });
+
+      test('should require rate date when exchange rate is provided', () {
+        final entryMissingRateDate = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+          exchangeRate: 0.85,
+          // rateDate not provided
+        );
+
+        final errors = entryMissingRateDate.validate();
+        expect(errors, contains(contains('Rate date is required when exchange rate is provided')));
+      });
+
+      test('should validate original amount', () {
+        final entryWithInvalidOriginal = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          originalAmount: -10.0, // Invalid negative amount
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.45,
+        );
+
+        final errors = entryWithInvalidOriginal.validate();
+        expect(errors, contains(contains('Original amount must be greater than 0')));
+      });
+
+      test('should format currency prices correctly', () {
+        final convertedEntry = FuelEntryModel(
+          id: 1,
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          consumption: 8.5,
+          isFullTank: true,
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        expect(convertedEntry.formattedOriginalPrice, contains('€'));
+        expect(convertedEntry.formattedConvertedPrice, contains('\$'));
+        expect(convertedEntry.formattedPriceWithOriginal, contains('€'));
+        expect(convertedEntry.formattedPriceWithOriginal, contains('\$'));
+      });
+
+      test('should provide cost summary for converted entries', () {
+        final convertedEntry = FuelEntryModel(
+          id: 1,
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          consumption: 8.5,
+          isFullTank: true,
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        final costSummary = convertedEntry.costSummary;
+        expect(costSummary, contains('€'));
+        expect(costSummary, contains('\$'));
+        expect(costSummary, contains('→'));
+        expect(costSummary, contains('@'));
+      });
+
+      test('should check for complete conversion data', () {
+        final incompleteEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          // Missing exchange rate and rate date
+        );
+
+        final completeEntry = incompleteEntry.copyWith(
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        expect(incompleteEntry.hasCompleteConversionData, false);
+        expect(completeEntry.hasCompleteConversionData, true);
+      });
+
+      test('should calculate exchange rate age', () {
+        final recentEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.13,
+          exchangeRate: 1.0,
+          rateDate: DateTime.now().subtract(const Duration(hours: 12)),
+        );
+
+        final oldEntry = recentEntry.copyWith(
+          rateDate: DateTime.now().subtract(const Duration(hours: 48)),
+        );
+
+        expect(recentEntry.exchangeRateAgeInHours, lessThan(24));
+        expect(recentEntry.isExchangeRateFresh, true);
+        
+        expect(oldEntry.exchangeRateAgeInHours, greaterThan(24));
+        expect(oldEntry.isExchangeRateFresh, false);
+      });
+
+      test('should format exchange rate information', () {
+        final entryWithRate = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        final normalEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+        );
+
+        expect(entryWithRate.formattedExchangeRate, isNotNull);
+        expect(entryWithRate.formattedExchangeRate, contains('EUR'));
+        expect(entryWithRate.formattedExchangeRate, contains('USD'));
+        
+        expect(normalEntry.formattedExchangeRate, isNull);
+      });
+
+      test('should format price per liter with currency', () {
+        final eurEntry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+        );
+
+        final formatted = eurEntry.formattedPricePerLiterWithCurrency;
+        expect(formatted, contains('€'));
+        expect(formatted, contains('/L'));
+      });
+
+      test('should create entry with exchange rate data using factory', () {
+        final entryWithRate = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 45.20,
+          originalAmount: 50.0,
+          currency: 'EUR',
+          country: 'Germany',
+          pricePerLiter: 1.25,
+          exchangeRate: 0.904,
+          rateDate: testDate,
+        );
+
+        expect(entryWithRate.exchangeRate, 0.904);
+        expect(entryWithRate.rateDate, testDate);
+        expect(entryWithRate.originalAmount, 50.0);
+        expect(entryWithRate.isConverted, true);
+      });
+
+      test('should include exchange rate fields in copyWith', () {
+        final original = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+        );
+
+        final updated = original.copyWith(
+          exchangeRate: 0.85,
+          rateDate: DateTime(2024, 1, 20),
+        );
+
+        expect(updated.exchangeRate, 0.85);
+        expect(updated.rateDate, DateTime(2024, 1, 20));
+        expect(updated.vehicleId, original.vehicleId);
+        expect(updated.price, original.price);
+      });
+
+      test('should include exchange rate fields in equality comparison', () {
+        final entry1 = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+          exchangeRate: 0.85,
+          rateDate: testDate,
+        );
+
+        final entry2 = entry1.copyWith();
+        final entry3 = entry1.copyWith(exchangeRate: 0.90);
+
+        expect(entry1, equals(entry2));
+        expect(entry1, isNot(equals(entry3)));
+      });
+
+      test('should include exchange rate fields in toString', () {
+        final entry = FuelEntryModel.create(
+          vehicleId: 1,
+          date: testDate,
+          currentKm: 50200.0,
+          fuelAmount: 40.0,
+          price: 58.0,
+          currency: 'USD',
+          country: 'United States',
+          pricePerLiter: 1.45,
+          exchangeRate: 0.85,
+          rateDate: testDate,
+        );
+
+        final string = entry.toString();
+        expect(string, contains('exchangeRate: 0.85'));
+        expect(string, contains('rateDate: $testDate'));
+      });
+    });
   });
 }

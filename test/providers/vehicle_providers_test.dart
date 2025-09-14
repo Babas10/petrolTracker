@@ -61,8 +61,8 @@ void main() {
 
     group('VehiclesNotifier', () {
       test('initial build loads empty vehicles list', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final notifier = container.read(vehiclesProvider.notifier);
+        final state = await container.read(vehiclesProvider.future);
 
         expect(state.vehicles, isEmpty);
         expect(state.isLoading, isFalse);
@@ -70,7 +70,7 @@ void main() {
       });
 
       test('addVehicle adds vehicle to state', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         final vehicle = VehicleModel.create(
           name: 'Test Car',
@@ -78,7 +78,7 @@ void main() {
         );
 
         await notifier.addVehicle(vehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
 
         expect(state.vehicles, hasLength(1));
         expect(state.vehicles.first.name, equals('Test Car'));
@@ -88,7 +88,7 @@ void main() {
       });
 
       test('updateVehicle updates existing vehicle', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Add a vehicle first
         final vehicle = VehicleModel.create(
@@ -97,21 +97,21 @@ void main() {
         );
         await notifier.addVehicle(vehicle);
         
-        var state = await container.read(vehiclesNotifierProvider.future);
+        var state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
 
         // Update the vehicle
         final updatedVehicle = addedVehicle.copyWith(name: 'Updated Car');
         await notifier.updateVehicle(updatedVehicle);
 
-        state = await container.read(vehiclesNotifierProvider.future);
+        state = await container.read(vehiclesProvider.future);
         expect(state.vehicles, hasLength(1));
         expect(state.vehicles.first.name, equals('Updated Car'));
         expect(state.vehicles.first.id, equals(addedVehicle.id));
       });
 
       test('updateVehicle throws error for vehicle without ID', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final vehicle = VehicleModel.create(name: 'Test', initialKm: 0);
 
         expect(
@@ -121,7 +121,7 @@ void main() {
       });
 
       test('deleteVehicle removes vehicle from state', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Add a vehicle first
         final vehicle = VehicleModel.create(
@@ -130,18 +130,18 @@ void main() {
         );
         await notifier.addVehicle(vehicle);
         
-        var state = await container.read(vehiclesNotifierProvider.future);
+        var state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
 
         // Delete the vehicle
         await notifier.deleteVehicle(addedVehicle.id!);
 
-        state = await container.read(vehiclesNotifierProvider.future);
+        state = await container.read(vehiclesProvider.future);
         expect(state.vehicles, isEmpty);
       });
 
       test('refresh reloads vehicles from repository', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final repository = container.read(vehicleRepositoryProvider);
         
         // Add vehicle directly to repository
@@ -153,22 +153,22 @@ void main() {
 
         // Refresh should load the directly inserted vehicle
         await notifier.refresh();
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
 
         expect(state.vehicles, hasLength(1));
         expect(state.vehicles.first.name, equals('Direct Insert'));
       });
 
       test('clearError removes error from state', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Simulate error state by setting it manually through state
         const errorState = VehicleState(error: 'Test error');
-        container.read(vehiclesNotifierProvider.notifier).state = 
+        container.read(vehiclesProvider.notifier).state = 
             AsyncValue.data(errorState);
 
         notifier.clearError();
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         expect(state.error, isNull);
       });
     });

@@ -19,7 +19,7 @@ void main() {
     
     group('Vehicle Operations Performance', () {
       test('should add vehicles efficiently', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final stopwatch = Stopwatch()..start();
         
         // Add 1000 vehicles
@@ -33,7 +33,7 @@ void main() {
         stopwatch.stop();
         
         // Verify all vehicles were added
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final perfVehicles = state.vehicles.where(
           (v) => v.name.startsWith('Performance Vehicle')
         ).toList();
@@ -49,7 +49,7 @@ void main() {
       });
       
       test('should retrieve vehicles by ID efficiently', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Add test vehicles
         final vehicleIds = <int>[];
@@ -60,7 +60,7 @@ void main() {
           ));
         }
         
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final testVehicles = state.vehicles.where(
           (v) => v.name.startsWith('Lookup Test Vehicle')
         ).toList();
@@ -85,7 +85,7 @@ void main() {
       });
       
       test('should update vehicles efficiently', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Add vehicles to update
         final vehicleIds = <int>[];
@@ -96,7 +96,7 @@ void main() {
           ));
         }
         
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final testVehicles = state.vehicles.where(
           (v) => v.name.startsWith('Update Test Vehicle')
         ).toList();
@@ -114,7 +114,7 @@ void main() {
         stopwatch.stop();
         
         // Verify updates
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         final updatedVehicles = updatedState.vehicles.where(
           (v) => v.name.contains('Updated')
         ).toList();
@@ -129,8 +129,8 @@ void main() {
     
     group('Fuel Entry Operations Performance', () {
       test('should add fuel entries efficiently', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a test vehicle
         await vehicleNotifier.addVehicle(VehicleModel.create(
@@ -138,7 +138,7 @@ void main() {
           initialKm: 10000.0,
         ));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicle = vehicleState.vehicles.firstWhere(
           (v) => v.name == 'Fuel Performance Vehicle'
         );
@@ -161,7 +161,7 @@ void main() {
         stopwatch.stop();
         
         // Verify all entries were added
-        final fuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final fuelState = await container.read(fuelEntriesProvider.future);
         final testEntries = fuelState.entries.where(
           (e) => e.vehicleId == testVehicle.id
         ).toList();
@@ -177,8 +177,8 @@ void main() {
       });
       
       test('should filter fuel entries efficiently', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add test vehicles
         final vehicleIds = <int>[];
@@ -189,7 +189,7 @@ void main() {
           ));
         }
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicles = vehicleState.vehicles.where(
           (v) => v.name.startsWith('Filter Test Vehicle')
         ).toList();
@@ -242,8 +242,8 @@ void main() {
       });
       
       test('should handle large datasets without memory issues', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a test vehicle
         await vehicleNotifier.addVehicle(VehicleModel.create(
@@ -251,7 +251,7 @@ void main() {
           initialKm: 10000.0,
         ));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicle = vehicleState.vehicles.firstWhere(
           (v) => v.name == 'Memory Test Vehicle'
         );
@@ -270,7 +270,7 @@ void main() {
           
           // Periodically verify memory usage is reasonable
           if (i % 1000 == 0) {
-            final currentState = await container.read(fuelEntriesNotifierProvider.future);
+            final currentState = await container.read(fuelEntriesProvider.future);
             final memoryEntries = currentState.entries.where(
               (e) => e.vehicleId == testVehicle.id
             ).toList();
@@ -281,7 +281,7 @@ void main() {
         }
         
         // Final verification
-        final finalState = await container.read(fuelEntriesNotifierProvider.future);
+        final finalState = await container.read(fuelEntriesProvider.future);
         final finalEntries = finalState.entries.where(
           (e) => e.vehicleId == testVehicle.id
         ).toList();
@@ -305,8 +305,8 @@ void main() {
     
     group('Memory Usage Tests', () {
       test('should handle memory efficiently with realistic usage patterns', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Simulate realistic usage: 5 vehicles with 200 fuel entries each
         final vehicleIds = <int>[];
@@ -318,7 +318,7 @@ void main() {
           ));
         }
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final realisticVehicles = vehicleState.vehicles.where(
           (v) => v.name.startsWith('Realistic Vehicle')
         ).toList();
@@ -340,8 +340,8 @@ void main() {
         }
         
         // Verify all data is accessible
-        final finalVehicleState = await container.read(vehiclesNotifierProvider.future);
-        final finalFuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final finalVehicleState = await container.read(vehiclesProvider.future);
+        final finalFuelState = await container.read(fuelEntriesProvider.future);
         
         final realisticVehiclesFinal = finalVehicleState.vehicles.where(
           (v) => v.name.startsWith('Realistic Vehicle')

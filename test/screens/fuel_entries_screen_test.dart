@@ -72,7 +72,7 @@ void main() {
     }) {
       return ProviderScope(
         overrides: [
-          fuelEntriesNotifierProvider.overrideWith(() {
+          fuelEntriesProvider.overrideWith(() {
             return MockFuelEntriesNotifier(testEntries);
           }),
           vehicleProvider(1).overrideWith((ref) async {
@@ -111,7 +111,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            fuelEntriesNotifierProvider.overrideWith(() {
+            fuelEntriesProvider.overrideWith(() {
               return MockFuelEntriesNotifier([]);
             }),
           ],
@@ -259,7 +259,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            fuelEntriesNotifierProvider.overrideWith(() {
+            fuelEntriesProvider.overrideWith(() {
               return MockFuelEntriesNotifierWithError();
             }),
           ],
@@ -276,7 +276,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            fuelEntriesNotifierProvider.overrideWith(() {
+            fuelEntriesProvider.overrideWith(() {
               return MockFuelEntriesNotifierLoading();
             }),
           ],

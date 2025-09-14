@@ -81,7 +81,7 @@ class _VehicleStats extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vehicleCountAsync = ref.watch(vehicleCountProvider);
-    final allFuelEntriesAsync = ref.watch(fuelEntriesNotifierProvider);
+    final allFuelEntriesAsync = ref.watch(fuelEntriesProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -166,7 +166,7 @@ class _VehiclesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehiclesAsync = ref.watch(vehiclesNotifierProvider);
+    final vehiclesAsync = ref.watch(vehiclesProvider);
 
     return vehiclesAsync.when(
       data: (vehicleState) {
@@ -193,7 +193,7 @@ class _VehiclesList extends ConsumerWidget {
         // Show vehicles list with pull-to-refresh
         return RefreshIndicator(
           onRefresh: () async {
-            await ref.refresh(vehiclesNotifierProvider.future);
+            await ref.refresh(vehiclesProvider.future);
           },
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -249,7 +249,7 @@ class _VehiclesList extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => ref.refresh(vehiclesNotifierProvider),
+                  onPressed: () => ref.refresh(vehiclesProvider),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                 ),
@@ -354,13 +354,13 @@ class _VehiclesList extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => ref.refresh(vehiclesNotifierProvider),
+                  onPressed: () => ref.refresh(vehiclesProvider),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Retry'),
                 ),
                 const SizedBox(width: 16),
                 OutlinedButton.icon(
-                  onPressed: () => ref.read(vehiclesNotifierProvider.notifier).clearError(),
+                  onPressed: () => ref.read(vehiclesProvider.notifier).clearError(),
                   icon: const Icon(Icons.clear),
                   label: const Text('Clear Error'),
                 ),
@@ -407,7 +407,7 @@ class _VehiclesList extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => ref.refresh(vehiclesNotifierProvider),
+              onPressed: () => ref.refresh(vehiclesProvider),
               icon: const Icon(Icons.restart_alt),
               label: const Text('Restart'),
             ),
@@ -673,7 +673,7 @@ class _VehicleCard extends ConsumerWidget {
 
   Future<void> _deleteVehicle(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(vehiclesNotifierProvider.notifier).deleteVehicle(vehicle.id!);
+      await ref.read(vehiclesProvider.notifier).deleteVehicle(vehicle.id!);
       if (context.mounted) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
@@ -837,7 +837,7 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
         throw Exception('A vehicle with this name already exists');
       }
 
-      await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       if (mounted) {
         Navigator.of(context).pop();
@@ -1001,7 +1001,7 @@ class _EditVehicleDialogState extends State<_EditVehicleDialog> {
         }
       }
 
-      await widget.ref.read(vehiclesNotifierProvider.notifier).updateVehicle(updatedVehicle);
+      await widget.ref.read(vehiclesProvider.notifier).updateVehicle(updatedVehicle);
       
       if (mounted) {
         Navigator.of(context).pop();

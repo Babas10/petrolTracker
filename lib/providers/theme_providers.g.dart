@@ -6,81 +6,199 @@ part of 'theme_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$lightThemeHash() => r'2916a6dade0511569853d07cdb5bcbffda4b597e';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Provider for the current theme mode
 
-/// Provider for comprehensive light theme configuration
-///
-/// Copied from [lightTheme].
-@ProviderFor(lightTheme)
-final lightThemeProvider = AutoDisposeProvider<ThemeData>.internal(
-  lightTheme,
-  name: r'lightThemeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$lightThemeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef LightThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$darkThemeHash() => r'd25429f73bca3d201992967cb60b89e0d9a81e6b';
-
-/// Provider for comprehensive dark theme configuration
-///
-/// Copied from [darkTheme].
-@ProviderFor(darkTheme)
-final darkThemeProvider = AutoDisposeProvider<ThemeData>.internal(
-  darkTheme,
-  name: r'darkThemeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$darkThemeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DarkThemeRef = AutoDisposeProviderRef<ThemeData>;
-String _$chartThemeColorsHash() => r'7e7ef820125087a32f3bd356cccf3ac43da28905';
-
-/// Provider that returns the appropriate theme colors for charts
-///
-/// Copied from [chartThemeColors].
-@ProviderFor(chartThemeColors)
-final chartThemeColorsProvider =
-    AutoDisposeProvider<Map<String, String>>.internal(
-      chartThemeColors,
-      name: r'chartThemeColorsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$chartThemeColorsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ChartThemeColorsRef = AutoDisposeProviderRef<Map<String, String>>;
-String _$themeModeHash() => r'9ad4935da91bab626faecbbfac4e04d736140730';
+@ProviderFor(ThemeMode)
+const themeModeProvider = ThemeModeProvider._();
 
 /// Provider for the current theme mode
-///
-/// Copied from [ThemeMode].
-@ProviderFor(ThemeMode)
-final themeModeProvider =
-    AutoDisposeAsyncNotifierProvider<ThemeMode, AppThemeMode>.internal(
-      ThemeMode.new,
-      name: r'themeModeProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$themeModeHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final class ThemeModeProvider
+    extends $AsyncNotifierProvider<ThemeMode, AppThemeMode> {
+  /// Provider for the current theme mode
+  const ThemeModeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeModeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-typedef _$ThemeMode = AutoDisposeAsyncNotifier<AppThemeMode>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+  @override
+  String debugGetCreateSourceHash() => _$themeModeHash();
+
+  @$internal
+  @override
+  ThemeMode create() => ThemeMode();
+}
+
+String _$themeModeHash() => r'1c525d6157bc55d35e564fde1f2c4c912cc76cda';
+
+/// Provider for the current theme mode
+
+abstract class _$ThemeMode extends $AsyncNotifier<AppThemeMode> {
+  FutureOr<AppThemeMode> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<AppThemeMode>, AppThemeMode>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<AppThemeMode>, AppThemeMode>,
+              AsyncValue<AppThemeMode>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Provider for comprehensive light theme configuration
+
+@ProviderFor(lightTheme)
+const lightThemeProvider = LightThemeProvider._();
+
+/// Provider for comprehensive light theme configuration
+
+final class LightThemeProvider
+    extends $FunctionalProvider<ThemeData, ThemeData, ThemeData>
+    with $Provider<ThemeData> {
+  /// Provider for comprehensive light theme configuration
+  const LightThemeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'lightThemeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$lightThemeHash();
+
+  @$internal
+  @override
+  $ProviderElement<ThemeData> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ThemeData create(Ref ref) {
+    return lightTheme(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ThemeData value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ThemeData>(value),
+    );
+  }
+}
+
+String _$lightThemeHash() => r'288b1ea5851f16f19b3f92cc6149f36b36f1cbac';
+
+/// Provider for comprehensive dark theme configuration
+
+@ProviderFor(darkTheme)
+const darkThemeProvider = DarkThemeProvider._();
+
+/// Provider for comprehensive dark theme configuration
+
+final class DarkThemeProvider
+    extends $FunctionalProvider<ThemeData, ThemeData, ThemeData>
+    with $Provider<ThemeData> {
+  /// Provider for comprehensive dark theme configuration
+  const DarkThemeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'darkThemeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$darkThemeHash();
+
+  @$internal
+  @override
+  $ProviderElement<ThemeData> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ThemeData create(Ref ref) {
+    return darkTheme(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ThemeData value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ThemeData>(value),
+    );
+  }
+}
+
+String _$darkThemeHash() => r'3c42c798789b4f29efac53cc6d45e87411c2d2d3';
+
+/// Provider that returns the appropriate theme colors for charts
+
+@ProviderFor(chartThemeColors)
+const chartThemeColorsProvider = ChartThemeColorsProvider._();
+
+/// Provider that returns the appropriate theme colors for charts
+
+final class ChartThemeColorsProvider
+    extends
+        $FunctionalProvider<
+          Map<String, String>,
+          Map<String, String>,
+          Map<String, String>
+        >
+    with $Provider<Map<String, String>> {
+  /// Provider that returns the appropriate theme colors for charts
+  const ChartThemeColorsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'chartThemeColorsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$chartThemeColorsHash();
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, String>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Map<String, String> create(Ref ref) {
+    return chartThemeColors(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, String>>(value),
+    );
+  }
+}
+
+String _$chartThemeColorsHash() => r'ef60b11b76a080ba019a95b2968ec800ed462fe1';

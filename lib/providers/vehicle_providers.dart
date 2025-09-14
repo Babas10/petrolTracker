@@ -140,7 +140,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Add a new vehicle
   Future<VehicleModel> addVehicle(VehicleModel vehicle) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(
+      state.value?.copyWith(
         currentOperation: VehicleOperation.adding,
         error: null,
       ) ?? const VehicleState(
@@ -154,7 +154,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       final newVehicle = vehicle.copyWith(id: id);
       _ephemeralVehicleStorage[id] = newVehicle;
       
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       final updatedVehicles = [...currentState.vehicles, newVehicle];
       
       state = AsyncValue.data(
@@ -169,7 +169,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       return newVehicle;
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
           currentOperation: VehicleOperation.none,
@@ -187,7 +187,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
     }
 
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(
+      state.value?.copyWith(
         currentOperation: VehicleOperation.updating,
         error: null,
       ) ?? const VehicleState(
@@ -199,7 +199,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       // Update in ephemeral storage
       _ephemeralVehicleStorage[vehicle.id!] = vehicle;
       
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       final updatedVehicles = currentState.vehicles
           .map((v) => v.id == vehicle.id ? vehicle : v)
           .toList();
@@ -214,7 +214,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
           currentOperation: VehicleOperation.none,
@@ -227,7 +227,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Delete a vehicle
   Future<void> deleteVehicle(int vehicleId) async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(
+      state.value?.copyWith(
         currentOperation: VehicleOperation.deleting,
         error: null,
       ) ?? const VehicleState(
@@ -239,7 +239,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       // Remove from ephemeral storage
       _ephemeralVehicleStorage.remove(vehicleId);
       
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       final updatedVehicles = currentState.vehicles
           .where((v) => v.id != vehicleId)
           .toList();
@@ -254,7 +254,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
           currentOperation: VehicleOperation.none,
@@ -266,7 +266,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
 
   /// Clear any error state
   void clearError() {
-    final currentState = state.valueOrNull;
+    final currentState = state.value;
     if (currentState != null && currentState.error != null) {
       state = AsyncValue.data(currentState.copyWith(error: null));
     }
@@ -275,7 +275,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
   /// Clear all vehicles (for testing purposes)
   Future<void> clearAllVehicles() async {
     state = AsyncValue.data(
-      state.valueOrNull?.copyWith(
+      state.value?.copyWith(
         currentOperation: VehicleOperation.deleting,
         error: null,
       ) ?? const VehicleState(
@@ -297,7 +297,7 @@ class VehiclesNotifier extends _$VehiclesNotifier {
       );
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
-      final currentState = state.valueOrNull ?? const VehicleState();
+      final currentState = state.value ?? const VehicleState();
       state = AsyncValue.data(
         currentState.copyWith(
           currentOperation: VehicleOperation.none,
@@ -315,14 +315,14 @@ class VehiclesNotifier extends _$VehiclesNotifier {
 
 /// Provider for getting a specific vehicle by ID
 @riverpod
-Future<VehicleModel?> vehicle(VehicleRef ref, int vehicleId) async {
+Future<VehicleModel?> vehicle(Ref ref, int vehicleId) async {
   // Get from ephemeral storage
   return _ephemeralVehicleStorage[vehicleId];
 }
 
 /// Provider for checking if a vehicle name exists
 @riverpod
-Future<bool> vehicleNameExists(VehicleNameExistsRef ref, String vehicleName, {int? excludeId}) async {
+Future<bool> vehicleNameExists(Ref ref, String vehicleName, {int? excludeId}) async {
   // Check ephemeral storage for all platforms
   return _ephemeralVehicleStorage.values.any((vehicle) => 
     vehicle.name.toLowerCase() == vehicleName.toLowerCase() && 
@@ -332,14 +332,14 @@ Future<bool> vehicleNameExists(VehicleNameExistsRef ref, String vehicleName, {in
 
 /// Provider for getting vehicle count
 @riverpod
-Future<int> vehicleCount(VehicleCountRef ref) async {
+Future<int> vehicleCount(Ref ref) async {
   // Count from ephemeral storage
   return _ephemeralVehicleStorage.length;
 }
 
 /// Provider for getting vehicle statistics
 @riverpod
-Future<VehicleStatistics> vehicleStatistics(VehicleStatisticsRef ref, int vehicleId) async {
+Future<VehicleStatistics> vehicleStatistics(Ref ref, int vehicleId) async {
   // Return default statistics for ephemeral implementation
   // This will be enhanced when fuel entries are implemented
   return VehicleStatistics.empty(vehicleId);
@@ -347,7 +347,7 @@ Future<VehicleStatistics> vehicleStatistics(VehicleStatisticsRef ref, int vehicl
 
 /// Provider for getting vehicles with basic statistics
 @riverpod
-Future<List<Map<String, dynamic>>> vehiclesWithStats(VehiclesWithStatsRef ref) async {
+Future<List<Map<String, dynamic>>> vehiclesWithStats(Ref ref) async {
   // Return vehicles with basic stats from ephemeral storage
   final vehicles = _ephemeralVehicleStorage.values.toList();
   return vehicles.map((vehicle) => {
@@ -361,7 +361,7 @@ Future<List<Map<String, dynamic>>> vehiclesWithStats(VehiclesWithStatsRef ref) a
 
 /// Provider for checking ephemeral storage health
 @riverpod
-Future<bool> ephemeralStorageHealth(EphemeralStorageHealthRef ref) async {
+Future<bool> ephemeralStorageHealth(Ref ref) async {
   // Ephemeral storage is always healthy if we can access it
   try {
     _ephemeralVehicleStorage.length; // Simple access test

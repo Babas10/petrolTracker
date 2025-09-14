@@ -11,7 +11,7 @@ void main() {
       final container = ProviderContainer();
       
       try {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         // Create a vehicle with unique name
         final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -24,7 +24,7 @@ void main() {
         await notifier.addVehicle(vehicle);
         
         // Get the state and check the vehicle was added
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         
         // Verify vehicle exists
         expect(state.vehicles.isNotEmpty, isTrue);
@@ -48,8 +48,8 @@ void main() {
       final container = ProviderContainer();
       
       try {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // First create a vehicle
         final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -61,7 +61,7 @@ void main() {
         await vehicleNotifier.addVehicle(vehicle);
         
         // Get the vehicle
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.firstWhere(
           (v) => v.name == 'Fuel Test Vehicle $timestamp',
         );
@@ -78,7 +78,7 @@ void main() {
         ));
         
         // Verify fuel entry exists
-        final fuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final fuelState = await container.read(fuelEntriesProvider.future);
         expect(fuelState.entries.isNotEmpty, isTrue);
         
         // Find our specific fuel entry
@@ -100,8 +100,8 @@ void main() {
       final container = ProviderContainer();
       
       try {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
@@ -114,7 +114,7 @@ void main() {
         }
         
         // Verify vehicles were added
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicles = vehicleState.vehicles.where(
           (v) => v.name.contains('Multi Test Vehicle $timestamp')
         ).toList();
@@ -135,7 +135,7 @@ void main() {
         }
         
         // Verify fuel entries were added
-        final fuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final fuelState = await container.read(fuelEntriesProvider.future);
         final testEntries = fuelState.entries.where(
           (e) => testVehicles.any((v) => v.id == e.vehicleId)
         ).toList();
@@ -151,8 +151,8 @@ void main() {
       final container = ProviderContainer();
       
       try {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
@@ -162,7 +162,7 @@ void main() {
           initialKm: 10000.0,
         ));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicle = vehicleState.vehicles.firstWhere(
           (v) => v.name == 'Query Test Vehicle $timestamp',
         );

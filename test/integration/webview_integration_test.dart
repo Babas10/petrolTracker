@@ -34,15 +34,15 @@ void main() {
       final container = ProviderContainer();
       
       // Add test vehicle and fuel entries
-      final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-      final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+      final vehicleNotifier = container.read(vehiclesProvider.notifier);
+      final fuelNotifier = container.read(fuelEntriesProvider.notifier);
 
       await vehicleNotifier.addVehicle(VehicleModel.create(
         name: 'Test Vehicle',
         initialKm: 10000.0,
       ));
 
-      final vehicleState = await container.read(vehiclesNotifierProvider.future);
+      final vehicleState = await container.read(vehiclesProvider.future);
       final testVehicle = vehicleState.vehicles.first;
 
       await fuelNotifier.addFuelEntry(FuelEntryModel.create(
@@ -84,17 +84,17 @@ void main() {
       final container = ProviderContainer();
       
       // Add test vehicle
-      final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+      final vehicleNotifier = container.read(vehiclesProvider.notifier);
       await vehicleNotifier.addVehicle(VehicleModel.create(
         name: 'Test Vehicle',
         initialKm: 10000.0,
       ));
 
-      final vehicleState = await container.read(vehiclesNotifierProvider.future);
+      final vehicleState = await container.read(vehiclesProvider.future);
       final testVehicle = vehicleState.vehicles.first;
 
       // Add multiple fuel entries
-      final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = container.read(fuelEntriesProvider.notifier);
       
       for (int i = 0; i < 5; i++) {
         await fuelNotifier.addFuelEntry(FuelEntryModel.create(

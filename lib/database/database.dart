@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -179,6 +179,20 @@ class AppDatabase extends _$AppDatabase {
           // Backfill existing fuel entries with default currency 'USD'
           // The column already has a default, but we update explicitly for clarity
           await customStatement('UPDATE fuel_entries SET currency = \'USD\' WHERE currency IS NULL');
+        }
+        
+        if (from < 6) {
+          // Migration from v5 to v6: Add exchange rate tracking for multi-currency support
+          
+          // Add new columns for exchange rate tracking
+          await m.addColumn(fuelEntries, fuelEntries.exchangeRate);
+          await m.addColumn(fuelEntries, fuelEntries.rateDate);
+          
+          // Create index for exchange rate queries (optional but helpful for performance)
+          await customStatement('''
+            CREATE INDEX IF NOT EXISTS idx_fuel_entries_exchange_rate 
+            ON fuel_entries (exchange_rate) WHERE exchange_rate IS NOT NULL;
+          ''');
         }
       },
       beforeOpen: (details) async {

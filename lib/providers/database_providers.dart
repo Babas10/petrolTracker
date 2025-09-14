@@ -8,26 +8,26 @@ part 'database_providers.g.dart';
 
 /// Provides the main database instance
 @Riverpod(keepAlive: true)
-AppDatabase database(DatabaseRef ref) {
+AppDatabase database(Ref ref) {
   return DatabaseService.instance.database;
 }
 
 /// Provides the database service instance
 @Riverpod(keepAlive: true)
-DatabaseService databaseService(DatabaseServiceRef ref) {
+DatabaseService databaseService(Ref ref) {
   return DatabaseService.instance;
 }
 
 /// Provides the vehicle repository
 @Riverpod(keepAlive: true)
-VehicleRepository vehicleRepository(VehicleRepositoryRef ref) {
+VehicleRepository vehicleRepository(Ref ref) {
   final databaseService = ref.watch(databaseServiceProvider);
   return VehicleRepository(databaseService: databaseService);
 }
 
 /// Provides the fuel entry repository
 @Riverpod(keepAlive: true)
-FuelEntryRepository fuelEntryRepository(FuelEntryRepositoryRef ref) {
+FuelEntryRepository fuelEntryRepository(Ref ref) {
   final databaseService = ref.watch(databaseServiceProvider);
   return FuelEntryRepository(databaseService: databaseService);
 }

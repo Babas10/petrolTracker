@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+// Temporarily commented out due to code generation issues
 part 'theme_providers.g.dart';
 
 /// Enum representing theme mode options
@@ -123,13 +124,13 @@ class ThemeMode extends _$ThemeMode {
   
   /// Get the current theme mode synchronously (for UI)
   AppThemeMode get currentThemeMode {
-    return state.valueOrNull ?? AppThemeMode.system;
+    return state.value ?? AppThemeMode.system;
   }
 }
 
 /// Provider for comprehensive light theme configuration
 @riverpod
-ThemeData lightTheme(LightThemeRef ref) {
+ThemeData lightTheme(Ref ref) {
   // Watch theme mode to rebuild when it changes
   final themeMode = ref.watch(themeModeProvider);
   return ThemeData(
@@ -208,7 +209,7 @@ ThemeData lightTheme(LightThemeRef ref) {
 
 /// Provider for comprehensive dark theme configuration
 @riverpod
-ThemeData darkTheme(DarkThemeRef ref) {
+ThemeData darkTheme(Ref ref) {
   // Watch theme mode to rebuild when it changes
   final themeMode = ref.watch(themeModeProvider);
   return ThemeData(
@@ -304,7 +305,7 @@ ThemeData darkTheme(DarkThemeRef ref) {
 
 /// Provider that returns the appropriate theme colors for charts
 @riverpod
-Map<String, String> chartThemeColors(ChartThemeColorsRef ref) {
+Map<String, String> chartThemeColors(Ref ref) {
   final themeMode = ref.watch(themeModeProvider);
   final currentPlatformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
   

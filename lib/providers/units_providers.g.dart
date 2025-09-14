@@ -6,848 +6,579 @@ part of 'units_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$formattedConsumptionHash() =>
-    r'ceda3667afd1ebcab2a6ea7b859de972721fd544';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Provider for the current unit system
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(Units)
+const unitsProvider = UnitsProvider._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
+/// Provider for the current unit system
+final class UnitsProvider extends $AsyncNotifierProvider<Units, UnitSystem> {
+  /// Provider for the current unit system
+  const UnitsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'unitsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  @override
+  String debugGetCreateSourceHash() => _$unitsHash();
+
+  @$internal
+  @override
+  Units create() => Units();
+}
+
+String _$unitsHash() => r'635049e8bbe300c072b40ef5522a444bab1e0dab';
+
+/// Provider for the current unit system
+
+abstract class _$Units extends $AsyncNotifier<UnitSystem> {
+  FutureOr<UnitSystem> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<UnitSystem>, UnitSystem>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<UnitSystem>, UnitSystem>,
+              AsyncValue<UnitSystem>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
   }
 }
 
 /// Provider that returns formatted consumption with current units
-///
-/// Copied from [formattedConsumption].
+
 @ProviderFor(formattedConsumption)
-const formattedConsumptionProvider = FormattedConsumptionFamily();
+const formattedConsumptionProvider = FormattedConsumptionFamily._();
 
 /// Provider that returns formatted consumption with current units
-///
-/// Copied from [formattedConsumption].
-class FormattedConsumptionFamily extends Family<String> {
-  /// Provider that returns formatted consumption with current units
-  ///
-  /// Copied from [formattedConsumption].
-  const FormattedConsumptionFamily();
 
+final class FormattedConsumptionProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
   /// Provider that returns formatted consumption with current units
-  ///
-  /// Copied from [formattedConsumption].
-  FormattedConsumptionProvider call(double consumption) {
-    return FormattedConsumptionProvider(consumption);
+  const FormattedConsumptionProvider._({
+    required FormattedConsumptionFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'formattedConsumptionProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$formattedConsumptionHash();
+
+  @override
+  String toString() {
+    return r'formattedConsumptionProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    final argument = this.argument as double;
+    return formattedConsumption(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
   }
 
   @override
-  FormattedConsumptionProvider getProviderOverride(
-    covariant FormattedConsumptionProvider provider,
-  ) {
-    return call(provider.consumption);
+  bool operator ==(Object other) {
+    return other is FormattedConsumptionProvider && other.argument == argument;
   }
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'formattedConsumptionProvider';
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
+String _$formattedConsumptionHash() =>
+    r'945ec34d695c7e86b9be6984512b17233601d0fe';
+
 /// Provider that returns formatted consumption with current units
-///
-/// Copied from [formattedConsumption].
-class FormattedConsumptionProvider extends AutoDisposeProvider<String> {
-  /// Provider that returns formatted consumption with current units
-  ///
-  /// Copied from [formattedConsumption].
-  FormattedConsumptionProvider(double consumption)
-    : this._internal(
-        (ref) =>
-            formattedConsumption(ref as FormattedConsumptionRef, consumption),
-        from: formattedConsumptionProvider,
+
+final class FormattedConsumptionFamily extends $Family
+    with $FunctionalFamilyOverride<String, double> {
+  const FormattedConsumptionFamily._()
+    : super(
+        retry: null,
         name: r'formattedConsumptionProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$formattedConsumptionHash,
-        dependencies: FormattedConsumptionFamily._dependencies,
-        allTransitiveDependencies:
-            FormattedConsumptionFamily._allTransitiveDependencies,
-        consumption: consumption,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FormattedConsumptionProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.consumption,
-  }) : super.internal();
+  /// Provider that returns formatted consumption with current units
 
-  final double consumption;
+  FormattedConsumptionProvider call(double consumption) =>
+      FormattedConsumptionProvider._(argument: consumption, from: this);
 
   @override
-  Override overrideWith(
-    String Function(FormattedConsumptionRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FormattedConsumptionProvider._internal(
-        (ref) => create(ref as FormattedConsumptionRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        consumption: consumption,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeProviderElement<String> createElement() {
-    return _FormattedConsumptionProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is FormattedConsumptionProvider &&
-        other.consumption == consumption;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, consumption.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'formattedConsumptionProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FormattedConsumptionRef on AutoDisposeProviderRef<String> {
-  /// The parameter `consumption` of this provider.
-  double get consumption;
-}
-
-class _FormattedConsumptionProviderElement
-    extends AutoDisposeProviderElement<String>
-    with FormattedConsumptionRef {
-  _FormattedConsumptionProviderElement(super.provider);
-
-  @override
-  double get consumption =>
-      (origin as FormattedConsumptionProvider).consumption;
-}
-
-String _$formattedDistanceHash() => r'c0e056ed53ec9918a819199ff6a103200cb8635b';
 
 /// Provider that returns formatted distance with current units
-///
-/// Copied from [formattedDistance].
+
 @ProviderFor(formattedDistance)
-const formattedDistanceProvider = FormattedDistanceFamily();
+const formattedDistanceProvider = FormattedDistanceFamily._();
 
 /// Provider that returns formatted distance with current units
-///
-/// Copied from [formattedDistance].
-class FormattedDistanceFamily extends Family<String> {
-  /// Provider that returns formatted distance with current units
-  ///
-  /// Copied from [formattedDistance].
-  const FormattedDistanceFamily();
 
+final class FormattedDistanceProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
   /// Provider that returns formatted distance with current units
-  ///
-  /// Copied from [formattedDistance].
-  FormattedDistanceProvider call(double distance) {
-    return FormattedDistanceProvider(distance);
+  const FormattedDistanceProvider._({
+    required FormattedDistanceFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'formattedDistanceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$formattedDistanceHash();
+
+  @override
+  String toString() {
+    return r'formattedDistanceProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    final argument = this.argument as double;
+    return formattedDistance(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
   }
 
   @override
-  FormattedDistanceProvider getProviderOverride(
-    covariant FormattedDistanceProvider provider,
-  ) {
-    return call(provider.distance);
+  bool operator ==(Object other) {
+    return other is FormattedDistanceProvider && other.argument == argument;
   }
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'formattedDistanceProvider';
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
+String _$formattedDistanceHash() => r'de02a32293984d553e7892dcae461a2135d0314b';
+
 /// Provider that returns formatted distance with current units
-///
-/// Copied from [formattedDistance].
-class FormattedDistanceProvider extends AutoDisposeProvider<String> {
-  /// Provider that returns formatted distance with current units
-  ///
-  /// Copied from [formattedDistance].
-  FormattedDistanceProvider(double distance)
-    : this._internal(
-        (ref) => formattedDistance(ref as FormattedDistanceRef, distance),
-        from: formattedDistanceProvider,
+
+final class FormattedDistanceFamily extends $Family
+    with $FunctionalFamilyOverride<String, double> {
+  const FormattedDistanceFamily._()
+    : super(
+        retry: null,
         name: r'formattedDistanceProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$formattedDistanceHash,
-        dependencies: FormattedDistanceFamily._dependencies,
-        allTransitiveDependencies:
-            FormattedDistanceFamily._allTransitiveDependencies,
-        distance: distance,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  FormattedDistanceProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.distance,
-  }) : super.internal();
+  /// Provider that returns formatted distance with current units
 
-  final double distance;
+  FormattedDistanceProvider call(double distance) =>
+      FormattedDistanceProvider._(argument: distance, from: this);
 
   @override
-  Override overrideWith(String Function(FormattedDistanceRef provider) create) {
-    return ProviderOverride(
-      origin: this,
-      override: FormattedDistanceProvider._internal(
-        (ref) => create(ref as FormattedDistanceRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        distance: distance,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeProviderElement<String> createElement() {
-    return _FormattedDistanceProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is FormattedDistanceProvider && other.distance == distance;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, distance.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'formattedDistanceProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FormattedDistanceRef on AutoDisposeProviderRef<String> {
-  /// The parameter `distance` of this provider.
-  double get distance;
-}
-
-class _FormattedDistanceProviderElement
-    extends AutoDisposeProviderElement<String>
-    with FormattedDistanceRef {
-  _FormattedDistanceProviderElement(super.provider);
-
-  @override
-  double get distance => (origin as FormattedDistanceProvider).distance;
-}
-
-String _$formattedVolumeHash() => r'1eab4203fc5cd6e4b02c9b665757aab7f5f9473e';
 
 /// Provider that returns formatted volume with current units
-///
-/// Copied from [formattedVolume].
+
 @ProviderFor(formattedVolume)
-const formattedVolumeProvider = FormattedVolumeFamily();
+const formattedVolumeProvider = FormattedVolumeFamily._();
 
 /// Provider that returns formatted volume with current units
-///
-/// Copied from [formattedVolume].
-class FormattedVolumeFamily extends Family<String> {
-  /// Provider that returns formatted volume with current units
-  ///
-  /// Copied from [formattedVolume].
-  const FormattedVolumeFamily();
 
+final class FormattedVolumeProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
   /// Provider that returns formatted volume with current units
-  ///
-  /// Copied from [formattedVolume].
-  FormattedVolumeProvider call(double volume) {
-    return FormattedVolumeProvider(volume);
+  const FormattedVolumeProvider._({
+    required FormattedVolumeFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'formattedVolumeProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$formattedVolumeHash();
+
+  @override
+  String toString() {
+    return r'formattedVolumeProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  FormattedVolumeProvider getProviderOverride(
-    covariant FormattedVolumeProvider provider,
-  ) {
-    return call(provider.volume);
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    final argument = this.argument as double;
+    return formattedVolume(ref, argument);
   }
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'formattedVolumeProvider';
-}
-
-/// Provider that returns formatted volume with current units
-///
-/// Copied from [formattedVolume].
-class FormattedVolumeProvider extends AutoDisposeProvider<String> {
-  /// Provider that returns formatted volume with current units
-  ///
-  /// Copied from [formattedVolume].
-  FormattedVolumeProvider(double volume)
-    : this._internal(
-        (ref) => formattedVolume(ref as FormattedVolumeRef, volume),
-        from: formattedVolumeProvider,
-        name: r'formattedVolumeProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$formattedVolumeHash,
-        dependencies: FormattedVolumeFamily._dependencies,
-        allTransitiveDependencies:
-            FormattedVolumeFamily._allTransitiveDependencies,
-        volume: volume,
-      );
-
-  FormattedVolumeProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.volume,
-  }) : super.internal();
-
-  final double volume;
-
-  @override
-  Override overrideWith(String Function(FormattedVolumeRef provider) create) {
-    return ProviderOverride(
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
       origin: this,
-      override: FormattedVolumeProvider._internal(
-        (ref) => create(ref as FormattedVolumeRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        volume: volume,
-      ),
+      providerOverride: $SyncValueProvider<String>(value),
     );
-  }
-
-  @override
-  AutoDisposeProviderElement<String> createElement() {
-    return _FormattedVolumeProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FormattedVolumeProvider && other.volume == volume;
+    return other is FormattedVolumeProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, volume.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FormattedVolumeRef on AutoDisposeProviderRef<String> {
-  /// The parameter `volume` of this provider.
-  double get volume;
-}
+String _$formattedVolumeHash() => r'6cfbd5ff3dc1f038280483fb9c65ef98989d396a';
 
-class _FormattedVolumeProviderElement extends AutoDisposeProviderElement<String>
-    with FormattedVolumeRef {
-  _FormattedVolumeProviderElement(super.provider);
+/// Provider that returns formatted volume with current units
 
-  @override
-  double get volume => (origin as FormattedVolumeProvider).volume;
-}
-
-String _$consumptionInCurrentUnitsHash() =>
-    r'c8a4ec218a679283dae2613fdf8fe7e8353b5496';
-
-/// Provider that returns consumption value in the current unit system
-///
-/// Copied from [consumptionInCurrentUnits].
-@ProviderFor(consumptionInCurrentUnits)
-const consumptionInCurrentUnitsProvider = ConsumptionInCurrentUnitsFamily();
-
-/// Provider that returns consumption value in the current unit system
-///
-/// Copied from [consumptionInCurrentUnits].
-class ConsumptionInCurrentUnitsFamily extends Family<double> {
-  /// Provider that returns consumption value in the current unit system
-  ///
-  /// Copied from [consumptionInCurrentUnits].
-  const ConsumptionInCurrentUnitsFamily();
-
-  /// Provider that returns consumption value in the current unit system
-  ///
-  /// Copied from [consumptionInCurrentUnits].
-  ConsumptionInCurrentUnitsProvider call(double metricConsumption) {
-    return ConsumptionInCurrentUnitsProvider(metricConsumption);
-  }
-
-  @override
-  ConsumptionInCurrentUnitsProvider getProviderOverride(
-    covariant ConsumptionInCurrentUnitsProvider provider,
-  ) {
-    return call(provider.metricConsumption);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'consumptionInCurrentUnitsProvider';
-}
-
-/// Provider that returns consumption value in the current unit system
-///
-/// Copied from [consumptionInCurrentUnits].
-class ConsumptionInCurrentUnitsProvider extends AutoDisposeProvider<double> {
-  /// Provider that returns consumption value in the current unit system
-  ///
-  /// Copied from [consumptionInCurrentUnits].
-  ConsumptionInCurrentUnitsProvider(double metricConsumption)
-    : this._internal(
-        (ref) => consumptionInCurrentUnits(
-          ref as ConsumptionInCurrentUnitsRef,
-          metricConsumption,
-        ),
-        from: consumptionInCurrentUnitsProvider,
-        name: r'consumptionInCurrentUnitsProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$consumptionInCurrentUnitsHash,
-        dependencies: ConsumptionInCurrentUnitsFamily._dependencies,
-        allTransitiveDependencies:
-            ConsumptionInCurrentUnitsFamily._allTransitiveDependencies,
-        metricConsumption: metricConsumption,
+final class FormattedVolumeFamily extends $Family
+    with $FunctionalFamilyOverride<String, double> {
+  const FormattedVolumeFamily._()
+    : super(
+        retry: null,
+        name: r'formattedVolumeProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  ConsumptionInCurrentUnitsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.metricConsumption,
-  }) : super.internal();
+  /// Provider that returns formatted volume with current units
 
-  final double metricConsumption;
+  FormattedVolumeProvider call(double volume) =>
+      FormattedVolumeProvider._(argument: volume, from: this);
 
   @override
-  Override overrideWith(
-    double Function(ConsumptionInCurrentUnitsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ConsumptionInCurrentUnitsProvider._internal(
-        (ref) => create(ref as ConsumptionInCurrentUnitsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        metricConsumption: metricConsumption,
-      ),
-    );
+  String toString() => r'formattedVolumeProvider';
+}
+
+/// Provider that returns consumption value in the current unit system
+
+@ProviderFor(consumptionInCurrentUnits)
+const consumptionInCurrentUnitsProvider = ConsumptionInCurrentUnitsFamily._();
+
+/// Provider that returns consumption value in the current unit system
+
+final class ConsumptionInCurrentUnitsProvider
+    extends $FunctionalProvider<double, double, double>
+    with $Provider<double> {
+  /// Provider that returns consumption value in the current unit system
+  const ConsumptionInCurrentUnitsProvider._({
+    required ConsumptionInCurrentUnitsFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'consumptionInCurrentUnitsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$consumptionInCurrentUnitsHash();
+
+  @override
+  String toString() {
+    return r'consumptionInCurrentUnitsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeProviderElement<double> createElement() {
-    return _ConsumptionInCurrentUnitsProviderElement(this);
+  $ProviderElement<double> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  double create(Ref ref) {
+    final argument = this.argument as double;
+    return consumptionInCurrentUnits(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double>(value),
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is ConsumptionInCurrentUnitsProvider &&
-        other.metricConsumption == metricConsumption;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, metricConsumption.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ConsumptionInCurrentUnitsRef on AutoDisposeProviderRef<double> {
-  /// The parameter `metricConsumption` of this provider.
-  double get metricConsumption;
-}
+String _$consumptionInCurrentUnitsHash() =>
+    r'8511090ebefa2fcb9e524ee419fe0fe5ae80fecc';
 
-class _ConsumptionInCurrentUnitsProviderElement
-    extends AutoDisposeProviderElement<double>
-    with ConsumptionInCurrentUnitsRef {
-  _ConsumptionInCurrentUnitsProviderElement(super.provider);
+/// Provider that returns consumption value in the current unit system
 
-  @override
-  double get metricConsumption =>
-      (origin as ConsumptionInCurrentUnitsProvider).metricConsumption;
-}
-
-String _$distanceInCurrentUnitsHash() =>
-    r'672f1d12b3d2a2a9137b17627785facc5d7c7476';
-
-/// Provider that returns distance value in the current unit system
-///
-/// Copied from [distanceInCurrentUnits].
-@ProviderFor(distanceInCurrentUnits)
-const distanceInCurrentUnitsProvider = DistanceInCurrentUnitsFamily();
-
-/// Provider that returns distance value in the current unit system
-///
-/// Copied from [distanceInCurrentUnits].
-class DistanceInCurrentUnitsFamily extends Family<double> {
-  /// Provider that returns distance value in the current unit system
-  ///
-  /// Copied from [distanceInCurrentUnits].
-  const DistanceInCurrentUnitsFamily();
-
-  /// Provider that returns distance value in the current unit system
-  ///
-  /// Copied from [distanceInCurrentUnits].
-  DistanceInCurrentUnitsProvider call(double kilometers) {
-    return DistanceInCurrentUnitsProvider(kilometers);
-  }
-
-  @override
-  DistanceInCurrentUnitsProvider getProviderOverride(
-    covariant DistanceInCurrentUnitsProvider provider,
-  ) {
-    return call(provider.kilometers);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'distanceInCurrentUnitsProvider';
-}
-
-/// Provider that returns distance value in the current unit system
-///
-/// Copied from [distanceInCurrentUnits].
-class DistanceInCurrentUnitsProvider extends AutoDisposeProvider<double> {
-  /// Provider that returns distance value in the current unit system
-  ///
-  /// Copied from [distanceInCurrentUnits].
-  DistanceInCurrentUnitsProvider(double kilometers)
-    : this._internal(
-        (ref) => distanceInCurrentUnits(
-          ref as DistanceInCurrentUnitsRef,
-          kilometers,
-        ),
-        from: distanceInCurrentUnitsProvider,
-        name: r'distanceInCurrentUnitsProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$distanceInCurrentUnitsHash,
-        dependencies: DistanceInCurrentUnitsFamily._dependencies,
-        allTransitiveDependencies:
-            DistanceInCurrentUnitsFamily._allTransitiveDependencies,
-        kilometers: kilometers,
+final class ConsumptionInCurrentUnitsFamily extends $Family
+    with $FunctionalFamilyOverride<double, double> {
+  const ConsumptionInCurrentUnitsFamily._()
+    : super(
+        retry: null,
+        name: r'consumptionInCurrentUnitsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  DistanceInCurrentUnitsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.kilometers,
-  }) : super.internal();
+  /// Provider that returns consumption value in the current unit system
 
-  final double kilometers;
+  ConsumptionInCurrentUnitsProvider call(double metricConsumption) =>
+      ConsumptionInCurrentUnitsProvider._(
+        argument: metricConsumption,
+        from: this,
+      );
 
   @override
-  Override overrideWith(
-    double Function(DistanceInCurrentUnitsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DistanceInCurrentUnitsProvider._internal(
-        (ref) => create(ref as DistanceInCurrentUnitsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        kilometers: kilometers,
-      ),
-    );
+  String toString() => r'consumptionInCurrentUnitsProvider';
+}
+
+/// Provider that returns distance value in the current unit system
+
+@ProviderFor(distanceInCurrentUnits)
+const distanceInCurrentUnitsProvider = DistanceInCurrentUnitsFamily._();
+
+/// Provider that returns distance value in the current unit system
+
+final class DistanceInCurrentUnitsProvider
+    extends $FunctionalProvider<double, double, double>
+    with $Provider<double> {
+  /// Provider that returns distance value in the current unit system
+  const DistanceInCurrentUnitsProvider._({
+    required DistanceInCurrentUnitsFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'distanceInCurrentUnitsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$distanceInCurrentUnitsHash();
+
+  @override
+  String toString() {
+    return r'distanceInCurrentUnitsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeProviderElement<double> createElement() {
-    return _DistanceInCurrentUnitsProviderElement(this);
+  $ProviderElement<double> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  double create(Ref ref) {
+    final argument = this.argument as double;
+    return distanceInCurrentUnits(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double>(value),
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is DistanceInCurrentUnitsProvider &&
-        other.kilometers == kilometers;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, kilometers.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DistanceInCurrentUnitsRef on AutoDisposeProviderRef<double> {
-  /// The parameter `kilometers` of this provider.
-  double get kilometers;
-}
+String _$distanceInCurrentUnitsHash() =>
+    r'd33365946e7b0b4ce9025e5d42ee037acbd3e109';
 
-class _DistanceInCurrentUnitsProviderElement
-    extends AutoDisposeProviderElement<double>
-    with DistanceInCurrentUnitsRef {
-  _DistanceInCurrentUnitsProviderElement(super.provider);
+/// Provider that returns distance value in the current unit system
 
-  @override
-  double get kilometers =>
-      (origin as DistanceInCurrentUnitsProvider).kilometers;
-}
-
-String _$volumeInCurrentUnitsHash() =>
-    r'ca3a54daa04bdb258da574c9641e828fbc9a3560';
-
-/// Provider that returns volume value in the current unit system
-///
-/// Copied from [volumeInCurrentUnits].
-@ProviderFor(volumeInCurrentUnits)
-const volumeInCurrentUnitsProvider = VolumeInCurrentUnitsFamily();
-
-/// Provider that returns volume value in the current unit system
-///
-/// Copied from [volumeInCurrentUnits].
-class VolumeInCurrentUnitsFamily extends Family<double> {
-  /// Provider that returns volume value in the current unit system
-  ///
-  /// Copied from [volumeInCurrentUnits].
-  const VolumeInCurrentUnitsFamily();
-
-  /// Provider that returns volume value in the current unit system
-  ///
-  /// Copied from [volumeInCurrentUnits].
-  VolumeInCurrentUnitsProvider call(double liters) {
-    return VolumeInCurrentUnitsProvider(liters);
-  }
-
-  @override
-  VolumeInCurrentUnitsProvider getProviderOverride(
-    covariant VolumeInCurrentUnitsProvider provider,
-  ) {
-    return call(provider.liters);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'volumeInCurrentUnitsProvider';
-}
-
-/// Provider that returns volume value in the current unit system
-///
-/// Copied from [volumeInCurrentUnits].
-class VolumeInCurrentUnitsProvider extends AutoDisposeProvider<double> {
-  /// Provider that returns volume value in the current unit system
-  ///
-  /// Copied from [volumeInCurrentUnits].
-  VolumeInCurrentUnitsProvider(double liters)
-    : this._internal(
-        (ref) => volumeInCurrentUnits(ref as VolumeInCurrentUnitsRef, liters),
-        from: volumeInCurrentUnitsProvider,
-        name: r'volumeInCurrentUnitsProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$volumeInCurrentUnitsHash,
-        dependencies: VolumeInCurrentUnitsFamily._dependencies,
-        allTransitiveDependencies:
-            VolumeInCurrentUnitsFamily._allTransitiveDependencies,
-        liters: liters,
+final class DistanceInCurrentUnitsFamily extends $Family
+    with $FunctionalFamilyOverride<double, double> {
+  const DistanceInCurrentUnitsFamily._()
+    : super(
+        retry: null,
+        name: r'distanceInCurrentUnitsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  VolumeInCurrentUnitsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.liters,
-  }) : super.internal();
+  /// Provider that returns distance value in the current unit system
 
-  final double liters;
+  DistanceInCurrentUnitsProvider call(double kilometers) =>
+      DistanceInCurrentUnitsProvider._(argument: kilometers, from: this);
 
   @override
-  Override overrideWith(
-    double Function(VolumeInCurrentUnitsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: VolumeInCurrentUnitsProvider._internal(
-        (ref) => create(ref as VolumeInCurrentUnitsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        liters: liters,
-      ),
-    );
+  String toString() => r'distanceInCurrentUnitsProvider';
+}
+
+/// Provider that returns volume value in the current unit system
+
+@ProviderFor(volumeInCurrentUnits)
+const volumeInCurrentUnitsProvider = VolumeInCurrentUnitsFamily._();
+
+/// Provider that returns volume value in the current unit system
+
+final class VolumeInCurrentUnitsProvider
+    extends $FunctionalProvider<double, double, double>
+    with $Provider<double> {
+  /// Provider that returns volume value in the current unit system
+  const VolumeInCurrentUnitsProvider._({
+    required VolumeInCurrentUnitsFamily super.from,
+    required double super.argument,
+  }) : super(
+         retry: null,
+         name: r'volumeInCurrentUnitsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$volumeInCurrentUnitsHash();
+
+  @override
+  String toString() {
+    return r'volumeInCurrentUnitsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeProviderElement<double> createElement() {
-    return _VolumeInCurrentUnitsProviderElement(this);
+  $ProviderElement<double> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  double create(Ref ref) {
+    final argument = this.argument as double;
+    return volumeInCurrentUnits(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(double value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<double>(value),
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is VolumeInCurrentUnitsProvider && other.liters == liters;
+    return other is VolumeInCurrentUnitsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, liters.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin VolumeInCurrentUnitsRef on AutoDisposeProviderRef<double> {
-  /// The parameter `liters` of this provider.
-  double get liters;
-}
+String _$volumeInCurrentUnitsHash() =>
+    r'a656c426e1fde0dcc03ddb3940ec343082cbda08';
 
-class _VolumeInCurrentUnitsProviderElement
-    extends AutoDisposeProviderElement<double>
-    with VolumeInCurrentUnitsRef {
-  _VolumeInCurrentUnitsProviderElement(super.provider);
+/// Provider that returns volume value in the current unit system
+
+final class VolumeInCurrentUnitsFamily extends $Family
+    with $FunctionalFamilyOverride<double, double> {
+  const VolumeInCurrentUnitsFamily._()
+    : super(
+        retry: null,
+        name: r'volumeInCurrentUnitsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider that returns volume value in the current unit system
+
+  VolumeInCurrentUnitsProvider call(double liters) =>
+      VolumeInCurrentUnitsProvider._(argument: liters, from: this);
 
   @override
-  double get liters => (origin as VolumeInCurrentUnitsProvider).liters;
+  String toString() => r'volumeInCurrentUnitsProvider';
 }
-
-String _$unitsHash() => r'0dd2c2463a1dac2d850f079a2552358625876b47';
-
-/// Provider for the current unit system
-///
-/// Copied from [Units].
-@ProviderFor(Units)
-final unitsProvider =
-    AutoDisposeAsyncNotifierProvider<Units, UnitSystem>.internal(
-      Units.new,
-      name: r'unitsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$unitsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$Units = AutoDisposeAsyncNotifier<UnitSystem>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

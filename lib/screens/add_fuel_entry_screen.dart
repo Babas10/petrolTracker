@@ -110,7 +110,7 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
   }
 
   Widget _buildVehicleSelection() {
-    final vehiclesAsync = ref.watch(vehiclesNotifierProvider);
+    final vehiclesAsync = ref.watch(vehiclesProvider);
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,7 +804,7 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       }
       
       // Save the entry
-      await ref.read(fuelEntriesNotifierProvider.notifier).addFuelEntry(fuelEntry);
+      await ref.read(fuelEntriesProvider.notifier).addFuelEntry(fuelEntry);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

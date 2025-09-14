@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:petrol_tracker/database/database.dart';
 import 'package:petrol_tracker/providers/units_providers.dart';
+import '../utils/currency_formatter.dart';
+import '../utils/currency_validator.dart';
 
 /// Data model for FuelEntry with validation and business logic
 class FuelEntryModel {
@@ -16,6 +18,8 @@ class FuelEntryModel {
   final double pricePerLiter;
   final double? consumption;
   final bool isFullTank;
+  final double? exchangeRate;
+  final DateTime? rateDate;
 
   const FuelEntryModel({
     this.id,
@@ -30,6 +34,8 @@ class FuelEntryModel {
     required this.pricePerLiter,
     this.consumption,
     this.isFullTank = true,
+    this.exchangeRate,
+    this.rateDate,
   });
 
   /// Creates a FuelEntryModel from a Drift FuelEntry entity
@@ -47,6 +53,8 @@ class FuelEntryModel {
       pricePerLiter: entity.pricePerLiter,
       consumption: entity.consumption,
       isFullTank: entity.isFullTank,
+      exchangeRate: entity.exchangeRate,
+      rateDate: entity.rateDate,
     );
   }
 
@@ -63,6 +71,8 @@ class FuelEntryModel {
     required double pricePerLiter,
     double? consumption,
     bool isFullTank = true,
+    double? exchangeRate,
+    DateTime? rateDate,
   }) {
     return FuelEntryModel(
       vehicleId: vehicleId,
@@ -76,6 +86,8 @@ class FuelEntryModel {
       pricePerLiter: pricePerLiter,
       consumption: consumption,
       isFullTank: isFullTank,
+      exchangeRate: exchangeRate,
+      rateDate: rateDate,
     );
   }
 
@@ -93,6 +105,8 @@ class FuelEntryModel {
       pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
       isFullTank: Value(isFullTank),
+      exchangeRate: Value(exchangeRate),
+      rateDate: Value(rateDate),
     );
   }
 
@@ -111,6 +125,8 @@ class FuelEntryModel {
       pricePerLiter: Value(pricePerLiter),
       consumption: Value(consumption),
       isFullTank: Value(isFullTank),
+      exchangeRate: Value(exchangeRate),
+      rateDate: Value(rateDate),
     );
   }
 
@@ -200,8 +216,20 @@ class FuelEntryModel {
       if (originalAmount! <= 0) {
         errors.add('Original amount must be greater than 0');
       }
-      // If both price and original amount are provided, they should be consistent
-      // unless this is a converted amount scenario
+    }
+
+    // Exchange rate validation (if provided)
+    if (exchangeRate != null) {
+      if (exchangeRate! <= 0) {
+        errors.add('Exchange rate must be greater than 0');
+      } else if (exchangeRate! >= 10000) {
+        errors.add('Exchange rate seems unreasonably high (>= 10000)');
+      }
+    }
+
+    // Rate date validation (if exchange rate is provided)
+    if (exchangeRate != null && rateDate == null) {
+      errors.add('Rate date is required when exchange rate is provided');
     }
 
     // Country validation
@@ -278,6 +306,8 @@ class FuelEntryModel {
     double? pricePerLiter,
     double? consumption,
     bool? isFullTank,
+    double? exchangeRate,
+    DateTime? rateDate,
   }) {
     return FuelEntryModel(
       id: id ?? this.id,
@@ -292,6 +322,8 @@ class FuelEntryModel {
       pricePerLiter: pricePerLiter ?? this.pricePerLiter,
       consumption: consumption ?? this.consumption,
       isFullTank: isFullTank ?? this.isFullTank,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      rateDate: rateDate ?? this.rateDate,
     );
   }
 
@@ -310,7 +342,9 @@ class FuelEntryModel {
         other.country == country &&
         other.pricePerLiter == pricePerLiter &&
         other.consumption == consumption &&
-        other.isFullTank == isFullTank;
+        other.isFullTank == isFullTank &&
+        other.exchangeRate == exchangeRate &&
+        other.rateDate == rateDate;
   }
 
   @override
@@ -328,12 +362,14 @@ class FuelEntryModel {
       pricePerLiter,
       consumption,
       isFullTank,
+      exchangeRate,
+      rateDate,
     );
   }
 
   @override
   String toString() {
-    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, originalAmount: $originalAmount, currency: $currency, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption, isFullTank: $isFullTank)';
+    return 'FuelEntryModel(id: $id, vehicleId: $vehicleId, date: $date, currentKm: $currentKm, fuelAmount: $fuelAmount, price: $price, originalAmount: $originalAmount, currency: $currency, country: $country, pricePerLiter: $pricePerLiter, consumption: $consumption, isFullTank: $isFullTank, exchangeRate: $exchangeRate, rateDate: $rateDate)';
   }
 
   /// Check if this entry has been converted from a different currency
@@ -342,16 +378,63 @@ class FuelEntryModel {
   /// Get the formatted original price with currency
   String get formattedOriginalPrice {
     if (originalAmount != null) {
-      return '${originalAmount!.toStringAsFixed(2)} $currency';
+      return CurrencyFormatter.formatAmount(originalAmount!, currency);
     }
-    return '${price.toStringAsFixed(2)} $currency';
+    return CurrencyFormatter.formatAmount(price, currency);
   }
 
   /// Get the formatted converted price (if different from original)
   String get formattedConvertedPrice {
     if (isConverted) {
-      return '\$${price.toStringAsFixed(2)}'; // Assuming user's primary currency display
+      return CurrencyFormatter.formatAmount(price, 'USD'); // Assuming USD as primary
     }
     return formattedOriginalPrice;
   }
+
+  /// Get formatted price with original amount if converted
+  String get formattedPriceWithOriginal {
+    return CurrencyFormatter.formatWithOriginal(
+      price,
+      'USD', // Assuming USD as primary display currency
+      originalAmount: originalAmount,
+      originalCurrency: currency,
+      showOriginal: isConverted,
+    );
+  }
+
+  /// Get formatted price per liter with proper currency
+  String get formattedPricePerLiterWithCurrency {
+    return CurrencyFormatter.formatPricePerUnit(pricePerLiter, currency, 'L');
+  }
+
+  /// Get formatted exchange rate information
+  String? get formattedExchangeRate {
+    if (exchangeRate == null || !isConverted) return null;
+    return CurrencyFormatter.formatExchangeRate(currency, 'USD', exchangeRate!);
+  }
+
+  /// Get comprehensive cost summary with conversion details
+  String get costSummary {
+    if (!isConverted) {
+      return CurrencyFormatter.formatAmount(price, currency);
+    }
+    
+    final rateInfo = exchangeRate != null ? ' @ ${exchangeRate!.toStringAsFixed(4)}' : '';
+    final dateInfo = rateDate != null ? ' (${rateDate!.toIso8601String().split('T')[0]})' : '';
+    return '${CurrencyFormatter.formatAmount(originalAmount!, currency)} → ${CurrencyFormatter.formatAmount(price, 'USD')}$rateInfo$dateInfo';
+  }
+
+  /// Check if currency conversion data is complete
+  bool get hasCompleteConversionData {
+    return isConverted && exchangeRate != null && rateDate != null;
+  }
+
+  /// Get age of exchange rate in hours
+  int get exchangeRateAgeInHours {
+    if (rateDate == null) return 0;
+    return DateTime.now().difference(rateDate!).inHours;
+  }
+
+  /// Check if exchange rate is fresh (less than 24 hours old)
+  bool get isExchangeRateFresh => exchangeRateAgeInHours < 24;
 }

@@ -19,8 +19,8 @@ void main() {
     
     group('Vehicle and Fuel Entry Integration', () {
       test('should maintain data consistency across vehicle and fuel entry providers', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a vehicle
         final vehicle = VehicleModel.create(
@@ -30,7 +30,7 @@ void main() {
         await vehicleNotifier.addVehicle(vehicle);
         
         // Get the added vehicle
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Integration Test Vehicle'
         ).first;
@@ -68,7 +68,7 @@ void main() {
         await vehicleNotifier.deleteVehicle(addedVehicle.id!);
         
         // Fuel entries should still exist in storage but vehicle should be gone
-        final updatedVehicleState = await container.read(vehiclesNotifierProvider.future);
+        final updatedVehicleState = await container.read(vehiclesProvider.future);
         expect(updatedVehicleState.vehicles.any((v) => v.id == addedVehicle.id), isFalse);
         
         final orphanedEntries = await container.read(
@@ -78,8 +78,8 @@ void main() {
       });
       
       test('should handle concurrent operations on different vehicles', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add multiple vehicles concurrently
         final vehicles = [
@@ -90,7 +90,7 @@ void main() {
         
         await Future.wait(vehicles.map((v) => vehicleNotifier.addVehicle(v)));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicles = vehicleState.vehicles.where(
           (v) => ['Vehicle A', 'Vehicle B', 'Vehicle C'].contains(v.name)
         ).toList();
@@ -125,7 +125,7 @@ void main() {
     group('Data Persistence During Session', () {
       test('should maintain data across multiple provider container instances', () async {
         // Add data with first container
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         await vehicleNotifier.addVehicle(VehicleModel.create(
           name: 'Persistent Vehicle',
           initialKm: 10000.0,
@@ -133,7 +133,7 @@ void main() {
         
         // Create second container and verify data persists
         final container2 = ProviderContainer();
-        final vehicleState2 = await container2.read(vehiclesNotifierProvider.future);
+        final vehicleState2 = await container2.read(vehiclesProvider.future);
         
         expect(vehicleState2.vehicles.any((v) => v.name == 'Persistent Vehicle'), isTrue);
         
@@ -141,8 +141,8 @@ void main() {
       });
       
       test('should handle large datasets efficiently', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a vehicle for testing
         final vehicle = VehicleModel.create(
@@ -151,7 +151,7 @@ void main() {
         );
         await vehicleNotifier.addVehicle(vehicle);
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Performance Test Vehicle'
         ).first;
@@ -187,7 +187,7 @@ void main() {
     
     group('Error Handling and Edge Cases', () {
       test('should handle invalid vehicle references in fuel entries', () async {
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add fuel entry with non-existent vehicle ID
         await fuelNotifier.addFuelEntry(FuelEntryModel.create(
@@ -201,7 +201,7 @@ void main() {
         ));
         
         // Entry should still be added (ephemeral storage doesn't enforce referential integrity)
-        final fuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final fuelState = await container.read(fuelEntriesProvider.future);
         expect(fuelState.entries.where((e) => e.vehicleId == 99999).length, greaterThanOrEqualTo(1));
         
         // But vehicle lookup should return null
@@ -210,7 +210,7 @@ void main() {
       });
       
       test('should handle duplicate vehicle names gracefully', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         
         // Add two vehicles with same name
         await vehicleNotifier.addVehicle(VehicleModel.create(
@@ -223,7 +223,7 @@ void main() {
           initialKm: 20000.0,
         ));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final duplicateVehicles = vehicleState.vehicles.where(
           (v) => v.name == 'Duplicate Name'
         ).toList();
@@ -235,8 +235,8 @@ void main() {
     
     group('State Management', () {
       test('should maintain consistent state across refreshes', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add test data
         final vehicle = VehicleModel.create(
@@ -245,7 +245,7 @@ void main() {
         );
         await vehicleNotifier.addVehicle(vehicle);
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Refresh Test Vehicle'
         ).first;
@@ -265,8 +265,8 @@ void main() {
         await fuelNotifier.refresh();
         
         // Verify data consistency
-        final refreshedVehicleState = await container.read(vehiclesNotifierProvider.future);
-        final refreshedFuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final refreshedVehicleState = await container.read(vehiclesProvider.future);
+        final refreshedFuelState = await container.read(fuelEntriesProvider.future);
         
         expect(refreshedVehicleState.vehicles.any((v) => v.id == addedVehicle.id), isTrue);
         expect(refreshedFuelState.entries.any((e) => e.vehicleId == addedVehicle.id), isTrue);

@@ -55,6 +55,14 @@ class FuelEntries extends Table {
   /// First entry for a vehicle must always be a full tank
   BoolColumn get isFullTank => boolean().withDefault(const Constant(true))();
 
+  /// Exchange rate used for currency conversion (from original currency to primary currency)
+  /// If null, no currency conversion was performed (price = original amount)
+  RealColumn get exchangeRate => real().nullable()();
+
+  /// Date when the exchange rate was effective/retrieved
+  /// Should be provided when exchangeRate is not null
+  DateTimeColumn get rateDate => dateTime().nullable()();
+
   // Primary key is automatically set by autoIncrement()
 
   @override
@@ -66,5 +74,9 @@ class FuelEntries extends Table {
     'CHECK(currency = UPPER(currency))',
     // Ensure original amount is positive if provided
     'CHECK(original_amount IS NULL OR original_amount > 0)',
+    // Ensure exchange rate is positive if provided
+    'CHECK(exchange_rate IS NULL OR exchange_rate > 0)',
+    // Ensure rate date is provided when exchange rate is provided
+    'CHECK((exchange_rate IS NULL AND rate_date IS NULL) OR (exchange_rate IS NOT NULL AND rate_date IS NOT NULL))',
   ];
 }

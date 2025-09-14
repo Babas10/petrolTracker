@@ -222,7 +222,7 @@ class PeriodDetailModal extends ConsumerWidget {
 
   Widget _buildEntriesTable(BuildContext context, WidgetRef ref) {
     // Get the fuel entries for this period
-    final entriesAsync = ref.watch(fuelEntriesNotifierProvider);
+    final entriesAsync = ref.watch(fuelEntriesProvider);
     
     return entriesAsync.when(
       data: (entriesState) {

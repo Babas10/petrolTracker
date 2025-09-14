@@ -254,13 +254,13 @@ class Units extends _$Units {
   
   /// Get the current unit system synchronously (for UI)
   UnitSystem get currentUnitSystem {
-    return state.valueOrNull ?? UnitSystem.metric;
+    return state.value ?? UnitSystem.metric;
   }
 }
 
 /// Provider that returns formatted consumption with current units
 @riverpod
-String formattedConsumption(FormattedConsumptionRef ref, double consumption) {
+String formattedConsumption(Ref ref, double consumption) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {
@@ -276,7 +276,7 @@ String formattedConsumption(FormattedConsumptionRef ref, double consumption) {
 
 /// Provider that returns formatted distance with current units
 @riverpod
-String formattedDistance(FormattedDistanceRef ref, double distance) {
+String formattedDistance(Ref ref, double distance) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {
@@ -292,7 +292,7 @@ String formattedDistance(FormattedDistanceRef ref, double distance) {
 
 /// Provider that returns formatted volume with current units
 @riverpod
-String formattedVolume(FormattedVolumeRef ref, double volume) {
+String formattedVolume(Ref ref, double volume) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {
@@ -308,7 +308,7 @@ String formattedVolume(FormattedVolumeRef ref, double volume) {
 
 /// Provider that returns consumption value in the current unit system
 @riverpod
-double consumptionInCurrentUnits(ConsumptionInCurrentUnitsRef ref, double metricConsumption) {
+double consumptionInCurrentUnits(Ref ref, double metricConsumption) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {
@@ -323,7 +323,7 @@ double consumptionInCurrentUnits(ConsumptionInCurrentUnitsRef ref, double metric
 
 /// Provider that returns distance value in the current unit system
 @riverpod
-double distanceInCurrentUnits(DistanceInCurrentUnitsRef ref, double kilometers) {
+double distanceInCurrentUnits(Ref ref, double kilometers) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {
@@ -338,7 +338,7 @@ double distanceInCurrentUnits(DistanceInCurrentUnitsRef ref, double kilometers) 
 
 /// Provider that returns volume value in the current unit system
 @riverpod
-double volumeInCurrentUnits(VolumeInCurrentUnitsRef ref, double liters) {
+double volumeInCurrentUnits(Ref ref, double liters) {
   final unitSystem = ref.watch(unitsProvider);
   return unitSystem.when(
     data: (units) {

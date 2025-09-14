@@ -32,11 +32,11 @@ void main() {
     }) {
       return ProviderScope(
         overrides: [
-          vehiclesNotifierProvider.overrideWith(() {
+          vehiclesProvider.overrideWith(() {
             return MockVehiclesNotifier(testVehicles);
           }),
           vehicleCountProvider.overrideWith((ref) async => testVehicles.length),
-          fuelEntriesNotifierProvider.overrideWith(() {
+          fuelEntriesProvider.overrideWith(() {
             return MockFuelEntriesNotifier();
           }),
           ...overrides,
@@ -72,7 +72,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifier([]);
             }),
             vehicleCountProvider.overrideWith((ref) async => 0),
@@ -146,7 +146,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifierWithError();
             }),
           ],
@@ -164,7 +164,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifierDatabaseError();
             }),
           ],
@@ -182,7 +182,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifierLoading();
             }),
           ],
@@ -258,7 +258,7 @@ void main() {
       await tester.pumpWidget(
         createTestWidget(
           overrides: [
-            vehiclesNotifierProvider.overrideWith(() {
+            vehiclesProvider.overrideWith(() {
               return MockVehiclesNotifierOperationInProgress();
             }),
           ],

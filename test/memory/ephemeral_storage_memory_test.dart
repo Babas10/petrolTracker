@@ -22,7 +22,7 @@ void main() {
         // Add vehicles to each container
         for (int i = 0; i < containers.length; i++) {
           final container = containers[i];
-          final notifier = container.read(vehiclesNotifierProvider.notifier);
+          final notifier = container.read(vehiclesProvider.notifier);
           
           await notifier.addVehicle(VehicleModel.create(
             name: 'Memory Test Vehicle $i',
@@ -40,7 +40,7 @@ void main() {
         
         // Verify remaining containers still work
         for (final container in containers) {
-          final state = await container.read(vehiclesNotifierProvider.future);
+          final state = await container.read(vehiclesProvider.future);
           expect(state.vehicles.length, greaterThanOrEqualTo(1));
         }
         
@@ -57,7 +57,7 @@ void main() {
         // Rapidly create and dispose containers
         for (int cycle = 0; cycle < 100; cycle++) {
           final container = ProviderContainer();
-          final notifier = container.read(vehiclesNotifierProvider.notifier);
+          final notifier = container.read(vehiclesProvider.notifier);
           
           // Add some data
           await notifier.addVehicle(VehicleModel.create(
@@ -66,7 +66,7 @@ void main() {
           ));
           
           // Verify data exists
-          final state = await container.read(vehiclesNotifierProvider.future);
+          final state = await container.read(vehiclesProvider.future);
           expect(state.vehicles.length, greaterThanOrEqualTo(1));
           
           // Dispose immediately
@@ -79,8 +79,8 @@ void main() {
       
       test('should handle large objects without memory issues', () async {
         final container = ProviderContainer();
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a vehicle
         await vehicleNotifier.addVehicle(VehicleModel.create(
@@ -88,7 +88,7 @@ void main() {
           initialKm: 10000.0,
         ));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final testVehicle = vehicleState.vehicles.firstWhere(
           (v) => v.name == 'Large Object Test Vehicle'
         );
@@ -107,7 +107,7 @@ void main() {
         }
         
         // Verify all entries exist
-        final fuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final fuelState = await container.read(fuelEntriesProvider.future);
         final testEntries = fuelState.entries.where(
           (e) => e.vehicleId == testVehicle.id
         ).toList();
@@ -120,7 +120,7 @@ void main() {
         }
         
         // Verify entries are removed
-        final finalState = await container.read(fuelEntriesNotifierProvider.future);
+        final finalState = await container.read(fuelEntriesProvider.future);
         final remainingEntries = finalState.entries.where(
           (e) => e.vehicleId == testVehicle.id
         ).toList();
@@ -134,7 +134,7 @@ void main() {
     group('Memory Efficiency', () {
       test('should use memory efficiently with many small objects', () async {
         final container = ProviderContainer();
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         
         // Add many vehicles
         final vehicleNames = <String>[];
@@ -148,7 +148,7 @@ void main() {
         }
         
         // Verify all vehicles exist
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final smallVehicles = state.vehicles.where(
           (v) => v.name.startsWith('Small Vehicle')
         ).toList();
@@ -163,7 +163,7 @@ void main() {
         }
         
         // Verify updates
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         final updatedVehicles = updatedState.vehicles.where(
           (v) => v.name.contains('Updated')
         ).toList();
@@ -175,7 +175,7 @@ void main() {
       
       test('should handle object references correctly', () async {
         final container = ProviderContainer();
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         
         // Add a vehicle
         final originalVehicle = VehicleModel.create(
@@ -186,7 +186,7 @@ void main() {
         await vehicleNotifier.addVehicle(originalVehicle);
         
         // Get the vehicle from storage
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final storedVehicle = state.vehicles.firstWhere(
           (v) => v.name == 'Reference Test Vehicle'
         );
@@ -207,7 +207,7 @@ void main() {
         expect(storedVehicle.name, equals('Reference Test Vehicle'));
         
         // Get the updated vehicle
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         final finalVehicle = updatedState.vehicles.firstWhere(
           (v) => v.id == storedVehicle.id
         );
@@ -222,7 +222,7 @@ void main() {
     group('Garbage Collection Behavior', () {
       test('should allow garbage collection of removed objects', () async {
         final container = ProviderContainer();
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         
         // Add vehicles
         final vehicleIds = <int>[];
@@ -234,7 +234,7 @@ void main() {
         }
         
         // Get all vehicle IDs
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final gcVehicles = state.vehicles.where(
           (v) => v.name.startsWith('GC Test Vehicle')
         ).toList();
@@ -251,7 +251,7 @@ void main() {
         }
         
         // Verify they're removed
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         final remainingVehicles = updatedState.vehicles.where(
           (v) => v.name.startsWith('GC Test Vehicle')
         ).toList();
@@ -280,7 +280,7 @@ void main() {
         // Add data to each container
         for (int i = 0; i < containers.length; i++) {
           final container = containers[i];
-          final notifier = container.read(vehiclesNotifierProvider.notifier);
+          final notifier = container.read(vehiclesProvider.notifier);
           
           await notifier.addVehicle(VehicleModel.create(
             name: 'Container $i Vehicle',
@@ -291,7 +291,7 @@ void main() {
         // Verify each container has its data
         for (int i = 0; i < containers.length; i++) {
           final container = containers[i];
-          final state = await container.read(vehiclesNotifierProvider.future);
+          final state = await container.read(vehiclesProvider.future);
           expect(state.vehicles.length, greaterThanOrEqualTo(1));
         }
         
@@ -307,7 +307,7 @@ void main() {
       test('should handle provider recreation after disposal', () async {
         // Create container
         var container = ProviderContainer();
-        var notifier = container.read(vehiclesNotifierProvider.notifier);
+        var notifier = container.read(vehiclesProvider.notifier);
         
         // Add a vehicle
         await notifier.addVehicle(VehicleModel.create(
@@ -316,7 +316,7 @@ void main() {
         ));
         
         // Verify vehicle exists
-        var state = await container.read(vehiclesNotifierProvider.future);
+        var state = await container.read(vehiclesProvider.future);
         expect(state.vehicles.length, greaterThanOrEqualTo(1));
         
         // Dispose container
@@ -324,10 +324,10 @@ void main() {
         
         // Create new container
         container = ProviderContainer();
-        notifier = container.read(vehiclesNotifierProvider.notifier);
+        notifier = container.read(vehiclesProvider.notifier);
         
         // Data should still exist (global ephemeral storage)
-        state = await container.read(vehiclesNotifierProvider.future);
+        state = await container.read(vehiclesProvider.future);
         expect(state.vehicles.any((v) => v.name == 'Recreation Test Vehicle'), isTrue);
         
         container.dispose();

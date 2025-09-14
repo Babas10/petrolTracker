@@ -17,8 +17,8 @@ void main() {
     
     group('VehiclesNotifier', () {
       test('should start with empty state', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final notifier = container.read(vehiclesProvider.notifier);
+        final state = await container.read(vehiclesProvider.future);
         
         expect(state.vehicles, isEmpty);
         expect(state.isDatabaseReady, isTrue);
@@ -26,14 +26,14 @@ void main() {
       });
       
       test('should add vehicle to ephemeral storage', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final vehicle = VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         );
         
         await notifier.addVehicle(vehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         
         expect(state.vehicles, hasLength(1));
         expect(state.vehicles.first.name, equals('Test Vehicle'));
@@ -42,14 +42,14 @@ void main() {
       });
       
       test('should update vehicle in ephemeral storage', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final vehicle = VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         );
         
         await notifier.addVehicle(vehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
         
         final updatedVehicle = addedVehicle.copyWith(
@@ -58,7 +58,7 @@ void main() {
         );
         
         await notifier.updateVehicle(updatedVehicle);
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         
         expect(updatedState.vehicles, hasLength(1));
         expect(updatedState.vehicles.first.name, equals('Updated Vehicle'));
@@ -67,24 +67,24 @@ void main() {
       });
       
       test('should delete vehicle from ephemeral storage', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final vehicle = VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         );
         
         await notifier.addVehicle(vehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
         
         await notifier.deleteVehicle(addedVehicle.id!);
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         
         expect(updatedState.vehicles, isEmpty);
       });
       
       test('should handle multiple vehicles', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         await notifier.addVehicle(VehicleModel.create(
           name: 'Vehicle 1',
@@ -99,7 +99,7 @@ void main() {
           initialKm: 30000.0,
         ));
         
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         
         expect(state.vehicles, hasLength(3));
         expect(state.vehicles.map((v) => v.name), 
@@ -107,7 +107,7 @@ void main() {
       });
       
       test('should refresh vehicle list', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         await notifier.addVehicle(VehicleModel.create(
           name: 'Test Vehicle',
@@ -115,7 +115,7 @@ void main() {
         ));
         
         await notifier.refresh();
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         
         expect(state.vehicles, hasLength(1));
         expect(state.vehicles.first.name, equals('Test Vehicle'));
@@ -124,14 +124,14 @@ void main() {
     
     group('Individual Vehicle Providers', () {
       test('vehicle provider should return vehicle by ID', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final vehicle = VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         );
         
         await notifier.addVehicle(vehicle);
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
         
         final retrievedVehicle = await container.read(
@@ -152,7 +152,7 @@ void main() {
       });
       
       test('vehicleNameExists should detect existing names', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
@@ -170,7 +170,7 @@ void main() {
       });
       
       test('vehicleNameExists should be case insensitive', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
@@ -184,13 +184,13 @@ void main() {
       });
       
       test('vehicleNameExists should exclude specified ID', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         ));
         
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
         
         final exists = await container.read(
@@ -201,7 +201,7 @@ void main() {
       });
       
       test('vehicleCount should return correct count', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         
         expect(await container.read(vehicleCountProvider.future), equals(0));
         
@@ -221,13 +221,13 @@ void main() {
       });
       
       test('vehicleStatistics should return default statistics', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Test Vehicle',
           initialKm: 10000.0,
         ));
         
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.first;
         
         final statistics = await container.read(
@@ -253,7 +253,7 @@ void main() {
     
     group('Data Persistence', () {
       test('should persist data during app session', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Session Vehicle',
           initialKm: 10000.0,
@@ -261,7 +261,7 @@ void main() {
         
         // Simulate reading from different provider instances
         final container2 = ProviderContainer();
-        final state = await container2.read(vehiclesNotifierProvider.future);
+        final state = await container2.read(vehiclesProvider.future);
         
         // Should have at least one vehicle (could be more from previous tests)
         expect(state.vehicles.where((v) => v.name == 'Session Vehicle'), hasLength(1));
@@ -270,14 +270,14 @@ void main() {
       });
       
       test('should maintain data consistency across provider instances', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         await notifier.addVehicle(VehicleModel.create(
           name: 'Consistency Test Vehicle',
           initialKm: 10000.0,
         ));
         
         // Read from same container
-        final state = await container.read(vehiclesNotifierProvider.future);
+        final state = await container.read(vehiclesProvider.future);
         final addedVehicle = state.vehicles.firstWhere((v) => v.name == 'Consistency Test Vehicle');
         
         // Check vehicle exists in individual provider

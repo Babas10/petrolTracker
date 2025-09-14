@@ -39,8 +39,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.invalidate(fuelEntriesNotifierProvider);
-              ref.invalidate(vehiclesNotifierProvider);
+              ref.invalidate(fuelEntriesProvider);
+              ref.invalidate(vehiclesProvider);
             },
           ),
         ],
@@ -77,7 +77,7 @@ class _QuickStatsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleState = ref.watch(vehiclesNotifierProvider);
+    final vehicleState = ref.watch(vehiclesProvider);
     
     return Row(
       children: [
@@ -120,7 +120,7 @@ class _QuickStatsRow extends ConsumerWidget {
   }
 
   String _buildTotalEntryCount(WidgetRef ref) {
-    final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
+    final fuelEntryState = ref.watch(fuelEntriesProvider);
     return fuelEntryState.when(
       data: (state) => state.entries.length.toString(),
       loading: () => '...',
@@ -449,7 +449,7 @@ class _ChartSection extends ConsumerWidget {
         debugPrint('Chart rendered with ${data['dataPoints']} data points');
         break;
       case 'retryRequested':
-        ref.invalidate(fuelEntriesNotifierProvider);
+        ref.invalidate(fuelEntriesProvider);
         break;
     }
   }
@@ -727,7 +727,7 @@ class _RecentEntriesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fuelEntryState = ref.watch(fuelEntriesNotifierProvider);
+    final fuelEntryState = ref.watch(fuelEntriesProvider);
     
     return Card(
       child: Padding(
@@ -878,7 +878,7 @@ class _AverageConsumptionSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleState = ref.watch(vehiclesNotifierProvider);
+    final vehicleState = ref.watch(vehiclesProvider);
     
     return Card(
       child: Padding(
@@ -1424,7 +1424,7 @@ class _CostAnalysisSection extends ConsumerWidget {
 
 extension _DashboardScreenStateExtension on _DashboardScreenState {
   Widget _buildVehicleSelector() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    final vehiclesState = ref.watch(vehiclesProvider);
     
     return vehiclesState.when(
       data: (vehicleState) {

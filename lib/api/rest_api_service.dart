@@ -163,7 +163,7 @@ class RestApiService {
   /// Get all vehicles
   Future<Response> _handleGetVehicles(Request request) async {
     try {
-      final vehicleState = await _container.read(vehiclesNotifierProvider.future);
+      final vehicleState = await _container.read(vehiclesProvider.future);
       final vehicles = vehicleState.vehicles
           .map((v) => VehicleResponseDto.fromModel(v))
           .toList();
@@ -196,7 +196,7 @@ class RestApiService {
         return _errorResponse(400, 'Validation failed', null, errors);
       }
 
-      final notifier = _container.read(vehiclesNotifierProvider.notifier);
+      final notifier = _container.read(vehiclesProvider.notifier);
       final created = await notifier.addVehicle(vehicle);
       final responseDto = VehicleResponseDto.fromModel(created);
 
@@ -224,7 +224,7 @@ class RestApiService {
         return _errorResponse(400, 'Invalid vehicle ID', 'ID must be a valid integer');
       }
 
-      final notifier = _container.read(vehiclesNotifierProvider.notifier);
+      final notifier = _container.read(vehiclesProvider.notifier);
       await notifier.deleteVehicle(id);
 
       final response = ApiResponseDto.success(
@@ -243,7 +243,7 @@ class RestApiService {
   /// Get all fuel entries
   Future<Response> _handleGetFuelEntries(Request request) async {
     try {
-      final fuelState = await _container.read(fuelEntriesNotifierProvider.future);
+      final fuelState = await _container.read(fuelEntriesProvider.future);
       final entries = fuelState.entries
           .map((e) => FuelEntryResponseDto.fromModel(e))
           .toList();
@@ -276,7 +276,7 @@ class RestApiService {
         return _errorResponse(400, 'Validation failed', null, errors);
       }
 
-      final notifier = _container.read(fuelEntriesNotifierProvider.notifier);
+      final notifier = _container.read(fuelEntriesProvider.notifier);
       final created = await notifier.addFuelEntry(entry);
       final responseDto = FuelEntryResponseDto.fromModel(created);
 
@@ -304,7 +304,7 @@ class RestApiService {
         return _errorResponse(400, 'Invalid fuel entry ID', 'ID must be a valid integer');
       }
 
-      final notifier = _container.read(fuelEntriesNotifierProvider.notifier);
+      final notifier = _container.read(fuelEntriesProvider.notifier);
       await notifier.deleteFuelEntry(id);
 
       final response = ApiResponseDto.success(
@@ -330,7 +330,7 @@ class RestApiService {
       final created = <VehicleResponseDto>[];
       final errors = <String>[];
 
-      final notifier = _container.read(vehiclesNotifierProvider.notifier);
+      final notifier = _container.read(vehiclesProvider.notifier);
 
       for (int i = 0; i < dto.vehicles.length; i++) {
         try {
@@ -374,7 +374,7 @@ class RestApiService {
       final created = <FuelEntryResponseDto>[];
       final errors = <String>[];
 
-      final notifier = _container.read(fuelEntriesNotifierProvider.notifier);
+      final notifier = _container.read(fuelEntriesProvider.notifier);
 
       for (int i = 0; i < dto.fuelEntries.length; i++) {
         try {
@@ -421,7 +421,7 @@ class RestApiService {
 
       // Create vehicles first
       if (dto.vehicles != null) {
-        final vehicleNotifier = _container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = _container.read(vehiclesProvider.notifier);
         
         for (int i = 0; i < dto.vehicles!.length; i++) {
           try {
@@ -444,7 +444,7 @@ class RestApiService {
 
       // Create fuel entries
       if (dto.fuelEntries != null) {
-        final fuelNotifier = _container.read(fuelEntriesNotifierProvider.notifier);
+        final fuelNotifier = _container.read(fuelEntriesProvider.notifier);
         
         for (int i = 0; i < dto.fuelEntries!.length; i++) {
           try {
@@ -484,11 +484,11 @@ class RestApiService {
   Future<Response> _handleResetAllData(Request request) async {
     try {
       // Clear all fuel entries first (due to foreign key constraints)
-      final fuelNotifier = _container.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = _container.read(fuelEntriesProvider.notifier);
       await fuelNotifier.clearAllEntries();
 
       // Clear all vehicles
-      final vehicleNotifier = _container.read(vehiclesNotifierProvider.notifier);
+      final vehicleNotifier = _container.read(vehiclesProvider.notifier);
       await vehicleNotifier.clearAllVehicles();
 
       final response = ApiResponseDto.success(

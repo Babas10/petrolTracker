@@ -266,7 +266,7 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         initialKm: 50000.0,
       );
 
-      await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -297,11 +297,11 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         initialKm: 50000.0,
       );
 
-      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      final createdVehicle = await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       // Create 5 fuel entries
       final baseDate = DateTime.now().subtract(const Duration(days: 35));
-      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = widget.ref.read(fuelEntriesProvider.notifier);
       
       for (int i = 0; i < 5; i++) {
         final entry = FuelEntryModel.create(
@@ -348,10 +348,10 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         initialKm: 98510.0,
       );
 
-      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      final createdVehicle = await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       // Real fuel entries data (converted from gallons to liters)
-      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = widget.ref.read(fuelEntriesProvider.notifier);
       final baseDate = DateTime(2024, 1, 1);
       
       final fuelData = <Map<String, double>>[
@@ -426,11 +426,11 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         initialKm: 40000.0,
       );
 
-      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      final createdVehicle = await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       // Create 20 fuel entries over 6 months
       final baseDate = DateTime.now().subtract(const Duration(days: 180));
-      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = widget.ref.read(fuelEntriesProvider.notifier);
       
       for (int i = 0; i < 20; i++) {
         final entry = FuelEntryModel.create(
@@ -494,10 +494,10 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
       if (confirmed != true) return;
 
       // Clear fuel entries first (foreign key constraints)
-      await widget.ref.read(fuelEntriesNotifierProvider.notifier).clearAllEntries();
+      await widget.ref.read(fuelEntriesProvider.notifier).clearAllEntries();
       
       // Clear vehicles
-      await widget.ref.read(vehiclesNotifierProvider.notifier).clearAllVehicles();
+      await widget.ref.read(vehiclesProvider.notifier).clearAllVehicles();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -528,11 +528,11 @@ class _DataInjectionDialogState extends State<DataInjectionDialog> {
         initialKm: 75000.0,
       );
 
-      final createdVehicle = await widget.ref.read(vehiclesNotifierProvider.notifier).addVehicle(vehicle);
+      final createdVehicle = await widget.ref.read(vehiclesProvider.notifier).addVehicle(vehicle);
       
       // Create entries that demonstrate consumption periods clearly
       final baseDate = DateTime.now().subtract(const Duration(days: 50));
-      final fuelNotifier = widget.ref.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = widget.ref.read(fuelEntriesProvider.notifier);
       
       // Define a clear pattern for testing:
       // Period 1: Full -> Partial -> Partial -> Full (3 entries, consumption calculated)

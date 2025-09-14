@@ -19,8 +19,8 @@ void main() {
     
     group('Vehicle and Fuel Entry Integration', () {
       test('should add vehicle and fuel entries successfully', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add a vehicle
         final vehicle = VehicleModel.create(
@@ -30,7 +30,7 @@ void main() {
         await vehicleNotifier.addVehicle(vehicle);
         
         // Get the added vehicle
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.lastWhere(
           (v) => v.name.contains('Integration Test Vehicle')
         );
@@ -59,8 +59,8 @@ void main() {
       });
       
       test('should handle concurrent operations', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         
         // Add multiple vehicles
         final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -72,7 +72,7 @@ void main() {
         
         await Future.wait(vehicles.map((v) => vehicleNotifier.addVehicle(v)));
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicles = vehicleState.vehicles.where(
           (v) => v.name.contains('Concurrent Vehicle') && v.name.contains('$timestamp')
         ).toList();
@@ -108,7 +108,7 @@ void main() {
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
         // Add data with first container
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
         await vehicleNotifier.addVehicle(VehicleModel.create(
           name: 'Persistent Vehicle $timestamp',
           initialKm: 10000.0,
@@ -116,7 +116,7 @@ void main() {
         
         // Create second container and verify data persists
         final container2 = ProviderContainer();
-        final vehicleState2 = await container2.read(vehiclesNotifierProvider.future);
+        final vehicleState2 = await container2.read(vehiclesProvider.future);
         
         final persistentVehicle = vehicleState2.vehicles.where(
           (v) => v.name == 'Persistent Vehicle $timestamp'
@@ -129,8 +129,8 @@ void main() {
       });
       
       test('should handle provider refresh', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
         // Add test data
@@ -140,7 +140,7 @@ void main() {
         );
         await vehicleNotifier.addVehicle(vehicle);
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Refresh Test Vehicle $timestamp'
         ).first;
@@ -160,8 +160,8 @@ void main() {
         await fuelNotifier.refresh();
         
         // Verify data consistency
-        final refreshedVehicleState = await container.read(vehiclesNotifierProvider.future);
-        final refreshedFuelState = await container.read(fuelEntriesNotifierProvider.future);
+        final refreshedVehicleState = await container.read(vehiclesProvider.future);
+        final refreshedFuelState = await container.read(fuelEntriesProvider.future);
         
         expect(refreshedVehicleState.vehicles.any((v) => v.id == addedVehicle.id), isTrue);
         expect(refreshedFuelState.entries.any((e) => e.vehicleId == addedVehicle.id), isTrue);
@@ -170,7 +170,7 @@ void main() {
     
     group('Provider Functionality', () {
       test('should handle vehicle operations correctly', () async {
-        final notifier = container.read(vehiclesNotifierProvider.notifier);
+        final notifier = container.read(vehiclesProvider.notifier);
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
         // Add a vehicle
@@ -181,7 +181,7 @@ void main() {
         await notifier.addVehicle(vehicle);
         
         // Get the added vehicle
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Provider Test Vehicle $timestamp'
         ).first;
@@ -204,7 +204,7 @@ void main() {
         );
         await notifier.updateVehicle(updatedVehicle);
         
-        final updatedState = await container.read(vehiclesNotifierProvider.future);
+        final updatedState = await container.read(vehiclesProvider.future);
         final finalVehicle = updatedState.vehicles.where(
           (v) => v.id == addedVehicle.id
         ).first;
@@ -214,8 +214,8 @@ void main() {
       });
       
       test('should handle fuel entry operations correctly', () async {
-        final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
-        final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final vehicleNotifier = container.read(vehiclesProvider.notifier);
+        final fuelNotifier = container.read(fuelEntriesProvider.notifier);
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         
         // Add a vehicle
@@ -225,7 +225,7 @@ void main() {
         );
         await vehicleNotifier.addVehicle(vehicle);
         
-        final vehicleState = await container.read(vehiclesNotifierProvider.future);
+        final vehicleState = await container.read(vehiclesProvider.future);
         final addedVehicle = vehicleState.vehicles.where(
           (v) => v.name == 'Fuel Test Vehicle $timestamp'
         ).first;

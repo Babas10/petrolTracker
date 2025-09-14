@@ -6,2271 +6,1362 @@ part of 'chart_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$consumptionChartDataHash() =>
-    r'a479704261fd7d33c8a7c47c51386695c2058611';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(consumptionChartData)
+const consumptionChartDataProvider = ConsumptionChartDataFamily._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
+/// Provider for consumption chart data for a specific vehicle
+/// Uses period-based consumption calculation (full tank to full tank)
+
+final class ConsumptionChartDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ConsumptionDataPoint>>,
+          List<ConsumptionDataPoint>,
+          FutureOr<List<ConsumptionDataPoint>>
+        >
+    with
+        $FutureModifier<List<ConsumptionDataPoint>>,
+        $FutureProvider<List<ConsumptionDataPoint>> {
+  /// Provider for consumption chart data for a specific vehicle
+  /// Uses period-based consumption calculation (full tank to full tank)
+  const ConsumptionChartDataProvider._({
+    required ConsumptionChartDataFamily super.from,
+    required (
+      int, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'consumptionChartDataProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$consumptionChartDataHash();
+
+  @override
+  String toString() {
+    return r'consumptionChartDataProvider'
+        ''
+        '$argument';
   }
 
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  @$internal
+  @override
+  $FutureProviderElement<List<ConsumptionDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<ConsumptionDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return consumptionChartData(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ConsumptionChartDataProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-/// Provider for consumption chart data for a specific vehicle
-/// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionChartData].
-@ProviderFor(consumptionChartData)
-const consumptionChartDataProvider = ConsumptionChartDataFamily();
+String _$consumptionChartDataHash() =>
+    r'376823a576f259657d7d898cf06de50c1e0a4125';
 
 /// Provider for consumption chart data for a specific vehicle
 /// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionChartData].
-class ConsumptionChartDataFamily
-    extends Family<AsyncValue<List<ConsumptionDataPoint>>> {
-  /// Provider for consumption chart data for a specific vehicle
-  /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionChartData].
-  const ConsumptionChartDataFamily();
+
+final class ConsumptionChartDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<ConsumptionDataPoint>>,
+          (int, {DateTime? startDate, DateTime? endDate, String? countryFilter})
+        > {
+  const ConsumptionChartDataFamily._()
+    : super(
+        retry: null,
+        name: r'consumptionChartDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for consumption chart data for a specific vehicle
   /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionChartData].
+
   ConsumptionChartDataProvider call(
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
     String? countryFilter,
-  }) {
-    return ConsumptionChartDataProvider(
+  }) => ConsumptionChartDataProvider._(
+    argument: (
       vehicleId,
       startDate: startDate,
       endDate: endDate,
       countryFilter: countryFilter,
-    );
-  }
+    ),
+    from: this,
+  );
 
   @override
-  ConsumptionChartDataProvider getProviderOverride(
-    covariant ConsumptionChartDataProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'consumptionChartDataProvider';
+  String toString() => r'consumptionChartDataProvider';
 }
-
-/// Provider for consumption chart data for a specific vehicle
-/// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionChartData].
-class ConsumptionChartDataProvider
-    extends AutoDisposeFutureProvider<List<ConsumptionDataPoint>> {
-  /// Provider for consumption chart data for a specific vehicle
-  /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionChartData].
-  ConsumptionChartDataProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => consumptionChartData(
-           ref as ConsumptionChartDataRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: consumptionChartDataProvider,
-         name: r'consumptionChartDataProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$consumptionChartDataHash,
-         dependencies: ConsumptionChartDataFamily._dependencies,
-         allTransitiveDependencies:
-             ConsumptionChartDataFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
-       );
-
-  ConsumptionChartDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<ConsumptionDataPoint>> Function(
-      ConsumptionChartDataRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ConsumptionChartDataProvider._internal(
-        (ref) => create(ref as ConsumptionChartDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<ConsumptionDataPoint>> createElement() {
-    return _ConsumptionChartDataProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ConsumptionChartDataProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ConsumptionChartDataRef
-    on AutoDisposeFutureProviderRef<List<ConsumptionDataPoint>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
-
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _ConsumptionChartDataProviderElement
-    extends AutoDisposeFutureProviderElement<List<ConsumptionDataPoint>>
-    with ConsumptionChartDataRef {
-  _ConsumptionChartDataProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as ConsumptionChartDataProvider).vehicleId;
-  @override
-  DateTime? get startDate => (origin as ConsumptionChartDataProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as ConsumptionChartDataProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as ConsumptionChartDataProvider).countryFilter;
-}
-
-String _$enhancedConsumptionChartDataHash() =>
-    r'8fd84f94c7a8d821d78072594ee1ba29b6d76b5c';
 
 /// Provider for enhanced consumption chart data with period composition details
-///
-/// Copied from [enhancedConsumptionChartData].
+
 @ProviderFor(enhancedConsumptionChartData)
 const enhancedConsumptionChartDataProvider =
-    EnhancedConsumptionChartDataFamily();
+    EnhancedConsumptionChartDataFamily._();
 
 /// Provider for enhanced consumption chart data with period composition details
-///
-/// Copied from [enhancedConsumptionChartData].
-class EnhancedConsumptionChartDataFamily
-    extends Family<AsyncValue<List<EnhancedConsumptionDataPoint>>> {
+
+final class EnhancedConsumptionChartDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<EnhancedConsumptionDataPoint>>,
+          List<EnhancedConsumptionDataPoint>,
+          FutureOr<List<EnhancedConsumptionDataPoint>>
+        >
+    with
+        $FutureModifier<List<EnhancedConsumptionDataPoint>>,
+        $FutureProvider<List<EnhancedConsumptionDataPoint>> {
   /// Provider for enhanced consumption chart data with period composition details
-  ///
-  /// Copied from [enhancedConsumptionChartData].
-  const EnhancedConsumptionChartDataFamily();
-
-  /// Provider for enhanced consumption chart data with period composition details
-  ///
-  /// Copied from [enhancedConsumptionChartData].
-  EnhancedConsumptionChartDataProvider call(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) {
-    return EnhancedConsumptionChartDataProvider(
-      vehicleId,
-      startDate: startDate,
-      endDate: endDate,
-      countryFilter: countryFilter,
-    );
-  }
-
-  @override
-  EnhancedConsumptionChartDataProvider getProviderOverride(
-    covariant EnhancedConsumptionChartDataProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'enhancedConsumptionChartDataProvider';
-}
-
-/// Provider for enhanced consumption chart data with period composition details
-///
-/// Copied from [enhancedConsumptionChartData].
-class EnhancedConsumptionChartDataProvider
-    extends AutoDisposeFutureProvider<List<EnhancedConsumptionDataPoint>> {
-  /// Provider for enhanced consumption chart data with period composition details
-  ///
-  /// Copied from [enhancedConsumptionChartData].
-  EnhancedConsumptionChartDataProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => enhancedConsumptionChartData(
-           ref as EnhancedConsumptionChartDataRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: enhancedConsumptionChartDataProvider,
+  const EnhancedConsumptionChartDataProvider._({
+    required EnhancedConsumptionChartDataFamily super.from,
+    required (
+      int, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
          name: r'enhancedConsumptionChartDataProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$enhancedConsumptionChartDataHash,
-         dependencies: EnhancedConsumptionChartDataFamily._dependencies,
-         allTransitiveDependencies:
-             EnhancedConsumptionChartDataFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  EnhancedConsumptionChartDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
+  @override
+  String debugGetCreateSourceHash() => _$enhancedConsumptionChartDataHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<EnhancedConsumptionDataPoint>> Function(
-      EnhancedConsumptionChartDataRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: EnhancedConsumptionChartDataProvider._internal(
-        (ref) => create(ref as EnhancedConsumptionChartDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
+  String toString() {
+    return r'enhancedConsumptionChartDataProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<EnhancedConsumptionDataPoint>>
-  createElement() {
-    return _EnhancedConsumptionChartDataProviderElement(this);
+  $FutureProviderElement<List<EnhancedConsumptionDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<EnhancedConsumptionDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return enhancedConsumptionChartData(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is EnhancedConsumptionChartDataProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin EnhancedConsumptionChartDataRef
-    on AutoDisposeFutureProviderRef<List<EnhancedConsumptionDataPoint>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$enhancedConsumptionChartDataHash() =>
+    r'cf11151287a791d146a4575aa93d4d1a02f0dff3';
 
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+/// Provider for enhanced consumption chart data with period composition details
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _EnhancedConsumptionChartDataProviderElement
-    extends AutoDisposeFutureProviderElement<List<EnhancedConsumptionDataPoint>>
-    with EnhancedConsumptionChartDataRef {
-  _EnhancedConsumptionChartDataProviderElement(super.provider);
-
-  @override
-  int get vehicleId =>
-      (origin as EnhancedConsumptionChartDataProvider).vehicleId;
-  @override
-  DateTime? get startDate =>
-      (origin as EnhancedConsumptionChartDataProvider).startDate;
-  @override
-  DateTime? get endDate =>
-      (origin as EnhancedConsumptionChartDataProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as EnhancedConsumptionChartDataProvider).countryFilter;
-}
-
-String _$priceTrendChartDataHash() =>
-    r'4ecd4057cd25d681b12098d4c823a544f83683ca';
-
-/// Provider for price trend chart data
-///
-/// Copied from [priceTrendChartData].
-@ProviderFor(priceTrendChartData)
-const priceTrendChartDataProvider = PriceTrendChartDataFamily();
-
-/// Provider for price trend chart data
-///
-/// Copied from [priceTrendChartData].
-class PriceTrendChartDataFamily
-    extends Family<AsyncValue<List<PriceTrendDataPoint>>> {
-  /// Provider for price trend chart data
-  ///
-  /// Copied from [priceTrendChartData].
-  const PriceTrendChartDataFamily();
-
-  /// Provider for price trend chart data
-  ///
-  /// Copied from [priceTrendChartData].
-  PriceTrendChartDataProvider call({DateTime? startDate, DateTime? endDate}) {
-    return PriceTrendChartDataProvider(startDate: startDate, endDate: endDate);
-  }
-
-  @override
-  PriceTrendChartDataProvider getProviderOverride(
-    covariant PriceTrendChartDataProvider provider,
-  ) {
-    return call(startDate: provider.startDate, endDate: provider.endDate);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'priceTrendChartDataProvider';
-}
-
-/// Provider for price trend chart data
-///
-/// Copied from [priceTrendChartData].
-class PriceTrendChartDataProvider
-    extends AutoDisposeFutureProvider<List<PriceTrendDataPoint>> {
-  /// Provider for price trend chart data
-  ///
-  /// Copied from [priceTrendChartData].
-  PriceTrendChartDataProvider({DateTime? startDate, DateTime? endDate})
-    : this._internal(
-        (ref) => priceTrendChartData(
-          ref as PriceTrendChartDataRef,
-          startDate: startDate,
-          endDate: endDate,
-        ),
-        from: priceTrendChartDataProvider,
-        name: r'priceTrendChartDataProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$priceTrendChartDataHash,
-        dependencies: PriceTrendChartDataFamily._dependencies,
-        allTransitiveDependencies:
-            PriceTrendChartDataFamily._allTransitiveDependencies,
-        startDate: startDate,
-        endDate: endDate,
+final class EnhancedConsumptionChartDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<EnhancedConsumptionDataPoint>>,
+          (int, {DateTime? startDate, DateTime? endDate, String? countryFilter})
+        > {
+  const EnhancedConsumptionChartDataFamily._()
+    : super(
+        retry: null,
+        name: r'enhancedConsumptionChartDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  PriceTrendChartDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
+  /// Provider for enhanced consumption chart data with period composition details
 
-  final DateTime? startDate;
-  final DateTime? endDate;
+  EnhancedConsumptionChartDataProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+    String? countryFilter,
+  }) => EnhancedConsumptionChartDataProvider._(
+    argument: (
+      vehicleId,
+      startDate: startDate,
+      endDate: endDate,
+      countryFilter: countryFilter,
+    ),
+    from: this,
+  );
 
   @override
-  Override overrideWith(
-    FutureOr<List<PriceTrendDataPoint>> Function(
-      PriceTrendChartDataRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PriceTrendChartDataProvider._internal(
-        (ref) => create(ref as PriceTrendChartDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() => r'enhancedConsumptionChartDataProvider';
+}
+
+/// Provider for price trend chart data
+
+@ProviderFor(priceTrendChartData)
+const priceTrendChartDataProvider = PriceTrendChartDataFamily._();
+
+/// Provider for price trend chart data
+
+final class PriceTrendChartDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<PriceTrendDataPoint>>,
+          List<PriceTrendDataPoint>,
+          FutureOr<List<PriceTrendDataPoint>>
+        >
+    with
+        $FutureModifier<List<PriceTrendDataPoint>>,
+        $FutureProvider<List<PriceTrendDataPoint>> {
+  /// Provider for price trend chart data
+  const PriceTrendChartDataProvider._({
+    required PriceTrendChartDataFamily super.from,
+    required ({DateTime? startDate, DateTime? endDate}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'priceTrendChartDataProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$priceTrendChartDataHash();
+
+  @override
+  String toString() {
+    return r'priceTrendChartDataProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<PriceTrendDataPoint>> createElement() {
-    return _PriceTrendChartDataProviderElement(this);
+  $FutureProviderElement<List<PriceTrendDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<PriceTrendDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument as ({DateTime? startDate, DateTime? endDate});
+    return priceTrendChartData(
+      ref,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PriceTrendChartDataProvider &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+    return other is PriceTrendChartDataProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PriceTrendChartDataRef
-    on AutoDisposeFutureProviderRef<List<PriceTrendDataPoint>> {
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+String _$priceTrendChartDataHash() =>
+    r'96301c2665258b8f92d479ae23a9592118bfc3fb';
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-}
+/// Provider for price trend chart data
 
-class _PriceTrendChartDataProviderElement
-    extends AutoDisposeFutureProviderElement<List<PriceTrendDataPoint>>
-    with PriceTrendChartDataRef {
-  _PriceTrendChartDataProviderElement(super.provider);
-
-  @override
-  DateTime? get startDate => (origin as PriceTrendChartDataProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as PriceTrendChartDataProvider).endDate;
-}
-
-String _$monthlyConsumptionAveragesHash() =>
-    r'82efc3de0d53f3ff88f819bd606e8da75394d9c0';
-
-/// Provider for monthly consumption averages for a vehicle
-///
-/// Copied from [monthlyConsumptionAverages].
-@ProviderFor(monthlyConsumptionAverages)
-const monthlyConsumptionAveragesProvider = MonthlyConsumptionAveragesFamily();
-
-/// Provider for monthly consumption averages for a vehicle
-///
-/// Copied from [monthlyConsumptionAverages].
-class MonthlyConsumptionAveragesFamily
-    extends Family<AsyncValue<Map<String, double>>> {
-  /// Provider for monthly consumption averages for a vehicle
-  ///
-  /// Copied from [monthlyConsumptionAverages].
-  const MonthlyConsumptionAveragesFamily();
-
-  /// Provider for monthly consumption averages for a vehicle
-  ///
-  /// Copied from [monthlyConsumptionAverages].
-  MonthlyConsumptionAveragesProvider call(int vehicleId, int year) {
-    return MonthlyConsumptionAveragesProvider(vehicleId, year);
-  }
-
-  @override
-  MonthlyConsumptionAveragesProvider getProviderOverride(
-    covariant MonthlyConsumptionAveragesProvider provider,
-  ) {
-    return call(provider.vehicleId, provider.year);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'monthlyConsumptionAveragesProvider';
-}
-
-/// Provider for monthly consumption averages for a vehicle
-///
-/// Copied from [monthlyConsumptionAverages].
-class MonthlyConsumptionAveragesProvider
-    extends AutoDisposeFutureProvider<Map<String, double>> {
-  /// Provider for monthly consumption averages for a vehicle
-  ///
-  /// Copied from [monthlyConsumptionAverages].
-  MonthlyConsumptionAveragesProvider(int vehicleId, int year)
-    : this._internal(
-        (ref) => monthlyConsumptionAverages(
-          ref as MonthlyConsumptionAveragesRef,
-          vehicleId,
-          year,
-        ),
-        from: monthlyConsumptionAveragesProvider,
-        name: r'monthlyConsumptionAveragesProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$monthlyConsumptionAveragesHash,
-        dependencies: MonthlyConsumptionAveragesFamily._dependencies,
-        allTransitiveDependencies:
-            MonthlyConsumptionAveragesFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
-        year: year,
+final class PriceTrendChartDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<PriceTrendDataPoint>>,
+          ({DateTime? startDate, DateTime? endDate})
+        > {
+  const PriceTrendChartDataFamily._()
+    : super(
+        retry: null,
+        name: r'priceTrendChartDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  MonthlyConsumptionAveragesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.year,
-  }) : super.internal();
+  /// Provider for price trend chart data
 
-  final int vehicleId;
-  final int year;
+  PriceTrendChartDataProvider call({DateTime? startDate, DateTime? endDate}) =>
+      PriceTrendChartDataProvider._(
+        argument: (startDate: startDate, endDate: endDate),
+        from: this,
+      );
 
   @override
-  Override overrideWith(
-    FutureOr<Map<String, double>> Function(
-      MonthlyConsumptionAveragesRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MonthlyConsumptionAveragesProvider._internal(
-        (ref) => create(ref as MonthlyConsumptionAveragesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        year: year,
-      ),
-    );
+  String toString() => r'priceTrendChartDataProvider';
+}
+
+/// Provider for monthly consumption averages for a vehicle
+
+@ProviderFor(monthlyConsumptionAverages)
+const monthlyConsumptionAveragesProvider = MonthlyConsumptionAveragesFamily._();
+
+/// Provider for monthly consumption averages for a vehicle
+
+final class MonthlyConsumptionAveragesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, double>>,
+          Map<String, double>,
+          FutureOr<Map<String, double>>
+        >
+    with
+        $FutureModifier<Map<String, double>>,
+        $FutureProvider<Map<String, double>> {
+  /// Provider for monthly consumption averages for a vehicle
+  const MonthlyConsumptionAveragesProvider._({
+    required MonthlyConsumptionAveragesFamily super.from,
+    required (int, int) super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthlyConsumptionAveragesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$monthlyConsumptionAveragesHash();
+
+  @override
+  String toString() {
+    return r'monthlyConsumptionAveragesProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<Map<String, double>> createElement() {
-    return _MonthlyConsumptionAveragesProviderElement(this);
+  $FutureProviderElement<Map<String, double>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, double>> create(Ref ref) {
+    final argument = this.argument as (int, int);
+    return monthlyConsumptionAverages(ref, argument.$1, argument.$2);
   }
 
   @override
   bool operator ==(Object other) {
     return other is MonthlyConsumptionAveragesProvider &&
-        other.vehicleId == vehicleId &&
-        other.year == year;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, year.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MonthlyConsumptionAveragesRef
-    on AutoDisposeFutureProviderRef<Map<String, double>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$monthlyConsumptionAveragesHash() =>
+    r'c9403b1956352a835092c2e2d05f51e840fdd4a1';
 
-  /// The parameter `year` of this provider.
-  int get year;
-}
+/// Provider for monthly consumption averages for a vehicle
 
-class _MonthlyConsumptionAveragesProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, double>>
-    with MonthlyConsumptionAveragesRef {
-  _MonthlyConsumptionAveragesProviderElement(super.provider);
+final class MonthlyConsumptionAveragesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Map<String, double>>, (int, int)> {
+  const MonthlyConsumptionAveragesFamily._()
+    : super(
+        retry: null,
+        name: r'monthlyConsumptionAveragesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for monthly consumption averages for a vehicle
+
+  MonthlyConsumptionAveragesProvider call(int vehicleId, int year) =>
+      MonthlyConsumptionAveragesProvider._(
+        argument: (vehicleId, year),
+        from: this,
+      );
 
   @override
-  int get vehicleId => (origin as MonthlyConsumptionAveragesProvider).vehicleId;
-  @override
-  int get year => (origin as MonthlyConsumptionAveragesProvider).year;
+  String toString() => r'monthlyConsumptionAveragesProvider';
 }
-
-String _$costAnalysisDataHash() => r'7e3ffaf8db252a2e6aa88c0c728e65135c9471d3';
 
 /// Provider for cost analysis data
-///
-/// Copied from [costAnalysisData].
+
 @ProviderFor(costAnalysisData)
-const costAnalysisDataProvider = CostAnalysisDataFamily();
+const costAnalysisDataProvider = CostAnalysisDataFamily._();
 
 /// Provider for cost analysis data
-///
-/// Copied from [costAnalysisData].
-class CostAnalysisDataFamily extends Family<AsyncValue<Map<String, dynamic>>> {
+
+final class CostAnalysisDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>>,
+          Map<String, dynamic>,
+          FutureOr<Map<String, dynamic>>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>>,
+        $FutureProvider<Map<String, dynamic>> {
   /// Provider for cost analysis data
-  ///
-  /// Copied from [costAnalysisData].
-  const CostAnalysisDataFamily();
-
-  /// Provider for cost analysis data
-  ///
-  /// Copied from [costAnalysisData].
-  CostAnalysisDataProvider call(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    return CostAnalysisDataProvider(
-      vehicleId,
-      startDate: startDate,
-      endDate: endDate,
-    );
-  }
-
-  @override
-  CostAnalysisDataProvider getProviderOverride(
-    covariant CostAnalysisDataProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'costAnalysisDataProvider';
-}
-
-/// Provider for cost analysis data
-///
-/// Copied from [costAnalysisData].
-class CostAnalysisDataProvider
-    extends AutoDisposeFutureProvider<Map<String, dynamic>> {
-  /// Provider for cost analysis data
-  ///
-  /// Copied from [costAnalysisData].
-  CostAnalysisDataProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) : this._internal(
-         (ref) => costAnalysisData(
-           ref as CostAnalysisDataRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-         ),
-         from: costAnalysisDataProvider,
+  const CostAnalysisDataProvider._({
+    required CostAnalysisDataFamily super.from,
+    required (int, {DateTime? startDate, DateTime? endDate}) super.argument,
+  }) : super(
+         retry: null,
          name: r'costAnalysisDataProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$costAnalysisDataHash,
-         dependencies: CostAnalysisDataFamily._dependencies,
-         allTransitiveDependencies:
-             CostAnalysisDataFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  CostAnalysisDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
+  @override
+  String debugGetCreateSourceHash() => _$costAnalysisDataHash();
 
   @override
-  Override overrideWith(
-    FutureOr<Map<String, dynamic>> Function(CostAnalysisDataRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: CostAnalysisDataProvider._internal(
-        (ref) => create(ref as CostAnalysisDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() {
+    return r'costAnalysisDataProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<Map<String, dynamic>> createElement() {
-    return _CostAnalysisDataProviderElement(this);
+  $FutureProviderElement<Map<String, dynamic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>> create(Ref ref) {
+    final argument =
+        this.argument as (int, {DateTime? startDate, DateTime? endDate});
+    return costAnalysisData(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CostAnalysisDataProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+    return other is CostAnalysisDataProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin CostAnalysisDataRef
-    on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$costAnalysisDataHash() => r'ea7c996237285a35373160e5fce643da3dfcd630';
 
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+/// Provider for cost analysis data
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-}
-
-class _CostAnalysisDataProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, dynamic>>
-    with CostAnalysisDataRef {
-  _CostAnalysisDataProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as CostAnalysisDataProvider).vehicleId;
-  @override
-  DateTime? get startDate => (origin as CostAnalysisDataProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as CostAnalysisDataProvider).endDate;
-}
-
-String _$countryPriceComparisonHash() =>
-    r'4ff1863f6dce6149ec994d915af906da78624dc8';
-
-/// Provider for country-wise fuel price comparison
-///
-/// Copied from [countryPriceComparison].
-@ProviderFor(countryPriceComparison)
-const countryPriceComparisonProvider = CountryPriceComparisonFamily();
-
-/// Provider for country-wise fuel price comparison
-///
-/// Copied from [countryPriceComparison].
-class CountryPriceComparisonFamily
-    extends Family<AsyncValue<Map<String, double>>> {
-  /// Provider for country-wise fuel price comparison
-  ///
-  /// Copied from [countryPriceComparison].
-  const CountryPriceComparisonFamily();
-
-  /// Provider for country-wise fuel price comparison
-  ///
-  /// Copied from [countryPriceComparison].
-  CountryPriceComparisonProvider call({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    return CountryPriceComparisonProvider(
-      startDate: startDate,
-      endDate: endDate,
-    );
-  }
-
-  @override
-  CountryPriceComparisonProvider getProviderOverride(
-    covariant CountryPriceComparisonProvider provider,
-  ) {
-    return call(startDate: provider.startDate, endDate: provider.endDate);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'countryPriceComparisonProvider';
-}
-
-/// Provider for country-wise fuel price comparison
-///
-/// Copied from [countryPriceComparison].
-class CountryPriceComparisonProvider
-    extends AutoDisposeFutureProvider<Map<String, double>> {
-  /// Provider for country-wise fuel price comparison
-  ///
-  /// Copied from [countryPriceComparison].
-  CountryPriceComparisonProvider({DateTime? startDate, DateTime? endDate})
-    : this._internal(
-        (ref) => countryPriceComparison(
-          ref as CountryPriceComparisonRef,
-          startDate: startDate,
-          endDate: endDate,
-        ),
-        from: countryPriceComparisonProvider,
-        name: r'countryPriceComparisonProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$countryPriceComparisonHash,
-        dependencies: CountryPriceComparisonFamily._dependencies,
-        allTransitiveDependencies:
-            CountryPriceComparisonFamily._allTransitiveDependencies,
-        startDate: startDate,
-        endDate: endDate,
+final class CostAnalysisDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<String, dynamic>>,
+          (int, {DateTime? startDate, DateTime? endDate})
+        > {
+  const CostAnalysisDataFamily._()
+    : super(
+        retry: null,
+        name: r'costAnalysisDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
       );
 
-  CountryPriceComparisonProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
+  /// Provider for cost analysis data
 
-  final DateTime? startDate;
-  final DateTime? endDate;
+  CostAnalysisDataProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => CostAnalysisDataProvider._(
+    argument: (vehicleId, startDate: startDate, endDate: endDate),
+    from: this,
+  );
 
   @override
-  Override overrideWith(
-    FutureOr<Map<String, double>> Function(CountryPriceComparisonRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: CountryPriceComparisonProvider._internal(
-        (ref) => create(ref as CountryPriceComparisonRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() => r'costAnalysisDataProvider';
+}
+
+/// Provider for country-wise fuel price comparison
+
+@ProviderFor(countryPriceComparison)
+const countryPriceComparisonProvider = CountryPriceComparisonFamily._();
+
+/// Provider for country-wise fuel price comparison
+
+final class CountryPriceComparisonProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, double>>,
+          Map<String, double>,
+          FutureOr<Map<String, double>>
+        >
+    with
+        $FutureModifier<Map<String, double>>,
+        $FutureProvider<Map<String, double>> {
+  /// Provider for country-wise fuel price comparison
+  const CountryPriceComparisonProvider._({
+    required CountryPriceComparisonFamily super.from,
+    required ({DateTime? startDate, DateTime? endDate}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'countryPriceComparisonProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$countryPriceComparisonHash();
+
+  @override
+  String toString() {
+    return r'countryPriceComparisonProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<Map<String, double>> createElement() {
-    return _CountryPriceComparisonProviderElement(this);
+  $FutureProviderElement<Map<String, double>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, double>> create(Ref ref) {
+    final argument =
+        this.argument as ({DateTime? startDate, DateTime? endDate});
+    return countryPriceComparison(
+      ref,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is CountryPriceComparisonProvider &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin CountryPriceComparisonRef
-    on AutoDisposeFutureProviderRef<Map<String, double>> {
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+String _$countryPriceComparisonHash() =>
+    r'25128dd2e46838613c915ebbbf9d7dd4fad8af39';
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
+/// Provider for country-wise fuel price comparison
+
+final class CountryPriceComparisonFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<String, double>>,
+          ({DateTime? startDate, DateTime? endDate})
+        > {
+  const CountryPriceComparisonFamily._()
+    : super(
+        retry: null,
+        name: r'countryPriceComparisonProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for country-wise fuel price comparison
+
+  CountryPriceComparisonProvider call({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => CountryPriceComparisonProvider._(
+    argument: (startDate: startDate, endDate: endDate),
+    from: this,
+  );
+
+  @override
+  String toString() => r'countryPriceComparisonProvider';
 }
 
-class _CountryPriceComparisonProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, double>>
-    with CountryPriceComparisonRef {
-  _CountryPriceComparisonProviderElement(super.provider);
+/// Provider for monthly spending data (Issue #11)
+
+@ProviderFor(monthlySpendingData)
+const monthlySpendingDataProvider = MonthlySpendingDataFamily._();
+
+/// Provider for monthly spending data (Issue #11)
+
+final class MonthlySpendingDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SpendingDataPoint>>,
+          List<SpendingDataPoint>,
+          FutureOr<List<SpendingDataPoint>>
+        >
+    with
+        $FutureModifier<List<SpendingDataPoint>>,
+        $FutureProvider<List<SpendingDataPoint>> {
+  /// Provider for monthly spending data (Issue #11)
+  const MonthlySpendingDataProvider._({
+    required MonthlySpendingDataFamily super.from,
+    required (
+      int, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'monthlySpendingDataProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  DateTime? get startDate =>
-      (origin as CountryPriceComparisonProvider).startDate;
+  String debugGetCreateSourceHash() => _$monthlySpendingDataHash();
+
   @override
-  DateTime? get endDate => (origin as CountryPriceComparisonProvider).endDate;
+  String toString() {
+    return r'monthlySpendingDataProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SpendingDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SpendingDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return monthlySpendingData(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MonthlySpendingDataProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$monthlySpendingDataHash() =>
-    r'ebf947e213c8cee60e816d69758c74b3c87b303f';
+    r'd26d7aa96ef092030df895db4a0be614ee2217ca';
 
 /// Provider for monthly spending data (Issue #11)
-///
-/// Copied from [monthlySpendingData].
-@ProviderFor(monthlySpendingData)
-const monthlySpendingDataProvider = MonthlySpendingDataFamily();
 
-/// Provider for monthly spending data (Issue #11)
-///
-/// Copied from [monthlySpendingData].
-class MonthlySpendingDataFamily
-    extends Family<AsyncValue<List<SpendingDataPoint>>> {
-  /// Provider for monthly spending data (Issue #11)
-  ///
-  /// Copied from [monthlySpendingData].
-  const MonthlySpendingDataFamily();
+final class MonthlySpendingDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<SpendingDataPoint>>,
+          (int, {DateTime? startDate, DateTime? endDate, String? countryFilter})
+        > {
+  const MonthlySpendingDataFamily._()
+    : super(
+        retry: null,
+        name: r'monthlySpendingDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for monthly spending data (Issue #11)
-  ///
-  /// Copied from [monthlySpendingData].
+
   MonthlySpendingDataProvider call(
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
     String? countryFilter,
-  }) {
-    return MonthlySpendingDataProvider(
+  }) => MonthlySpendingDataProvider._(
+    argument: (
       vehicleId,
       startDate: startDate,
       endDate: endDate,
       countryFilter: countryFilter,
-    );
-  }
+    ),
+    from: this,
+  );
 
   @override
-  MonthlySpendingDataProvider getProviderOverride(
-    covariant MonthlySpendingDataProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'monthlySpendingDataProvider';
+  String toString() => r'monthlySpendingDataProvider';
 }
-
-/// Provider for monthly spending data (Issue #11)
-///
-/// Copied from [monthlySpendingData].
-class MonthlySpendingDataProvider
-    extends AutoDisposeFutureProvider<List<SpendingDataPoint>> {
-  /// Provider for monthly spending data (Issue #11)
-  ///
-  /// Copied from [monthlySpendingData].
-  MonthlySpendingDataProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => monthlySpendingData(
-           ref as MonthlySpendingDataRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: monthlySpendingDataProvider,
-         name: r'monthlySpendingDataProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$monthlySpendingDataHash,
-         dependencies: MonthlySpendingDataFamily._dependencies,
-         allTransitiveDependencies:
-             MonthlySpendingDataFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
-       );
-
-  MonthlySpendingDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<SpendingDataPoint>> Function(MonthlySpendingDataRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: MonthlySpendingDataProvider._internal(
-        (ref) => create(ref as MonthlySpendingDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<SpendingDataPoint>> createElement() {
-    return _MonthlySpendingDataProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is MonthlySpendingDataProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin MonthlySpendingDataRef
-    on AutoDisposeFutureProviderRef<List<SpendingDataPoint>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
-
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _MonthlySpendingDataProviderElement
-    extends AutoDisposeFutureProviderElement<List<SpendingDataPoint>>
-    with MonthlySpendingDataRef {
-  _MonthlySpendingDataProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as MonthlySpendingDataProvider).vehicleId;
-  @override
-  DateTime? get startDate => (origin as MonthlySpendingDataProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as MonthlySpendingDataProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as MonthlySpendingDataProvider).countryFilter;
-}
-
-String _$countrySpendingComparisonHash() =>
-    r'd06c93cd3572220e0ca050795daea952d4e278b9';
 
 /// Provider for country spending comparison (Issues #10, #11)
-///
-/// Copied from [countrySpendingComparison].
+
 @ProviderFor(countrySpendingComparison)
-const countrySpendingComparisonProvider = CountrySpendingComparisonFamily();
+const countrySpendingComparisonProvider = CountrySpendingComparisonFamily._();
 
 /// Provider for country spending comparison (Issues #10, #11)
-///
-/// Copied from [countrySpendingComparison].
-class CountrySpendingComparisonFamily
-    extends Family<AsyncValue<List<CountrySpendingDataPoint>>> {
+
+final class CountrySpendingComparisonProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CountrySpendingDataPoint>>,
+          List<CountrySpendingDataPoint>,
+          FutureOr<List<CountrySpendingDataPoint>>
+        >
+    with
+        $FutureModifier<List<CountrySpendingDataPoint>>,
+        $FutureProvider<List<CountrySpendingDataPoint>> {
   /// Provider for country spending comparison (Issues #10, #11)
-  ///
-  /// Copied from [countrySpendingComparison].
-  const CountrySpendingComparisonFamily();
-
-  /// Provider for country spending comparison (Issues #10, #11)
-  ///
-  /// Copied from [countrySpendingComparison].
-  CountrySpendingComparisonProvider call(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    return CountrySpendingComparisonProvider(
-      vehicleId,
-      startDate: startDate,
-      endDate: endDate,
-    );
-  }
-
-  @override
-  CountrySpendingComparisonProvider getProviderOverride(
-    covariant CountrySpendingComparisonProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'countrySpendingComparisonProvider';
-}
-
-/// Provider for country spending comparison (Issues #10, #11)
-///
-/// Copied from [countrySpendingComparison].
-class CountrySpendingComparisonProvider
-    extends AutoDisposeFutureProvider<List<CountrySpendingDataPoint>> {
-  /// Provider for country spending comparison (Issues #10, #11)
-  ///
-  /// Copied from [countrySpendingComparison].
-  CountrySpendingComparisonProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) : this._internal(
-         (ref) => countrySpendingComparison(
-           ref as CountrySpendingComparisonRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-         ),
-         from: countrySpendingComparisonProvider,
+  const CountrySpendingComparisonProvider._({
+    required CountrySpendingComparisonFamily super.from,
+    required (int, {DateTime? startDate, DateTime? endDate}) super.argument,
+  }) : super(
+         retry: null,
          name: r'countrySpendingComparisonProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$countrySpendingComparisonHash,
-         dependencies: CountrySpendingComparisonFamily._dependencies,
-         allTransitiveDependencies:
-             CountrySpendingComparisonFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  CountrySpendingComparisonProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
+  @override
+  String debugGetCreateSourceHash() => _$countrySpendingComparisonHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<CountrySpendingDataPoint>> Function(
-      CountrySpendingComparisonRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: CountrySpendingComparisonProvider._internal(
-        (ref) => create(ref as CountrySpendingComparisonRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() {
+    return r'countrySpendingComparisonProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<CountrySpendingDataPoint>>
-  createElement() {
-    return _CountrySpendingComparisonProviderElement(this);
+  $FutureProviderElement<List<CountrySpendingDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CountrySpendingDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument as (int, {DateTime? startDate, DateTime? endDate});
+    return countrySpendingComparison(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is CountrySpendingComparisonProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin CountrySpendingComparisonRef
-    on AutoDisposeFutureProviderRef<List<CountrySpendingDataPoint>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$countrySpendingComparisonHash() =>
+    r'83f5f7a7006031fd39c103ff4b68abf81f358606';
 
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+/// Provider for country spending comparison (Issues #10, #11)
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
+final class CountrySpendingComparisonFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<CountrySpendingDataPoint>>,
+          (int, {DateTime? startDate, DateTime? endDate})
+        > {
+  const CountrySpendingComparisonFamily._()
+    : super(
+        retry: null,
+        name: r'countrySpendingComparisonProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for country spending comparison (Issues #10, #11)
+
+  CountrySpendingComparisonProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => CountrySpendingComparisonProvider._(
+    argument: (vehicleId, startDate: startDate, endDate: endDate),
+    from: this,
+  );
+
+  @override
+  String toString() => r'countrySpendingComparisonProvider';
 }
-
-class _CountrySpendingComparisonProviderElement
-    extends AutoDisposeFutureProviderElement<List<CountrySpendingDataPoint>>
-    with CountrySpendingComparisonRef {
-  _CountrySpendingComparisonProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as CountrySpendingComparisonProvider).vehicleId;
-  @override
-  DateTime? get startDate =>
-      (origin as CountrySpendingComparisonProvider).startDate;
-  @override
-  DateTime? get endDate =>
-      (origin as CountrySpendingComparisonProvider).endDate;
-}
-
-String _$priceTrendsByCountryHash() =>
-    r'8f24b139ee6e578d265f263c1f72dda25c5b1d4b';
 
 /// Provider for price trends by country over time (Issue #10)
-///
-/// Copied from [priceTrendsByCountry].
+
 @ProviderFor(priceTrendsByCountry)
-const priceTrendsByCountryProvider = PriceTrendsByCountryFamily();
+const priceTrendsByCountryProvider = PriceTrendsByCountryFamily._();
 
 /// Provider for price trends by country over time (Issue #10)
-///
-/// Copied from [priceTrendsByCountry].
-class PriceTrendsByCountryFamily
-    extends Family<AsyncValue<Map<String, List<PriceTrendDataPoint>>>> {
+
+final class PriceTrendsByCountryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, List<PriceTrendDataPoint>>>,
+          Map<String, List<PriceTrendDataPoint>>,
+          FutureOr<Map<String, List<PriceTrendDataPoint>>>
+        >
+    with
+        $FutureModifier<Map<String, List<PriceTrendDataPoint>>>,
+        $FutureProvider<Map<String, List<PriceTrendDataPoint>>> {
   /// Provider for price trends by country over time (Issue #10)
-  ///
-  /// Copied from [priceTrendsByCountry].
-  const PriceTrendsByCountryFamily();
-
-  /// Provider for price trends by country over time (Issue #10)
-  ///
-  /// Copied from [priceTrendsByCountry].
-  PriceTrendsByCountryProvider call(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    return PriceTrendsByCountryProvider(
-      vehicleId,
-      startDate: startDate,
-      endDate: endDate,
-    );
-  }
-
-  @override
-  PriceTrendsByCountryProvider getProviderOverride(
-    covariant PriceTrendsByCountryProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'priceTrendsByCountryProvider';
-}
-
-/// Provider for price trends by country over time (Issue #10)
-///
-/// Copied from [priceTrendsByCountry].
-class PriceTrendsByCountryProvider
-    extends AutoDisposeFutureProvider<Map<String, List<PriceTrendDataPoint>>> {
-  /// Provider for price trends by country over time (Issue #10)
-  ///
-  /// Copied from [priceTrendsByCountry].
-  PriceTrendsByCountryProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) : this._internal(
-         (ref) => priceTrendsByCountry(
-           ref as PriceTrendsByCountryRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-         ),
-         from: priceTrendsByCountryProvider,
+  const PriceTrendsByCountryProvider._({
+    required PriceTrendsByCountryFamily super.from,
+    required (int, {DateTime? startDate, DateTime? endDate}) super.argument,
+  }) : super(
+         retry: null,
          name: r'priceTrendsByCountryProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$priceTrendsByCountryHash,
-         dependencies: PriceTrendsByCountryFamily._dependencies,
-         allTransitiveDependencies:
-             PriceTrendsByCountryFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  PriceTrendsByCountryProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
+  @override
+  String debugGetCreateSourceHash() => _$priceTrendsByCountryHash();
 
   @override
-  Override overrideWith(
-    FutureOr<Map<String, List<PriceTrendDataPoint>>> Function(
-      PriceTrendsByCountryRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PriceTrendsByCountryProvider._internal(
-        (ref) => create(ref as PriceTrendsByCountryRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-      ),
-    );
+  String toString() {
+    return r'priceTrendsByCountryProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<Map<String, List<PriceTrendDataPoint>>>
-  createElement() {
-    return _PriceTrendsByCountryProviderElement(this);
+  $FutureProviderElement<Map<String, List<PriceTrendDataPoint>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, List<PriceTrendDataPoint>>> create(Ref ref) {
+    final argument =
+        this.argument as (int, {DateTime? startDate, DateTime? endDate});
+    return priceTrendsByCountry(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PriceTrendsByCountryProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate;
+    return other is PriceTrendsByCountryProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PriceTrendsByCountryRef
-    on AutoDisposeFutureProviderRef<Map<String, List<PriceTrendDataPoint>>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
+String _$priceTrendsByCountryHash() =>
+    r'53d25ae7499a357a6f8a3390fbe05b42a138e54e';
 
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
+/// Provider for price trends by country over time (Issue #10)
 
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
+final class PriceTrendsByCountryFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<String, List<PriceTrendDataPoint>>>,
+          (int, {DateTime? startDate, DateTime? endDate})
+        > {
+  const PriceTrendsByCountryFamily._()
+    : super(
+        retry: null,
+        name: r'priceTrendsByCountryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for price trends by country over time (Issue #10)
+
+  PriceTrendsByCountryProvider call(
+    int vehicleId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => PriceTrendsByCountryProvider._(
+    argument: (vehicleId, startDate: startDate, endDate: endDate),
+    from: this,
+  );
+
+  @override
+  String toString() => r'priceTrendsByCountryProvider';
 }
 
-class _PriceTrendsByCountryProviderElement
+/// Provider for comprehensive spending statistics (Issue #14)
+
+@ProviderFor(spendingStatistics)
+const spendingStatisticsProvider = SpendingStatisticsFamily._();
+
+/// Provider for comprehensive spending statistics (Issue #14)
+
+final class SpendingStatisticsProvider
     extends
-        AutoDisposeFutureProviderElement<Map<String, List<PriceTrendDataPoint>>>
-    with PriceTrendsByCountryRef {
-  _PriceTrendsByCountryProviderElement(super.provider);
+        $FunctionalProvider<
+          AsyncValue<Map<String, dynamic>>,
+          Map<String, dynamic>,
+          FutureOr<Map<String, dynamic>>
+        >
+    with
+        $FutureModifier<Map<String, dynamic>>,
+        $FutureProvider<Map<String, dynamic>> {
+  /// Provider for comprehensive spending statistics (Issue #14)
+  const SpendingStatisticsProvider._({
+    required SpendingStatisticsFamily super.from,
+    required (
+      int, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'spendingStatisticsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  int get vehicleId => (origin as PriceTrendsByCountryProvider).vehicleId;
+  String debugGetCreateSourceHash() => _$spendingStatisticsHash();
+
   @override
-  DateTime? get startDate => (origin as PriceTrendsByCountryProvider).startDate;
+  String toString() {
+    return r'spendingStatisticsProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
   @override
-  DateTime? get endDate => (origin as PriceTrendsByCountryProvider).endDate;
+  $FutureProviderElement<Map<String, dynamic>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, dynamic>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return spendingStatistics(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpendingStatisticsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$spendingStatisticsHash() =>
-    r'088980444cad1c2b1a667a8453e56a703e4c6dde';
+    r'191e947dc974e48d0d422e95ee66b146dd265100';
 
 /// Provider for comprehensive spending statistics (Issue #14)
-///
-/// Copied from [spendingStatistics].
-@ProviderFor(spendingStatistics)
-const spendingStatisticsProvider = SpendingStatisticsFamily();
 
-/// Provider for comprehensive spending statistics (Issue #14)
-///
-/// Copied from [spendingStatistics].
-class SpendingStatisticsFamily
-    extends Family<AsyncValue<Map<String, dynamic>>> {
-  /// Provider for comprehensive spending statistics (Issue #14)
-  ///
-  /// Copied from [spendingStatistics].
-  const SpendingStatisticsFamily();
+final class SpendingStatisticsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<String, dynamic>>,
+          (int, {DateTime? startDate, DateTime? endDate, String? countryFilter})
+        > {
+  const SpendingStatisticsFamily._()
+    : super(
+        retry: null,
+        name: r'spendingStatisticsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for comprehensive spending statistics (Issue #14)
-  ///
-  /// Copied from [spendingStatistics].
+
   SpendingStatisticsProvider call(
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
     String? countryFilter,
-  }) {
-    return SpendingStatisticsProvider(
+  }) => SpendingStatisticsProvider._(
+    argument: (
       vehicleId,
       startDate: startDate,
       endDate: endDate,
       countryFilter: countryFilter,
-    );
-  }
+    ),
+    from: this,
+  );
 
   @override
-  SpendingStatisticsProvider getProviderOverride(
-    covariant SpendingStatisticsProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'spendingStatisticsProvider';
+  String toString() => r'spendingStatisticsProvider';
 }
 
-/// Provider for comprehensive spending statistics (Issue #14)
-///
-/// Copied from [spendingStatistics].
-class SpendingStatisticsProvider
-    extends AutoDisposeFutureProvider<Map<String, dynamic>> {
-  /// Provider for comprehensive spending statistics (Issue #14)
-  ///
-  /// Copied from [spendingStatistics].
-  SpendingStatisticsProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => spendingStatistics(
-           ref as SpendingStatisticsRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: spendingStatisticsProvider,
-         name: r'spendingStatisticsProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$spendingStatisticsHash,
-         dependencies: SpendingStatisticsFamily._dependencies,
-         allTransitiveDependencies:
-             SpendingStatisticsFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
+/// Provider for period-based average consumption data
+
+@ProviderFor(periodAverageConsumptionData)
+const periodAverageConsumptionDataProvider =
+    PeriodAverageConsumptionDataFamily._();
+
+/// Provider for period-based average consumption data
+
+final class PeriodAverageConsumptionDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<PeriodAverageDataPoint>>,
+          List<PeriodAverageDataPoint>,
+          FutureOr<List<PeriodAverageDataPoint>>
+        >
+    with
+        $FutureModifier<List<PeriodAverageDataPoint>>,
+        $FutureProvider<List<PeriodAverageDataPoint>> {
+  /// Provider for period-based average consumption data
+  const PeriodAverageConsumptionDataProvider._({
+    required PeriodAverageConsumptionDataFamily super.from,
+    required (
+      int,
+      PeriodType, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'periodAverageConsumptionDataProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  SpendingStatisticsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
+  @override
+  String debugGetCreateSourceHash() => _$periodAverageConsumptionDataHash();
 
   @override
-  Override overrideWith(
-    FutureOr<Map<String, dynamic>> Function(SpendingStatisticsRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: SpendingStatisticsProvider._internal(
-        (ref) => create(ref as SpendingStatisticsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
+  String toString() {
+    return r'periodAverageConsumptionDataProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<Map<String, dynamic>> createElement() {
-    return _SpendingStatisticsProviderElement(this);
+  $FutureProviderElement<List<PeriodAverageDataPoint>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<PeriodAverageDataPoint>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int,
+              PeriodType, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return periodAverageConsumptionData(
+      ref,
+      argument.$1,
+      argument.$2,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is SpendingStatisticsProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
+    return other is PeriodAverageConsumptionDataProvider &&
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SpendingStatisticsRef
-    on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
-
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _SpendingStatisticsProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, dynamic>>
-    with SpendingStatisticsRef {
-  _SpendingStatisticsProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as SpendingStatisticsProvider).vehicleId;
-  @override
-  DateTime? get startDate => (origin as SpendingStatisticsProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as SpendingStatisticsProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as SpendingStatisticsProvider).countryFilter;
-}
-
 String _$periodAverageConsumptionDataHash() =>
-    r'0a056aeac40477cf83867f87d15f14fe9e4eacf0';
+    r'43ec30fd1cd7da9c194acf3edcf33c000243c039';
 
 /// Provider for period-based average consumption data
-///
-/// Copied from [periodAverageConsumptionData].
-@ProviderFor(periodAverageConsumptionData)
-const periodAverageConsumptionDataProvider =
-    PeriodAverageConsumptionDataFamily();
 
-/// Provider for period-based average consumption data
-///
-/// Copied from [periodAverageConsumptionData].
-class PeriodAverageConsumptionDataFamily
-    extends Family<AsyncValue<List<PeriodAverageDataPoint>>> {
-  /// Provider for period-based average consumption data
-  ///
-  /// Copied from [periodAverageConsumptionData].
-  const PeriodAverageConsumptionDataFamily();
+final class PeriodAverageConsumptionDataFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<PeriodAverageDataPoint>>,
+          (
+            int,
+            PeriodType, {
+            DateTime? startDate,
+            DateTime? endDate,
+            String? countryFilter,
+          })
+        > {
+  const PeriodAverageConsumptionDataFamily._()
+    : super(
+        retry: null,
+        name: r'periodAverageConsumptionDataProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for period-based average consumption data
-  ///
-  /// Copied from [periodAverageConsumptionData].
+
   PeriodAverageConsumptionDataProvider call(
     int vehicleId,
     PeriodType periodType, {
     DateTime? startDate,
     DateTime? endDate,
     String? countryFilter,
-  }) {
-    return PeriodAverageConsumptionDataProvider(
+  }) => PeriodAverageConsumptionDataProvider._(
+    argument: (
       vehicleId,
       periodType,
       startDate: startDate,
       endDate: endDate,
       countryFilter: countryFilter,
-    );
-  }
+    ),
+    from: this,
+  );
 
   @override
-  PeriodAverageConsumptionDataProvider getProviderOverride(
-    covariant PeriodAverageConsumptionDataProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      provider.periodType,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'periodAverageConsumptionDataProvider';
+  String toString() => r'periodAverageConsumptionDataProvider';
 }
 
-/// Provider for period-based average consumption data
-///
-/// Copied from [periodAverageConsumptionData].
-class PeriodAverageConsumptionDataProvider
-    extends AutoDisposeFutureProvider<List<PeriodAverageDataPoint>> {
-  /// Provider for period-based average consumption data
-  ///
-  /// Copied from [periodAverageConsumptionData].
-  PeriodAverageConsumptionDataProvider(
-    int vehicleId,
-    PeriodType periodType, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => periodAverageConsumptionData(
-           ref as PeriodAverageConsumptionDataRef,
-           vehicleId,
-           periodType,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: periodAverageConsumptionDataProvider,
-         name: r'periodAverageConsumptionDataProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$periodAverageConsumptionDataHash,
-         dependencies: PeriodAverageConsumptionDataFamily._dependencies,
-         allTransitiveDependencies:
-             PeriodAverageConsumptionDataFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         periodType: periodType,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
+/// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
+
+@ProviderFor(consumptionStatistics)
+const consumptionStatisticsProvider = ConsumptionStatisticsFamily._();
+
+/// Provider for overall consumption statistics
+/// Uses period-based consumption calculation (full tank to full tank)
+
+final class ConsumptionStatisticsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<Map<String, double>>,
+          Map<String, double>,
+          FutureOr<Map<String, double>>
+        >
+    with
+        $FutureModifier<Map<String, double>>,
+        $FutureProvider<Map<String, double>> {
+  /// Provider for overall consumption statistics
+  /// Uses period-based consumption calculation (full tank to full tank)
+  const ConsumptionStatisticsProvider._({
+    required ConsumptionStatisticsFamily super.from,
+    required (
+      int, {
+      DateTime? startDate,
+      DateTime? endDate,
+      String? countryFilter,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'consumptionStatisticsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
        );
 
-  PeriodAverageConsumptionDataProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.periodType,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final PeriodType periodType;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
+  @override
+  String debugGetCreateSourceHash() => _$consumptionStatisticsHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<PeriodAverageDataPoint>> Function(
-      PeriodAverageConsumptionDataRef provider,
-    )
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PeriodAverageConsumptionDataProvider._internal(
-        (ref) => create(ref as PeriodAverageConsumptionDataRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        periodType: periodType,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
+  String toString() {
+    return r'consumptionStatisticsProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<PeriodAverageDataPoint>>
-  createElement() {
-    return _PeriodAverageConsumptionDataProviderElement(this);
+  $FutureProviderElement<Map<String, double>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Map<String, double>> create(Ref ref) {
+    final argument =
+        this.argument
+            as (
+              int, {
+              DateTime? startDate,
+              DateTime? endDate,
+              String? countryFilter,
+            });
+    return consumptionStatistics(
+      ref,
+      argument.$1,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      countryFilter: argument.countryFilter,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PeriodAverageConsumptionDataProvider &&
-        other.vehicleId == vehicleId &&
-        other.periodType == periodType &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
+    return other is ConsumptionStatisticsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, periodType.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PeriodAverageConsumptionDataRef
-    on AutoDisposeFutureProviderRef<List<PeriodAverageDataPoint>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-
-  /// The parameter `periodType` of this provider.
-  PeriodType get periodType;
-
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
-
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _PeriodAverageConsumptionDataProviderElement
-    extends AutoDisposeFutureProviderElement<List<PeriodAverageDataPoint>>
-    with PeriodAverageConsumptionDataRef {
-  _PeriodAverageConsumptionDataProviderElement(super.provider);
-
-  @override
-  int get vehicleId =>
-      (origin as PeriodAverageConsumptionDataProvider).vehicleId;
-  @override
-  PeriodType get periodType =>
-      (origin as PeriodAverageConsumptionDataProvider).periodType;
-  @override
-  DateTime? get startDate =>
-      (origin as PeriodAverageConsumptionDataProvider).startDate;
-  @override
-  DateTime? get endDate =>
-      (origin as PeriodAverageConsumptionDataProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as PeriodAverageConsumptionDataProvider).countryFilter;
-}
-
 String _$consumptionStatisticsHash() =>
-    r'362dd492f2fbe29d44e2828c95d5cfb1e6d6233f';
+    r'b1d3526faaf5a707d96f60dfd87937afcbf33c31';
 
 /// Provider for overall consumption statistics
 /// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionStatistics].
-@ProviderFor(consumptionStatistics)
-const consumptionStatisticsProvider = ConsumptionStatisticsFamily();
 
-/// Provider for overall consumption statistics
-/// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionStatistics].
-class ConsumptionStatisticsFamily
-    extends Family<AsyncValue<Map<String, double>>> {
+final class ConsumptionStatisticsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<Map<String, double>>,
+          (int, {DateTime? startDate, DateTime? endDate, String? countryFilter})
+        > {
+  const ConsumptionStatisticsFamily._()
+    : super(
+        retry: null,
+        name: r'consumptionStatisticsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
   /// Provider for overall consumption statistics
   /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionStatistics].
-  const ConsumptionStatisticsFamily();
 
-  /// Provider for overall consumption statistics
-  /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionStatistics].
   ConsumptionStatisticsProvider call(
     int vehicleId, {
     DateTime? startDate,
     DateTime? endDate,
     String? countryFilter,
-  }) {
-    return ConsumptionStatisticsProvider(
+  }) => ConsumptionStatisticsProvider._(
+    argument: (
       vehicleId,
       startDate: startDate,
       endDate: endDate,
       countryFilter: countryFilter,
-    );
-  }
+    ),
+    from: this,
+  );
 
   @override
-  ConsumptionStatisticsProvider getProviderOverride(
-    covariant ConsumptionStatisticsProvider provider,
-  ) {
-    return call(
-      provider.vehicleId,
-      startDate: provider.startDate,
-      endDate: provider.endDate,
-      countryFilter: provider.countryFilter,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'consumptionStatisticsProvider';
+  String toString() => r'consumptionStatisticsProvider';
 }
-
-/// Provider for overall consumption statistics
-/// Uses period-based consumption calculation (full tank to full tank)
-///
-/// Copied from [consumptionStatistics].
-class ConsumptionStatisticsProvider
-    extends AutoDisposeFutureProvider<Map<String, double>> {
-  /// Provider for overall consumption statistics
-  /// Uses period-based consumption calculation (full tank to full tank)
-  ///
-  /// Copied from [consumptionStatistics].
-  ConsumptionStatisticsProvider(
-    int vehicleId, {
-    DateTime? startDate,
-    DateTime? endDate,
-    String? countryFilter,
-  }) : this._internal(
-         (ref) => consumptionStatistics(
-           ref as ConsumptionStatisticsRef,
-           vehicleId,
-           startDate: startDate,
-           endDate: endDate,
-           countryFilter: countryFilter,
-         ),
-         from: consumptionStatisticsProvider,
-         name: r'consumptionStatisticsProvider',
-         debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-             ? null
-             : _$consumptionStatisticsHash,
-         dependencies: ConsumptionStatisticsFamily._dependencies,
-         allTransitiveDependencies:
-             ConsumptionStatisticsFamily._allTransitiveDependencies,
-         vehicleId: vehicleId,
-         startDate: startDate,
-         endDate: endDate,
-         countryFilter: countryFilter,
-       );
-
-  ConsumptionStatisticsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-    required this.startDate,
-    required this.endDate,
-    required this.countryFilter,
-  }) : super.internal();
-
-  final int vehicleId;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? countryFilter;
-
-  @override
-  Override overrideWith(
-    FutureOr<Map<String, double>> Function(ConsumptionStatisticsRef provider)
-    create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ConsumptionStatisticsProvider._internal(
-        (ref) => create(ref as ConsumptionStatisticsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-        startDate: startDate,
-        endDate: endDate,
-        countryFilter: countryFilter,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<Map<String, double>> createElement() {
-    return _ConsumptionStatisticsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ConsumptionStatisticsProvider &&
-        other.vehicleId == vehicleId &&
-        other.startDate == startDate &&
-        other.endDate == endDate &&
-        other.countryFilter == countryFilter;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-    hash = _SystemHash.combine(hash, startDate.hashCode);
-    hash = _SystemHash.combine(hash, endDate.hashCode);
-    hash = _SystemHash.combine(hash, countryFilter.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ConsumptionStatisticsRef
-    on AutoDisposeFutureProviderRef<Map<String, double>> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-
-  /// The parameter `startDate` of this provider.
-  DateTime? get startDate;
-
-  /// The parameter `endDate` of this provider.
-  DateTime? get endDate;
-
-  /// The parameter `countryFilter` of this provider.
-  String? get countryFilter;
-}
-
-class _ConsumptionStatisticsProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, double>>
-    with ConsumptionStatisticsRef {
-  _ConsumptionStatisticsProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as ConsumptionStatisticsProvider).vehicleId;
-  @override
-  DateTime? get startDate =>
-      (origin as ConsumptionStatisticsProvider).startDate;
-  @override
-  DateTime? get endDate => (origin as ConsumptionStatisticsProvider).endDate;
-  @override
-  String? get countryFilter =>
-      (origin as ConsumptionStatisticsProvider).countryFilter;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

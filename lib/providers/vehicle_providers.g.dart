@@ -6,514 +6,429 @@ part of 'vehicle_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$vehicleHash() => r'3460a7847ad3dcb3c32a67771672be418b47de54';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// Provider for getting a specific vehicle by ID
-///
-/// Copied from [vehicle].
-@ProviderFor(vehicle)
-const vehicleProvider = VehicleFamily();
-
-/// Provider for getting a specific vehicle by ID
-///
-/// Copied from [vehicle].
-class VehicleFamily extends Family<AsyncValue<VehicleModel?>> {
-  /// Provider for getting a specific vehicle by ID
-  ///
-  /// Copied from [vehicle].
-  const VehicleFamily();
-
-  /// Provider for getting a specific vehicle by ID
-  ///
-  /// Copied from [vehicle].
-  VehicleProvider call(int vehicleId) {
-    return VehicleProvider(vehicleId);
-  }
-
-  @override
-  VehicleProvider getProviderOverride(covariant VehicleProvider provider) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'vehicleProvider';
-}
-
-/// Provider for getting a specific vehicle by ID
-///
-/// Copied from [vehicle].
-class VehicleProvider extends AutoDisposeFutureProvider<VehicleModel?> {
-  /// Provider for getting a specific vehicle by ID
-  ///
-  /// Copied from [vehicle].
-  VehicleProvider(int vehicleId)
-    : this._internal(
-        (ref) => vehicle(ref as VehicleRef, vehicleId),
-        from: vehicleProvider,
-        name: r'vehicleProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$vehicleHash,
-        dependencies: VehicleFamily._dependencies,
-        allTransitiveDependencies: VehicleFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
-      );
-
-  VehicleProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
-
-  final int vehicleId;
-
-  @override
-  Override overrideWith(
-    FutureOr<VehicleModel?> Function(VehicleRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: VehicleProvider._internal(
-        (ref) => create(ref as VehicleRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<VehicleModel?> createElement() {
-    return _VehicleProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is VehicleProvider && other.vehicleId == vehicleId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin VehicleRef on AutoDisposeFutureProviderRef<VehicleModel?> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
-
-class _VehicleProviderElement
-    extends AutoDisposeFutureProviderElement<VehicleModel?>
-    with VehicleRef {
-  _VehicleProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as VehicleProvider).vehicleId;
-}
-
-String _$vehicleNameExistsHash() => r'34b3492c79609c9feb9b7755b1a09753a8b58629';
-
-/// Provider for checking if a vehicle name exists
-///
-/// Copied from [vehicleNameExists].
-@ProviderFor(vehicleNameExists)
-const vehicleNameExistsProvider = VehicleNameExistsFamily();
-
-/// Provider for checking if a vehicle name exists
-///
-/// Copied from [vehicleNameExists].
-class VehicleNameExistsFamily extends Family<AsyncValue<bool>> {
-  /// Provider for checking if a vehicle name exists
-  ///
-  /// Copied from [vehicleNameExists].
-  const VehicleNameExistsFamily();
-
-  /// Provider for checking if a vehicle name exists
-  ///
-  /// Copied from [vehicleNameExists].
-  VehicleNameExistsProvider call(String vehicleName, {int? excludeId}) {
-    return VehicleNameExistsProvider(vehicleName, excludeId: excludeId);
-  }
-
-  @override
-  VehicleNameExistsProvider getProviderOverride(
-    covariant VehicleNameExistsProvider provider,
-  ) {
-    return call(provider.vehicleName, excludeId: provider.excludeId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'vehicleNameExistsProvider';
-}
-
-/// Provider for checking if a vehicle name exists
-///
-/// Copied from [vehicleNameExists].
-class VehicleNameExistsProvider extends AutoDisposeFutureProvider<bool> {
-  /// Provider for checking if a vehicle name exists
-  ///
-  /// Copied from [vehicleNameExists].
-  VehicleNameExistsProvider(String vehicleName, {int? excludeId})
-    : this._internal(
-        (ref) => vehicleNameExists(
-          ref as VehicleNameExistsRef,
-          vehicleName,
-          excludeId: excludeId,
-        ),
-        from: vehicleNameExistsProvider,
-        name: r'vehicleNameExistsProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$vehicleNameExistsHash,
-        dependencies: VehicleNameExistsFamily._dependencies,
-        allTransitiveDependencies:
-            VehicleNameExistsFamily._allTransitiveDependencies,
-        vehicleName: vehicleName,
-        excludeId: excludeId,
-      );
-
-  VehicleNameExistsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleName,
-    required this.excludeId,
-  }) : super.internal();
-
-  final String vehicleName;
-  final int? excludeId;
-
-  @override
-  Override overrideWith(
-    FutureOr<bool> Function(VehicleNameExistsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: VehicleNameExistsProvider._internal(
-        (ref) => create(ref as VehicleNameExistsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleName: vehicleName,
-        excludeId: excludeId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<bool> createElement() {
-    return _VehicleNameExistsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is VehicleNameExistsProvider &&
-        other.vehicleName == vehicleName &&
-        other.excludeId == excludeId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleName.hashCode);
-    hash = _SystemHash.combine(hash, excludeId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin VehicleNameExistsRef on AutoDisposeFutureProviderRef<bool> {
-  /// The parameter `vehicleName` of this provider.
-  String get vehicleName;
-
-  /// The parameter `excludeId` of this provider.
-  int? get excludeId;
-}
-
-class _VehicleNameExistsProviderElement
-    extends AutoDisposeFutureProviderElement<bool>
-    with VehicleNameExistsRef {
-  _VehicleNameExistsProviderElement(super.provider);
-
-  @override
-  String get vehicleName => (origin as VehicleNameExistsProvider).vehicleName;
-  @override
-  int? get excludeId => (origin as VehicleNameExistsProvider).excludeId;
-}
-
-String _$vehicleCountHash() => r'ea60e68e5e77669104044bfd2614078d64dd01b1';
-
-/// Provider for getting vehicle count
-///
-/// Copied from [vehicleCount].
-@ProviderFor(vehicleCount)
-final vehicleCountProvider = AutoDisposeFutureProvider<int>.internal(
-  vehicleCount,
-  name: r'vehicleCountProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$vehicleCountHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef VehicleCountRef = AutoDisposeFutureProviderRef<int>;
-String _$vehicleStatisticsHash() => r'637dc21f663b842a8c839012067947cba82ebccd';
-
-/// Provider for getting vehicle statistics
-///
-/// Copied from [vehicleStatistics].
-@ProviderFor(vehicleStatistics)
-const vehicleStatisticsProvider = VehicleStatisticsFamily();
-
-/// Provider for getting vehicle statistics
-///
-/// Copied from [vehicleStatistics].
-class VehicleStatisticsFamily extends Family<AsyncValue<VehicleStatistics>> {
-  /// Provider for getting vehicle statistics
-  ///
-  /// Copied from [vehicleStatistics].
-  const VehicleStatisticsFamily();
-
-  /// Provider for getting vehicle statistics
-  ///
-  /// Copied from [vehicleStatistics].
-  VehicleStatisticsProvider call(int vehicleId) {
-    return VehicleStatisticsProvider(vehicleId);
-  }
-
-  @override
-  VehicleStatisticsProvider getProviderOverride(
-    covariant VehicleStatisticsProvider provider,
-  ) {
-    return call(provider.vehicleId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'vehicleStatisticsProvider';
-}
-
-/// Provider for getting vehicle statistics
-///
-/// Copied from [vehicleStatistics].
-class VehicleStatisticsProvider
-    extends AutoDisposeFutureProvider<VehicleStatistics> {
-  /// Provider for getting vehicle statistics
-  ///
-  /// Copied from [vehicleStatistics].
-  VehicleStatisticsProvider(int vehicleId)
-    : this._internal(
-        (ref) => vehicleStatistics(ref as VehicleStatisticsRef, vehicleId),
-        from: vehicleStatisticsProvider,
-        name: r'vehicleStatisticsProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$vehicleStatisticsHash,
-        dependencies: VehicleStatisticsFamily._dependencies,
-        allTransitiveDependencies:
-            VehicleStatisticsFamily._allTransitiveDependencies,
-        vehicleId: vehicleId,
-      );
-
-  VehicleStatisticsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.vehicleId,
-  }) : super.internal();
-
-  final int vehicleId;
-
-  @override
-  Override overrideWith(
-    FutureOr<VehicleStatistics> Function(VehicleStatisticsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: VehicleStatisticsProvider._internal(
-        (ref) => create(ref as VehicleStatisticsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        vehicleId: vehicleId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<VehicleStatistics> createElement() {
-    return _VehicleStatisticsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is VehicleStatisticsProvider && other.vehicleId == vehicleId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, vehicleId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin VehicleStatisticsRef on AutoDisposeFutureProviderRef<VehicleStatistics> {
-  /// The parameter `vehicleId` of this provider.
-  int get vehicleId;
-}
-
-class _VehicleStatisticsProviderElement
-    extends AutoDisposeFutureProviderElement<VehicleStatistics>
-    with VehicleStatisticsRef {
-  _VehicleStatisticsProviderElement(super.provider);
-
-  @override
-  int get vehicleId => (origin as VehicleStatisticsProvider).vehicleId;
-}
-
-String _$vehiclesWithStatsHash() => r'02822d7378a0801b76700646ae79845596b42342';
-
-/// Provider for getting vehicles with basic statistics
-///
-/// Copied from [vehiclesWithStats].
-@ProviderFor(vehiclesWithStats)
-final vehiclesWithStatsProvider =
-    AutoDisposeFutureProvider<List<Map<String, dynamic>>>.internal(
-      vehiclesWithStats,
-      name: r'vehiclesWithStatsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$vehiclesWithStatsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef VehiclesWithStatsRef =
-    AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
-String _$ephemeralStorageHealthHash() =>
-    r'c44eace610caaf06d032e436adc2140925e03fdc';
-
-/// Provider for checking ephemeral storage health
-///
-/// Copied from [ephemeralStorageHealth].
-@ProviderFor(ephemeralStorageHealth)
-final ephemeralStorageHealthProvider = AutoDisposeFutureProvider<bool>.internal(
-  ephemeralStorageHealth,
-  name: r'ephemeralStorageHealthProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$ephemeralStorageHealthHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef EphemeralStorageHealthRef = AutoDisposeFutureProviderRef<bool>;
-String _$vehiclesNotifierHash() => r'1f8212c5bd6ae02c269aa088498089713c3d3220';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Notifier for managing vehicles state
+
+@ProviderFor(VehiclesNotifier)
+const vehiclesProvider = VehiclesNotifierProvider._();
 
 /// Notifier for managing vehicles state
-///
-/// Copied from [VehiclesNotifier].
-@ProviderFor(VehiclesNotifier)
-final vehiclesNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<VehiclesNotifier, VehicleState>.internal(
-      VehiclesNotifier.new,
-      name: r'vehiclesNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$vehiclesNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+final class VehiclesNotifierProvider
+    extends $AsyncNotifierProvider<VehiclesNotifier, VehicleState> {
+  /// Notifier for managing vehicles state
+  const VehiclesNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vehiclesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-typedef _$VehiclesNotifier = AutoDisposeAsyncNotifier<VehicleState>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+  @override
+  String debugGetCreateSourceHash() => _$vehiclesNotifierHash();
+
+  @$internal
+  @override
+  VehiclesNotifier create() => VehiclesNotifier();
+}
+
+String _$vehiclesNotifierHash() => r'b05b7cb85018541aa8ace59aca90fdf66e85e1ad';
+
+/// Notifier for managing vehicles state
+
+abstract class _$VehiclesNotifier extends $AsyncNotifier<VehicleState> {
+  FutureOr<VehicleState> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<VehicleState>, VehicleState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<VehicleState>, VehicleState>,
+              AsyncValue<VehicleState>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Provider for getting a specific vehicle by ID
+
+@ProviderFor(vehicle)
+const vehicleProvider = VehicleFamily._();
+
+/// Provider for getting a specific vehicle by ID
+
+final class VehicleProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<VehicleModel?>,
+          VehicleModel?,
+          FutureOr<VehicleModel?>
+        >
+    with $FutureModifier<VehicleModel?>, $FutureProvider<VehicleModel?> {
+  /// Provider for getting a specific vehicle by ID
+  const VehicleProvider._({
+    required VehicleFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'vehicleProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$vehicleHash();
+
+  @override
+  String toString() {
+    return r'vehicleProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<VehicleModel?> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<VehicleModel?> create(Ref ref) {
+    final argument = this.argument as int;
+    return vehicle(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$vehicleHash() => r'7d180ab5d5afcafd5556e43669685d2974bf2567';
+
+/// Provider for getting a specific vehicle by ID
+
+final class VehicleFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<VehicleModel?>, int> {
+  const VehicleFamily._()
+    : super(
+        retry: null,
+        name: r'vehicleProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for getting a specific vehicle by ID
+
+  VehicleProvider call(int vehicleId) =>
+      VehicleProvider._(argument: vehicleId, from: this);
+
+  @override
+  String toString() => r'vehicleProvider';
+}
+
+/// Provider for checking if a vehicle name exists
+
+@ProviderFor(vehicleNameExists)
+const vehicleNameExistsProvider = VehicleNameExistsFamily._();
+
+/// Provider for checking if a vehicle name exists
+
+final class VehicleNameExistsProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Provider for checking if a vehicle name exists
+  const VehicleNameExistsProvider._({
+    required VehicleNameExistsFamily super.from,
+    required (String, {int? excludeId}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'vehicleNameExistsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$vehicleNameExistsHash();
+
+  @override
+  String toString() {
+    return r'vehicleNameExistsProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as (String, {int? excludeId});
+    return vehicleNameExists(ref, argument.$1, excludeId: argument.excludeId);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleNameExistsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$vehicleNameExistsHash() => r'79de066b18f3893d0d5d3193d5829767f0a3aadc';
+
+/// Provider for checking if a vehicle name exists
+
+final class VehicleNameExistsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, (String, {int? excludeId})> {
+  const VehicleNameExistsFamily._()
+    : super(
+        retry: null,
+        name: r'vehicleNameExistsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for checking if a vehicle name exists
+
+  VehicleNameExistsProvider call(String vehicleName, {int? excludeId}) =>
+      VehicleNameExistsProvider._(
+        argument: (vehicleName, excludeId: excludeId),
+        from: this,
+      );
+
+  @override
+  String toString() => r'vehicleNameExistsProvider';
+}
+
+/// Provider for getting vehicle count
+
+@ProviderFor(vehicleCount)
+const vehicleCountProvider = VehicleCountProvider._();
+
+/// Provider for getting vehicle count
+
+final class VehicleCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, FutureOr<int>>
+    with $FutureModifier<int>, $FutureProvider<int> {
+  /// Provider for getting vehicle count
+  const VehicleCountProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vehicleCountProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vehicleCountHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<int> create(Ref ref) {
+    return vehicleCount(ref);
+  }
+}
+
+String _$vehicleCountHash() => r'88bf21f3243c57bcd92a6d29ce4cce5fc3eb30aa';
+
+/// Provider for getting vehicle statistics
+
+@ProviderFor(vehicleStatistics)
+const vehicleStatisticsProvider = VehicleStatisticsFamily._();
+
+/// Provider for getting vehicle statistics
+
+final class VehicleStatisticsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<VehicleStatistics>,
+          VehicleStatistics,
+          FutureOr<VehicleStatistics>
+        >
+    with
+        $FutureModifier<VehicleStatistics>,
+        $FutureProvider<VehicleStatistics> {
+  /// Provider for getting vehicle statistics
+  const VehicleStatisticsProvider._({
+    required VehicleStatisticsFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'vehicleStatisticsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$vehicleStatisticsHash();
+
+  @override
+  String toString() {
+    return r'vehicleStatisticsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<VehicleStatistics> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<VehicleStatistics> create(Ref ref) {
+    final argument = this.argument as int;
+    return vehicleStatistics(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleStatisticsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$vehicleStatisticsHash() => r'75774f0d01c3644f1dc37be38c3ad2edde470dcb';
+
+/// Provider for getting vehicle statistics
+
+final class VehicleStatisticsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<VehicleStatistics>, int> {
+  const VehicleStatisticsFamily._()
+    : super(
+        retry: null,
+        name: r'vehicleStatisticsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Provider for getting vehicle statistics
+
+  VehicleStatisticsProvider call(int vehicleId) =>
+      VehicleStatisticsProvider._(argument: vehicleId, from: this);
+
+  @override
+  String toString() => r'vehicleStatisticsProvider';
+}
+
+/// Provider for getting vehicles with basic statistics
+
+@ProviderFor(vehiclesWithStats)
+const vehiclesWithStatsProvider = VehiclesWithStatsProvider._();
+
+/// Provider for getting vehicles with basic statistics
+
+final class VehiclesWithStatsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Map<String, dynamic>>>,
+          List<Map<String, dynamic>>,
+          FutureOr<List<Map<String, dynamic>>>
+        >
+    with
+        $FutureModifier<List<Map<String, dynamic>>>,
+        $FutureProvider<List<Map<String, dynamic>>> {
+  /// Provider for getting vehicles with basic statistics
+  const VehiclesWithStatsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'vehiclesWithStatsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$vehiclesWithStatsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Map<String, dynamic>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Map<String, dynamic>>> create(Ref ref) {
+    return vehiclesWithStats(ref);
+  }
+}
+
+String _$vehiclesWithStatsHash() => r'dd371138f9aaa7a5c13aedc416b8560f098b7bc1';
+
+/// Provider for checking ephemeral storage health
+
+@ProviderFor(ephemeralStorageHealth)
+const ephemeralStorageHealthProvider = EphemeralStorageHealthProvider._();
+
+/// Provider for checking ephemeral storage health
+
+final class EphemeralStorageHealthProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  /// Provider for checking ephemeral storage health
+  const EphemeralStorageHealthProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ephemeralStorageHealthProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$ephemeralStorageHealthHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    return ephemeralStorageHealth(ref);
+  }
+}
+
+String _$ephemeralStorageHealthHash() =>
+    r'31b5c59adf0a8ab9697df39df8e2e5d7c775c6b0';

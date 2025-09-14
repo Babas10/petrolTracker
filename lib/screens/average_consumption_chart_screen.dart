@@ -101,7 +101,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
   }
 
   Widget _buildVehicleSelector() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    final vehiclesState = ref.watch(vehiclesProvider);
     
     return vehiclesState.when(
       data: (vehicleState) {
@@ -635,7 +635,7 @@ class _AverageConsumptionChartScreenState extends ConsumerState<AverageConsumpti
 
 
   void _refreshData() {
-    ref.invalidate(vehiclesNotifierProvider);
+    ref.invalidate(vehiclesProvider);
     ref.invalidate(periodAverageConsumptionDataProvider);
     ref.invalidate(consumptionStatisticsProvider);
   }

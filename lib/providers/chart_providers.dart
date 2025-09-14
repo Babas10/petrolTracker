@@ -157,7 +157,7 @@ class PriceTrendDataPoint {
 /// Uses period-based consumption calculation (full tank to full tank)
 @riverpod
 Future<List<ConsumptionDataPoint>> consumptionChartData(
-  ConsumptionChartDataRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -201,7 +201,7 @@ Future<List<ConsumptionDataPoint>> consumptionChartData(
 /// Provider for enhanced consumption chart data with period composition details
 @riverpod
 Future<List<EnhancedConsumptionDataPoint>> enhancedConsumptionChartData(
-  EnhancedConsumptionChartDataRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -244,7 +244,7 @@ if (periods.isEmpty) {
 /// Provider for price trend chart data
 @riverpod
 Future<List<PriceTrendDataPoint>> priceTrendChartData(
-  PriceTrendChartDataRef ref, {
+  Ref ref, {
   DateTime? startDate,
   DateTime? endDate,
 }) async {
@@ -257,7 +257,7 @@ Future<List<PriceTrendDataPoint>> priceTrendChartData(
     );
   } else {
     // Get all entries if no date range specified
-    final entriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+    final entriesState = await ref.watch(fuelEntriesProvider.future);
     entries = entriesState.entries;
   }
 
@@ -274,7 +274,7 @@ Future<List<PriceTrendDataPoint>> priceTrendChartData(
 /// Provider for monthly consumption averages for a vehicle
 @riverpod
 Future<Map<String, double>> monthlyConsumptionAverages(
-  MonthlyConsumptionAveragesRef ref,
+  Ref ref,
   int vehicleId,
   int year,
 ) async {
@@ -311,7 +311,7 @@ Future<Map<String, double>> monthlyConsumptionAverages(
 /// Provider for cost analysis data
 @riverpod
 Future<Map<String, dynamic>> costAnalysisData(
-  CostAnalysisDataRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -364,7 +364,7 @@ Future<Map<String, dynamic>> costAnalysisData(
 /// Provider for country-wise fuel price comparison
 @riverpod
 Future<Map<String, double>> countryPriceComparison(
-  CountryPriceComparisonRef ref, {
+  Ref ref, {
   DateTime? startDate,
   DateTime? endDate,
 }) async {
@@ -471,7 +471,7 @@ class CountrySpendingDataPoint {
 /// Provider for monthly spending data (Issue #11)
 @riverpod
 Future<List<SpendingDataPoint>> monthlySpendingData(
-  MonthlySpendingDataRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -545,7 +545,7 @@ Future<List<SpendingDataPoint>> monthlySpendingData(
 /// Provider for country spending comparison (Issues #10, #11)
 @riverpod
 Future<List<CountrySpendingDataPoint>> countrySpendingComparison(
-  CountrySpendingComparisonRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -601,7 +601,7 @@ Future<List<CountrySpendingDataPoint>> countrySpendingComparison(
 /// Provider for price trends by country over time (Issue #10)
 @riverpod
 Future<Map<String, List<PriceTrendDataPoint>>> priceTrendsByCountry(
-  PriceTrendsByCountryRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -645,7 +645,7 @@ Future<Map<String, List<PriceTrendDataPoint>>> priceTrendsByCountry(
 /// Provider for comprehensive spending statistics (Issue #14)
 @riverpod
 Future<Map<String, dynamic>> spendingStatistics(
-  SpendingStatisticsRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -809,7 +809,7 @@ class PeriodAverageDataPoint {
 /// Provider for period-based average consumption data
 @riverpod
 Future<List<PeriodAverageDataPoint>> periodAverageConsumptionData(
-  PeriodAverageConsumptionDataRef ref,
+  Ref ref,
   int vehicleId,
   PeriodType periodType, {
   DateTime? startDate,
@@ -946,7 +946,7 @@ DateTime _getDateFromWeek(int year, int week) {
 /// Uses period-based consumption calculation (full tank to full tank)
 @riverpod
 Future<Map<String, double>> consumptionStatistics(
-  ConsumptionStatisticsRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,

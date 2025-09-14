@@ -78,7 +78,7 @@ void main() {
 
     group('FuelEntriesNotifier', () {
       test('initial build loads empty entries list', () async {
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
 
         expect(state.entries, isEmpty);
         expect(state.isLoading, isFalse);
@@ -86,7 +86,7 @@ void main() {
       });
 
       test('addFuelEntry adds entry to state', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         final entry = FuelEntryModel.create(
           vehicleId: testVehicleId,
@@ -99,7 +99,7 @@ void main() {
         );
 
         await notifier.addFuelEntry(entry);
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
 
         expect(state.entries, hasLength(1));
         expect(state.entries.first.vehicleId, equals(testVehicleId));
@@ -110,7 +110,7 @@ void main() {
       });
 
       test('updateFuelEntry updates existing entry', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         // Add an entry first
         final entry = FuelEntryModel.create(
@@ -124,21 +124,21 @@ void main() {
         );
         await notifier.addFuelEntry(entry);
         
-        var state = await container.read(fuelEntriesNotifierProvider.future);
+        var state = await container.read(fuelEntriesProvider.future);
         final addedEntry = state.entries.first;
 
         // Update the entry
         final updatedEntry = addedEntry.copyWith(fuelAmount: 45.0);
         await notifier.updateFuelEntry(updatedEntry);
 
-        state = await container.read(fuelEntriesNotifierProvider.future);
+        state = await container.read(fuelEntriesProvider.future);
         expect(state.entries, hasLength(1));
         expect(state.entries.first.fuelAmount, equals(45.0));
         expect(state.entries.first.id, equals(addedEntry.id));
       });
 
       test('updateFuelEntry throws error for entry without ID', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final entry = FuelEntryModel.create(
           vehicleId: testVehicleId,
           date: DateTime.now(),
@@ -156,7 +156,7 @@ void main() {
       });
 
       test('deleteFuelEntry removes entry from state', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         // Add an entry first
         final entry = FuelEntryModel.create(
@@ -170,18 +170,18 @@ void main() {
         );
         await notifier.addFuelEntry(entry);
         
-        var state = await container.read(fuelEntriesNotifierProvider.future);
+        var state = await container.read(fuelEntriesProvider.future);
         final addedEntry = state.entries.first;
 
         // Delete the entry
         await notifier.deleteFuelEntry(addedEntry.id!);
 
-        state = await container.read(fuelEntriesNotifierProvider.future);
+        state = await container.read(fuelEntriesProvider.future);
         expect(state.entries, isEmpty);
       });
 
       test('refresh reloads entries from repository', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final repository = container.read(fuelEntryRepositoryProvider);
         
         // Add entry directly to repository
@@ -198,22 +198,22 @@ void main() {
 
         // Refresh should load the directly inserted entry
         await notifier.refresh();
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
 
         expect(state.entries, hasLength(1));
         expect(state.entries.first.country, equals('Direct Insert'));
       });
 
       test('clearError removes error from state', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         // Simulate error state
         const errorState = FuelEntryState(error: 'Test error');
-        container.read(fuelEntriesNotifierProvider.notifier).state = 
+        container.read(fuelEntriesProvider.notifier).state = 
             AsyncValue.data(errorState);
 
         notifier.clearError();
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         expect(state.error, isNull);
       });
     });

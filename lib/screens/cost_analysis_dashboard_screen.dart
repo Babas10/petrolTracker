@@ -118,7 +118,7 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
   }
 
   Widget _buildVehicleSelector() {
-    final vehiclesState = ref.watch(vehiclesNotifierProvider);
+    final vehiclesState = ref.watch(vehiclesProvider);
     
     return vehiclesState.when(
       data: (vehicleState) {

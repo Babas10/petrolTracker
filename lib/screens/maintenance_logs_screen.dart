@@ -58,7 +58,7 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
 
   Future<void> _loadVehicleFilter() async {
     try {
-      final vehiclesAsync = ref.read(vehiclesNotifierProvider);
+      final vehiclesAsync = ref.read(vehiclesProvider);
       vehiclesAsync.whenData((vehiclesState) {
         final vehicle = vehiclesState.vehicles.firstWhere(
           (v) => v.id == widget.vehicleFilter,
@@ -690,7 +690,7 @@ class _MaintenanceLogsScreenState extends ConsumerState<MaintenanceLogsScreen> {
             // Vehicle filter
             Consumer(
               builder: (context, ref, child) {
-                final vehiclesAsync = ref.watch(vehiclesNotifierProvider);
+                final vehiclesAsync = ref.watch(vehiclesProvider);
                 return vehiclesAsync.when(
                   data: (vehiclesState) => DropdownButtonFormField<VehicleModel?>(
                     value: _selectedVehicle,

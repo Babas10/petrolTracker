@@ -17,7 +17,7 @@ void main() {
     
     group('FuelEntriesNotifier', () {
       test('should start with empty state', () async {
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         
         expect(state.entries, isEmpty);
         expect(state.isLoading, isFalse);
@@ -25,7 +25,7 @@ void main() {
       });
       
       test('should add fuel entry to ephemeral storage', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final entry = FuelEntryModel.create(
           vehicleId: 1,
           date: DateTime.now(),
@@ -37,7 +37,7 @@ void main() {
         );
         
         await notifier.addFuelEntry(entry);
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         
         expect(state.entries, hasLength(1));
         expect(state.entries.first.vehicleId, equals(1));
@@ -46,7 +46,7 @@ void main() {
       });
       
       test('should update fuel entry in ephemeral storage', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final entry = FuelEntryModel.create(
           vehicleId: 1,
           date: DateTime.now(),
@@ -58,7 +58,7 @@ void main() {
         );
         
         await notifier.addFuelEntry(entry);
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         final addedEntry = state.entries.first;
         
         final updatedEntry = addedEntry.copyWith(
@@ -68,7 +68,7 @@ void main() {
         );
         
         await notifier.updateFuelEntry(updatedEntry);
-        final updatedState = await container.read(fuelEntriesNotifierProvider.future);
+        final updatedState = await container.read(fuelEntriesProvider.future);
         
         expect(updatedState.entries, hasLength(1));
         expect(updatedState.entries.first.fuelAmount, equals(60.0));
@@ -77,7 +77,7 @@ void main() {
       });
       
       test('should delete fuel entry from ephemeral storage', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final entry = FuelEntryModel.create(
           vehicleId: 1,
           date: DateTime.now(),
@@ -89,17 +89,17 @@ void main() {
         );
         
         await notifier.addFuelEntry(entry);
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         final addedEntry = state.entries.first;
         
         await notifier.deleteFuelEntry(addedEntry.id!);
-        final updatedState = await container.read(fuelEntriesNotifierProvider.future);
+        final updatedState = await container.read(fuelEntriesProvider.future);
         
         expect(updatedState.entries, isEmpty);
       });
       
       test('should handle multiple fuel entries', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final now = DateTime.now();
         
         await notifier.addFuelEntry(FuelEntryModel.create(
@@ -132,7 +132,7 @@ void main() {
           country: 'USA',
         ));
         
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         
         expect(state.entries, hasLength(3));
         
@@ -142,7 +142,7 @@ void main() {
       });
       
       test('should refresh fuel entries list', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         await notifier.addFuelEntry(FuelEntryModel.create(
           vehicleId: 1,
@@ -155,7 +155,7 @@ void main() {
         ));
         
         await notifier.refresh();
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         
         expect(state.entries, hasLength(1));
         expect(state.entries.first.vehicleId, equals(1));
@@ -164,7 +164,7 @@ void main() {
     
     group('Individual Fuel Entry Providers', () {
       test('fuelEntriesByVehicle should filter by vehicle ID', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final now = DateTime.now();
         
         await notifier.addFuelEntry(FuelEntryModel.create(
@@ -202,7 +202,7 @@ void main() {
       });
       
       test('fuelEntriesByDateRange should filter by date range', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final now = DateTime.now();
         final yesterday = now.subtract(const Duration(days: 1));
         final twoDaysAgo = now.subtract(const Duration(days: 2));
@@ -246,7 +246,7 @@ void main() {
       });
       
       test('fuelEntriesByVehicleAndDateRange should filter by both vehicle and date', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final now = DateTime.now();
         final yesterday = now.subtract(const Duration(days: 1));
         
@@ -289,7 +289,7 @@ void main() {
       });
       
       test('latestFuelEntryForVehicle should return most recent entry', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final now = DateTime.now();
         final yesterday = now.subtract(const Duration(days: 1));
         
@@ -331,7 +331,7 @@ void main() {
       });
       
       test('fuelEntry should return entry by ID', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         final entry = FuelEntryModel.create(
           vehicleId: 1,
           date: DateTime.now(),
@@ -343,7 +343,7 @@ void main() {
         );
         
         await notifier.addFuelEntry(entry);
-        final state = await container.read(fuelEntriesNotifierProvider.future);
+        final state = await container.read(fuelEntriesProvider.future);
         final addedEntry = state.entries.first;
         
         final retrievedEntry = await container.read(
@@ -356,7 +356,7 @@ void main() {
       });
       
       test('fuelEntryCount should return correct count', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         expect(await container.read(fuelEntryCountProvider.future), equals(0));
         
@@ -374,7 +374,7 @@ void main() {
       });
       
       test('fuelEntryCountForVehicle should return count for specific vehicle', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         await notifier.addFuelEntry(FuelEntryModel.create(
           vehicleId: 1,
@@ -402,7 +402,7 @@ void main() {
       });
       
       test('fuelEntriesGroupedByCountry should group entries by country', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         await notifier.addFuelEntry(FuelEntryModel.create(
           vehicleId: 1,
@@ -444,7 +444,7 @@ void main() {
       });
       
       test('averageConsumptionForVehicle should calculate average consumption', () async {
-        final notifier = container.read(fuelEntriesNotifierProvider.notifier);
+        final notifier = container.read(fuelEntriesProvider.notifier);
         
         await notifier.addFuelEntry(FuelEntryModel.create(
           vehicleId: 1,

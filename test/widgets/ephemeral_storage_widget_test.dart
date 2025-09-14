@@ -17,7 +17,7 @@ void main() {
           child: MaterialApp(
             home: Consumer(
               builder: (context, ref, child) {
-                final vehicleAsyncValue = ref.watch(vehiclesNotifierProvider);
+                final vehicleAsyncValue = ref.watch(vehiclesProvider);
                 
                 return vehicleAsyncValue.when(
                   data: (state) => Scaffold(
@@ -49,7 +49,7 @@ void main() {
       
       // Add a vehicle through the provider
       final container = ProviderScope.containerOf(tester.element(find.byType(Consumer)));
-      final vehicleNotifier = container.read(vehiclesNotifierProvider.notifier);
+      final vehicleNotifier = container.read(vehiclesProvider.notifier);
       
       await vehicleNotifier.addVehicle(VehicleModel.create(
         name: 'Test Vehicle',
@@ -70,7 +70,7 @@ void main() {
           child: MaterialApp(
             home: Consumer(
               builder: (context, ref, child) {
-                final fuelAsyncValue = ref.watch(fuelEntriesNotifierProvider);
+                final fuelAsyncValue = ref.watch(fuelEntriesProvider);
                 
                 return fuelAsyncValue.when(
                   data: (state) => Scaffold(
@@ -102,7 +102,7 @@ void main() {
       
       // Add a fuel entry through the provider
       final container = ProviderScope.containerOf(tester.element(find.byType(Consumer)));
-      final fuelNotifier = container.read(fuelEntriesNotifierProvider.notifier);
+      final fuelNotifier = container.read(fuelEntriesProvider.notifier);
       
       await fuelNotifier.addFuelEntry(FuelEntryModel.create(
         vehicleId: 1,
@@ -138,7 +138,7 @@ void main() {
                         ElevatedButton(
                           key: const Key('add-vehicle-btn'),
                           onPressed: () {
-                            ref.read(vehiclesNotifierProvider.notifier).addVehicle(
+                            ref.read(vehiclesProvider.notifier).addVehicle(
                               VehicleModel.create(
                                 name: 'Dynamic Vehicle ${DateTime.now().millisecondsSinceEpoch}',
                                 initialKm: 10000.0,
@@ -185,7 +185,7 @@ void main() {
           child: MaterialApp(
             home: Consumer(
               builder: (context, ref, child) {
-                final vehicleAsyncValue = ref.watch(vehiclesNotifierProvider);
+                final vehicleAsyncValue = ref.watch(vehiclesProvider);
                 
                 return vehicleAsyncValue.when(
                   data: (state) => Scaffold(
@@ -194,7 +194,7 @@ void main() {
                         ElevatedButton(
                           key: const Key('add-vehicle-btn'),
                           onPressed: () {
-                            ref.read(vehiclesNotifierProvider.notifier).addVehicle(
+                            ref.read(vehiclesProvider.notifier).addVehicle(
                               VehicleModel.create(
                                 name: 'Deletable Vehicle',
                                 initialKm: 10000.0,
@@ -214,7 +214,7 @@ void main() {
                                 trailing: ElevatedButton(
                                   key: Key('delete-vehicle-${vehicle.id}'),
                                   onPressed: () {
-                                    ref.read(vehiclesNotifierProvider.notifier).deleteVehicle(vehicle.id!);
+                                    ref.read(vehiclesProvider.notifier).deleteVehicle(vehicle.id!);
                                   },
                                   child: const Text('Delete'),
                                 ),
@@ -271,7 +271,7 @@ void main() {
                         ElevatedButton(
                           key: const Key('add-entry-btn'),
                           onPressed: () {
-                            ref.read(fuelEntriesNotifierProvider.notifier).addFuelEntry(
+                            ref.read(fuelEntriesProvider.notifier).addFuelEntry(
                               FuelEntryModel.create(
                                 vehicleId: 1,
                                 date: DateTime.now(),
@@ -338,7 +338,7 @@ void main() {
           child: MaterialApp(
             home: Consumer(
               builder: (context, ref, child) {
-                final vehicleAsyncValue = ref.watch(vehiclesNotifierProvider);
+                final vehicleAsyncValue = ref.watch(vehiclesProvider);
                 
                 return vehicleAsyncValue.when(
                   data: (state) => Scaffold(
@@ -374,7 +374,7 @@ void main() {
           child: MaterialApp(
             home: Consumer(
               builder: (context, ref, child) {
-                final vehicleAsyncValue = ref.watch(vehiclesNotifierProvider);
+                final vehicleAsyncValue = ref.watch(vehiclesProvider);
                 
                 return vehicleAsyncValue.when(
                   data: (state) => Scaffold(
@@ -384,14 +384,14 @@ void main() {
                         ElevatedButton(
                           key: const Key('refresh-btn'),
                           onPressed: () {
-                            ref.read(vehiclesNotifierProvider.notifier).refresh();
+                            ref.read(vehiclesProvider.notifier).refresh();
                           },
                           child: const Text('Refresh'),
                         ),
                         ElevatedButton(
                           key: const Key('add-vehicle-btn'),
                           onPressed: () {
-                            ref.read(vehiclesNotifierProvider.notifier).addVehicle(
+                            ref.read(vehiclesProvider.notifier).addVehicle(
                               VehicleModel.create(
                                 name: 'Refresh Test Vehicle',
                                 initialKm: 10000.0,

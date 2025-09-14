@@ -77,7 +77,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
 
   Future<void> _loadPreselectedVehicle() async {
     try {
-      final vehiclesAsync = ref.read(vehiclesNotifierProvider);
+      final vehiclesAsync = ref.read(vehiclesProvider);
       vehiclesAsync.whenData((vehiclesState) {
         final vehicle = vehiclesState.vehicles.firstWhere(
           (v) => v.id == widget.preselectedVehicleId,
@@ -157,7 +157,7 @@ class _AddMaintenanceLogScreenState extends ConsumerState<AddMaintenanceLogScree
   }
 
   Widget _buildVehicleSelection() {
-    final vehiclesAsync = ref.watch(vehiclesNotifierProvider);
+    final vehiclesAsync = ref.watch(vehiclesProvider);
 
     return Card(
       child: Padding(
