@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/theme_providers.dart';
 import 'package:petrol_tracker/providers/units_providers.dart';
+import 'package:petrol_tracker/providers/currency_settings_providers.dart';
+import 'package:petrol_tracker/utils/currency_display_utils.dart';
+import 'package:petrol_tracker/utils/currency_validator.dart';
 
 /// Settings screen for app preferences and configuration
 /// 
 /// This screen provides:
+/// - Currency selection and preferences
 /// - Theme settings (light/dark/system) with real-time switching
 /// - Units preferences (metric/imperial)
 /// - Data management options
@@ -31,6 +35,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _buildCurrencySection(),
+          const SizedBox(height: 24),
           _buildAppearanceSection(),
           const SizedBox(height: 24),
           _buildUnitsSection(),
@@ -43,6 +49,217 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildCurrencySection() {
+    final currencySettings = ref.watch(currencySettingsNotifierProvider);
+    
+    return _SettingsSection(
+      title: 'Currency',
+      icon: Icons.attach_money_outlined,
+      children: [
+        currencySettings.when(
+          data: (settings) => ListTile(
+            title: const Text('Primary Currency'),
+            subtitle: Text(
+              CurrencyDisplayUtils.getDisplayString(settings.primaryCurrency),
+            ),
+            trailing: _buildCurrencyDropdown(settings.primaryCurrency),
+          ),
+          loading: () => const ListTile(
+            title: Text('Primary Currency'),
+            subtitle: Text('Loading...'),
+            trailing: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+          error: (_, __) => ListTile(
+            title: const Text('Primary Currency'),
+            subtitle: const Text('Error loading currency settings'),
+            trailing: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+            onTap: () => ref.invalidate(currencySettingsNotifierProvider),
+          ),
+        ),
+        const Divider(height: 1),
+        currencySettings.when(
+          data: (settings) => SwitchListTile(
+            title: const Text('Show Original Amounts'),
+            subtitle: const Text('Display original currency alongside converted amounts'),
+            value: settings.showOriginalAmounts,
+            onChanged: (value) => _updateDisplaySettings(showOriginalAmounts: value),
+          ),
+          loading: () => const SwitchListTile(
+            title: Text('Show Original Amounts'),
+            subtitle: Text('Display original currency alongside converted amounts'),
+            value: true,
+            onChanged: null,
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+        currencySettings.when(
+          data: (settings) => SwitchListTile(
+            title: const Text('Show Exchange Rates'),
+            subtitle: const Text('Display exchange rates in conversion information'),
+            value: settings.showExchangeRates,
+            onChanged: (value) => _updateDisplaySettings(showExchangeRates: value),
+          ),
+          loading: () => const SwitchListTile(
+            title: Text('Show Exchange Rates'),
+            subtitle: Text('Display exchange rates in conversion information'),
+            value: true,
+            onChanged: null,
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCurrencyDropdown(String currentCurrency) {
+    final currencies = CurrencyDisplayUtils.getSupportedCurrenciesWithInfo();
+    
+    return DropdownButton<String>(
+      value: currentCurrency,
+      underline: const SizedBox(),
+      items: currencies.map((currencyInfo) {
+        final code = currencyInfo['code'] as String;
+        final isMajor = currencyInfo['isMajor'] as bool;
+        
+        return DropdownMenuItem(
+          value: code,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                CurrencyValidator.getCurrencySymbol(code),
+                style: TextStyle(
+                  fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                code,
+                style: TextStyle(
+                  fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newCurrency) async {
+        if (newCurrency != null && newCurrency != currentCurrency) {
+          await _updatePrimaryCurrency(newCurrency);
+        }
+      },
+    );
+  }
+
+  Future<void> _updatePrimaryCurrency(String newCurrency) async {
+    try {
+      // Show loading feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Text('Switching to ${CurrencyValidator.getCurrencySymbol(newCurrency)} $newCurrency...'),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      
+      // Update currency
+      await ref.read(currencySettingsNotifierProvider.notifier).updatePrimaryCurrency(newCurrency);
+      
+      // Show success feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onPrimary),
+                const SizedBox(width: 12),
+                Text('Currency changed to ${CurrencyDisplayUtils.getDisplayString(newCurrency)}'),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Undo',
+              textColor: Theme.of(context).colorScheme.onPrimary,
+              onPressed: () {
+                // TODO: Implement undo functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Undo functionality coming soon'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Failed to update currency: ${e.toString()}')),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _updatePrimaryCurrency(newCurrency),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateDisplaySettings({
+    bool? showOriginalAmounts,
+    bool? showExchangeRates,
+    bool? showConversionIndicators,
+  }) async {
+    try {
+      await ref.read(currencySettingsNotifierProvider.notifier).updateDisplaySettings(
+        showOriginalAmounts: showOriginalAmounts,
+        showExchangeRates: showExchangeRates,
+        showConversionIndicators: showConversionIndicators,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update display settings: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildAppearanceSection() {
