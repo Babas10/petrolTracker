@@ -61,9 +61,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         currencySettings.when(
           data: (settings) => ListTile(
             title: const Text('Primary Currency'),
-            subtitle: Text(
-              CurrencyDisplayUtils.getDisplayString(settings.primaryCurrency),
-            ),
+            subtitle: Text(settings.primaryCurrency),
             trailing: _buildCurrencyDropdown(settings.primaryCurrency),
           ),
           loading: () => const ListTile(
@@ -130,7 +128,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return DropdownMenuItem(
           value: code,
           child: Text(
-            '${code} - ${CurrencyDisplayUtils.getCurrencyName(code)}',
+            code,
             style: TextStyle(
               fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
             ),
@@ -178,7 +176,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onPrimary),
                 const SizedBox(width: 12),
-                Text('Currency changed to ${CurrencyDisplayUtils.getDisplayString(newCurrency)}'),
+                Text('Currency changed to $newCurrency'),
               ],
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
