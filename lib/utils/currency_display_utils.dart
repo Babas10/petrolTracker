@@ -75,24 +75,18 @@ class CurrencyDisplayUtils {
 
   /// Get formatted display string for currency selection
   /// 
-  /// Returns a user-friendly string combining the code, symbol, and name.
-  /// Format: "USD ($) - US Dollar"
+  /// Returns a user-friendly string combining the code and name.
+  /// Format: "USD - US Dollar"
   /// 
   /// Example:
   /// ```dart
   /// CurrencyDisplayUtils.getDisplayString('USD'); 
-  /// // Returns "USD (\$) - US Dollar"
+  /// // Returns "USD - US Dollar"
   /// ```
   static String getDisplayString(String currencyCode) {
     final normalizedCode = currencyCode.toUpperCase();
     final name = getCurrencyName(normalizedCode);
-    final symbol = CurrencyValidator.getCurrencySymbol(normalizedCode);
-    
-    if (CurrencyValidator.hasSymbol(normalizedCode) && symbol != normalizedCode) {
-      return '$normalizedCode ($symbol) - $name';
-    } else {
-      return '$normalizedCode - $name';
-    }
+    return '$normalizedCode - $name';
   }
 
   /// Get list of supported currencies with display information

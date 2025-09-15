@@ -29,23 +29,19 @@ void main() {
     });
 
     group('getDisplayString', () {
-      test('should format currencies with symbols correctly', () {
+      test('should format currencies correctly without symbols', () {
         expect(
           CurrencyDisplayUtils.getDisplayString('USD'),
-          'USD (\$) - US Dollar',
+          'USD - US Dollar',
         );
         expect(
           CurrencyDisplayUtils.getDisplayString('EUR'),
-          'EUR (€) - Euro',
+          'EUR - Euro',
         );
         expect(
           CurrencyDisplayUtils.getDisplayString('GBP'),
-          'GBP (£) - British Pound Sterling',
+          'GBP - British Pound Sterling',
         );
-      });
-
-      test('should format currencies without symbols correctly', () {
-        // CHF has a symbol but it's the same as the code
         expect(
           CurrencyDisplayUtils.getDisplayString('CHF'),
           'CHF - Swiss Franc',
@@ -62,7 +58,7 @@ void main() {
       test('should be case insensitive', () {
         expect(
           CurrencyDisplayUtils.getDisplayString('usd'),
-          'USD (\$) - US Dollar',
+          'USD - US Dollar',
         );
       });
     });

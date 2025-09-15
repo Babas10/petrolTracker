@@ -129,23 +129,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         
         return DropdownMenuItem(
           value: code,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                CurrencyValidator.getCurrencySymbol(code),
-                style: TextStyle(
-                  fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                code,
-                style: TextStyle(
-                  fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
+          child: Text(
+            '${code} - ${CurrencyDisplayUtils.getCurrencyName(code)}',
+            style: TextStyle(
+              fontWeight: isMajor ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         );
       }).toList(),
