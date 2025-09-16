@@ -156,14 +156,14 @@ class CountryCurrencyService {
   /// 3. User's default currency (if not already included)
   /// 4. Regional currencies (if enabled)
   /// 
-  /// [selectedCountry] - The country selected in the fuel entry form
+  /// [selectedCountry] - The country selected in the fuel entry form (nullable for compatibility)
   /// [userDefaultCurrency] - User's preferred/default currency
   /// [includeRegionalCurrencies] - Whether to include currencies from nearby countries
   /// [maxSuggestions] - Maximum number of currency suggestions (default: 8)
   /// 
   /// Returns a list of currency codes, sorted by relevance
   static List<String> getFilteredCurrencies(
-    String selectedCountry,
+    String? selectedCountry,
     String userDefaultCurrency, {
     bool includeRegionalCurrencies = true,
     int maxSuggestions = 8,
@@ -171,16 +171,21 @@ class CountryCurrencyService {
     try {
       final currencies = <String>{};
       
-      // 1. Add primary currency for the country
-      final primaryCurrency = primaryCurrencyMap[selectedCountry];
-      if (primaryCurrency != null) {
-        currencies.add(primaryCurrency);
+      // 1. Add primary currency for the country (if country is provided)
+      String? primaryCurrency;
+      if (selectedCountry != null && selectedCountry.isNotEmpty) {
+        primaryCurrency = primaryCurrencyMap[selectedCountry];
+        if (primaryCurrency != null) {
+          currencies.add(primaryCurrency);
+        }
       }
       
       // 2. Add additional currencies for multi-currency countries
-      final additionalCurrencies = multiCurrencyCountries[selectedCountry];
-      if (additionalCurrencies != null) {
-        currencies.addAll(additionalCurrencies);
+      if (selectedCountry != null && selectedCountry.isNotEmpty) {
+        final additionalCurrencies = multiCurrencyCountries[selectedCountry];
+        if (additionalCurrencies != null) {
+          currencies.addAll(additionalCurrencies);
+        }
       }
       
       // 3. Always include user's default currency
@@ -189,7 +194,10 @@ class CountryCurrencyService {
       }
       
       // 4. Add regional currencies if requested
-      if (includeRegionalCurrencies && currencies.length < maxSuggestions) {
+      if (includeRegionalCurrencies && 
+          currencies.length < maxSuggestions &&
+          selectedCountry != null && 
+          selectedCountry.isNotEmpty) {
         final regionalCurrencies = _getRegionalCurrencies(selectedCountry);
         for (final currency in regionalCurrencies) {
           if (currencies.length >= maxSuggestions) break;
@@ -282,6 +290,36 @@ class CountryCurrencyService {
     }
     
     return currencies;
+  }
+  
+  /// Get smart default currency for a country (backward compatibility)
+  /// 
+  /// Returns the best default currency to pre-select when a country is chosen.
+  /// Priority order:
+  /// 1. Primary currency of the selected country
+  /// 2. User's primary currency from settings
+  /// 3. USD as fallback
+  /// 
+  /// [selectedCountry] - The selected country (nullable for compatibility)
+  /// [userPrimaryCurrency] - User's default currency
+  /// 
+  /// Returns the recommended default currency code
+  static String getSmartDefault(String? selectedCountry, String userPrimaryCurrency) {
+    // Try country's primary currency first
+    if (selectedCountry != null && selectedCountry.isNotEmpty) {
+      final countryCurrency = getPrimaryCurrency(selectedCountry);
+      if (countryCurrency != null) {
+        return countryCurrency;
+      }
+    }
+    
+    // Fall back to user's primary currency
+    if (userPrimaryCurrency.isNotEmpty) {
+      return userPrimaryCurrency;
+    }
+    
+    // Final fallback to USD
+    return 'USD';
   }
   
   /// Get list of all supported countries
