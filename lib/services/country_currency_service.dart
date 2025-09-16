@@ -1,34 +1,37 @@
-import 'package:petrol_tracker/utils/currency_validator.dart';
+import 'dart:developer' as developer;
+import '../models/currency_info.dart';
+import 'currency_metadata.dart';
 
-/// Service for mapping countries to their primary currencies and related functionality
+/// Comprehensive country-to-currency mapping service
 /// 
-/// Provides country-to-currency mappings, currency filtering based on country selection,
-/// and smart defaults for fuel entry forms. This service helps improve user experience
-/// by suggesting relevant currencies based on the selected country.
+/// This service provides intelligent currency suggestions based on country selection,
+/// handles multi-currency countries, and supports smart filtering for fuel entry forms.
+/// 
+/// Features:
+/// - Primary currency mapping for 50+ countries
+/// - Multi-currency country support (e.g., Switzerland accepts CHF and EUR)
+/// - Smart filtering that includes user's default currency
+/// - Geographic currency detection for regional recommendations
+/// - Currency metadata access (symbols, names, decimal places)
 class CountryCurrencyService {
-  /// Map of countries to their primary currencies
+  /// Primary currency mapping for each country
   /// 
-  /// This map includes the most commonly used currency for each country.
-  /// For countries with multiple currencies, the most widely accepted one is chosen.
-  static const Map<String, String> _countryToCurrency = {
-    // North America
-    'United States': 'USD',
-    'Canada': 'CAD',
-    'Mexico': 'MXN',
-    
-    // Europe
-    'Germany': 'EUR',
+  /// Based on official ISO 4217 standards and real-world usage.
+  /// Each country maps to its primary/official currency.
+  static const Map<String, String> primaryCurrencyMap = {
+    // Western Europe
+    'Switzerland': 'CHF',
     'France': 'EUR',
+    'Germany': 'EUR',
     'Italy': 'EUR',
     'Spain': 'EUR',
     'Netherlands': 'EUR',
-    'Belgium': 'EUR',
     'Austria': 'EUR',
+    'Belgium': 'EUR',
     'Portugal': 'EUR',
-    'Ireland': 'EUR',
-    'Greece': 'EUR',
-    'Finland': 'EUR',
     'Luxembourg': 'EUR',
+    'Ireland': 'EUR',
+    'Finland': 'EUR',
     'Slovenia': 'EUR',
     'Slovakia': 'EUR',
     'Estonia': 'EUR',
@@ -36,54 +39,65 @@ class CountryCurrencyService {
     'Lithuania': 'EUR',
     'Malta': 'EUR',
     'Cyprus': 'EUR',
+    'Greece': 'EUR',
+    
+    // Northern Europe (Non-Euro)
     'United Kingdom': 'GBP',
-    'Switzerland': 'CHF',
     'Norway': 'NOK',
     'Sweden': 'SEK',
     'Denmark': 'DKK',
+    'Iceland': 'ISK',
+    
+    // Central & Eastern Europe
     'Poland': 'PLN',
     'Czech Republic': 'CZK',
     'Hungary': 'HUF',
     'Romania': 'RON',
     'Bulgaria': 'BGN',
     'Croatia': 'HRK',
-    'Iceland': 'ISK',
+    'Serbia': 'RSD',
     'Ukraine': 'UAH',
-    'Turkey': 'TRY',
     'Russia': 'RUB',
+    'Turkey': 'TRY',
     
-    // Asia
+    // North America
+    'United States': 'USD',
+    'Canada': 'CAD',
+    'Mexico': 'MXN',
+    
+    // Asia Pacific
     'Japan': 'JPY',
-    'China': 'CNY',
+    'Australia': 'AUD',
+    'New Zealand': 'NZD',
     'South Korea': 'KRW',
-    'India': 'INR',
     'Singapore': 'SGD',
+    'China': 'CNY',
     'Hong Kong': 'HKD',
     'Taiwan': 'TWD',
+    'India': 'INR',
     'Thailand': 'THB',
     'Malaysia': 'MYR',
     'Indonesia': 'IDR',
     'Philippines': 'PHP',
     'Vietnam': 'VND',
-    'Pakistan': 'PKR',
-    'Bangladesh': 'BDT',
-    'Sri Lanka': 'LKR',
     
-    // Middle East & Africa
-    'Israel': 'ILS',
+    // Middle East
     'United Arab Emirates': 'AED',
     'Saudi Arabia': 'SAR',
-    'Egypt': 'EGP',
+    'Qatar': 'QAR',
+    'Kuwait': 'KWD',
+    'Bahrain': 'BHD',
+    'Oman': 'OMR',
+    'Israel': 'ILS',
+    
+    // Africa
     'South Africa': 'ZAR',
+    'Nigeria': 'NGN',
+    'Egypt': 'EGP',
     'Morocco': 'MAD',
     'Tunisia': 'TND',
-    'Nigeria': 'NGN',
     'Kenya': 'KES',
     'Ghana': 'GHS',
-    
-    // Oceania
-    'Australia': 'AUD',
-    'New Zealand': 'NZD',
     
     // South America
     'Brazil': 'BRL',
@@ -92,238 +106,334 @@ class CountryCurrencyService {
     'Colombia': 'COP',
     'Peru': 'PEN',
     'Uruguay': 'UYU',
-    'Paraguay': 'PYG',
+    'Venezuela': 'VEF',
     'Ecuador': 'USD', // Uses USD
-    'Venezuela': 'VES',
-    'Bolivia': 'BOB',
+    'Panama': 'USD',  // Uses USD
     
-    // Additional countries with common currencies
-    'Afghanistan': 'AFN',
-    'Albania': 'ALL',
-    'Algeria': 'DZD',
-    'Armenia': 'AMD',
-    'Azerbaijan': 'AZN',
-    'Bahrain': 'BHD',
-    'Belarus': 'BYN',
-    'Bosnia and Herzegovina': 'BAM',
-    'Cambodia': 'KHR',
-    'Montenegro': 'EUR',
-    'Serbia': 'RSD',
-    'North Macedonia': 'MKD',
-    'Moldova': 'MDL',
-    'Georgia': 'GEL',
-    'Kazakhstan': 'KZT',
-    'Uzbekistan': 'UZS',
-    'Kyrgyzstan': 'KGS',
-    'Tajikistan': 'TJS',
-    'Turkmenistan': 'TMT',
-    'Mongolia': 'MNT',
-    'Nepal': 'NPR',
-    'Bhutan': 'BTN',
-    'Myanmar': 'MMK',
-    'Laos': 'LAK',
-    'Brunei': 'BND',
-    'Maldives': 'MVR',
+    // Additional countries
+    'Fiji': 'FJD',
+    'Papua New Guinea': 'PGK',
+    'Jamaica': 'JMD',
+    'Bahamas': 'BSD',
+    'Barbados': 'BBD',
+    'Trinidad and Tobago': 'TTD',
   };
 
-  /// Regional currency groups for countries that commonly use multiple currencies
+  /// Countries that commonly accept multiple currencies
   /// 
-  /// Some regions or countries may accept multiple currencies for fuel purchases,
-  /// especially in border areas or tourist destinations.
-  static const Map<String, List<String>> _regionalCurrencies = {
-    // European countries might accept EUR even if not in Eurozone
-    'Switzerland': ['CHF', 'EUR'],
-    'United Kingdom': ['GBP', 'EUR'],
-    'Norway': ['NOK', 'EUR'],
-    'Sweden': ['SEK', 'EUR'],
-    'Denmark': ['DKK', 'EUR'],
-    'Poland': ['PLN', 'EUR'],
-    'Czech Republic': ['CZK', 'EUR'],
-    'Hungary': ['HUF', 'EUR'],
+  /// Based on real-world travel experiences and border economics.
+  /// Includes tourist areas where foreign currencies are widely accepted.
+  static const Map<String, List<String>> multiCurrencyCountries = {
+    // European border countries
+    'Switzerland': ['CHF', 'EUR'], // EUR accepted near French/German/Italian borders
+    'United Kingdom': ['GBP', 'EUR'], // EUR in some tourist areas and airports
     
-    // Border countries that might accept neighboring currencies
-    'Canada': ['CAD', 'USD'],
-    'Mexico': ['MXN', 'USD'],
+    // North American borders
+    'Canada': ['CAD', 'USD'], // USD widely accepted especially near US border
+    'Mexico': ['MXN', 'USD'], // USD very common in tourist areas
     
-    // International hubs that accept multiple currencies
-    'Singapore': ['SGD', 'USD'],
-    'Hong Kong': ['HKD', 'USD'],
-    'United Arab Emirates': ['AED', 'USD'],
+    // Asian financial centers
+    'Hong Kong': ['HKD', 'USD', 'CNY'], // International financial center
+    'Singapore': ['SGD', 'USD'], // International business hub
+    'Thailand': ['THB', 'USD'], // USD in tourist areas
+    'Vietnam': ['VND', 'USD'], // USD historically used
+    'Cambodia': ['KHR', 'USD'], // USD widely circulated
     
-    // Countries that commonly use USD alongside local currency
-    'Ecuador': ['USD'],
-    'El Salvador': ['USD'],
-    'Panama': ['USD', 'PAB'],
-    'Cambodia': ['KHR', 'USD'],
-    'Zimbabwe': ['USD', 'ZWL'],
+    // Middle East (USD/EUR common)
+    'United Arab Emirates': ['AED', 'USD', 'EUR'], // International business
+    'Qatar': ['QAR', 'USD'], // International business
+    
+    // South America
+    'Argentina': ['ARS', 'USD'], // USD due to inflation hedging
+    'Peru': ['PEN', 'USD'], // USD in tourism
   };
 
-  /// Get the primary currency for a given country
+  /// Get filtered currencies for smart selection in fuel entry forms
   /// 
-  /// Returns the most commonly used currency for the specified country.
-  /// If the country is not found, returns null.
+  /// Returns a prioritized list of currencies relevant to the selected country:
+  /// 1. Primary currency for the country (first in list)
+  /// 2. Additional currencies for multi-currency countries
+  /// 3. User's default currency (if not already included)
+  /// 4. Regional currencies (if enabled)
   /// 
-  /// Example:
-  /// ```dart
-  /// final currency = CountryCurrencyService.getPrimaryCurrency('Germany');
-  /// print(currency); // 'EUR'
-  /// ```
-  static String? getPrimaryCurrency(String country) {
-    return _countryToCurrency[country];
-  }
-
-  /// Get all currencies commonly used in a country
+  /// [selectedCountry] - The country selected in the fuel entry form
+  /// [userDefaultCurrency] - User's preferred/default currency
+  /// [includeRegionalCurrencies] - Whether to include currencies from nearby countries
+  /// [maxSuggestions] - Maximum number of currency suggestions (default: 8)
   /// 
-  /// Returns a list of currencies that are commonly accepted in the specified country.
-  /// The primary currency is always first in the list if available.
-  /// If the country is not found, returns an empty list.
-  /// 
-  /// Example:
-  /// ```dart
-  /// final currencies = CountryCurrencyService.getCurrenciesForCountry('Switzerland');
-  /// print(currencies); // ['CHF', 'EUR']
-  /// ```
-  static List<String> getCurrenciesForCountry(String country) {
-    final regional = _regionalCurrencies[country];
-    if (regional != null) {
-      return List<String>.from(regional);
-    }
-    
-    final primary = _countryToCurrency[country];
-    if (primary != null) {
-      return [primary];
-    }
-    
-    return [];
-  }
-
-  /// Get filtered currencies for fuel entry form
-  /// 
-  /// Returns a prioritized list of currencies for the dropdown based on:
-  /// 1. Primary currency of the selected country (if any)
-  /// 2. Regional currencies for the country
-  /// 3. User's primary currency from settings
-  /// 4. Major international currencies
-  /// 5. All other supported currencies
-  /// 
-  /// This provides an intelligent currency selection experience.
-  /// 
-  /// Example:
-  /// ```dart
-  /// final currencies = CountryCurrencyService.getFilteredCurrencies(
-  ///   'Germany', 
-  ///   'USD'
-  /// );
-  /// // Returns: ['EUR', 'USD', 'GBP', 'JPY', ...other currencies]
-  /// ```
+  /// Returns a list of currency codes, sorted by relevance
   static List<String> getFilteredCurrencies(
-    String? selectedCountry, 
-    String userPrimaryCurrency
-  ) {
-    final Set<String> orderedCurrencies = {};
-    
-    // 1. Add currencies for the selected country (if any)
-    if (selectedCountry != null) {
-      final countryCurrencies = getCurrenciesForCountry(selectedCountry);
-      orderedCurrencies.addAll(countryCurrencies);
-    }
-    
-    // 2. Add user's primary currency
-    orderedCurrencies.add(userPrimaryCurrency);
-    
-    // 3. Add major international currencies
-    const majorCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'];
-    orderedCurrencies.addAll(majorCurrencies);
-    
-    // 4. Add all other supported currencies
-    orderedCurrencies.addAll(CurrencyValidator.supportedCurrencies);
-    
-    // Filter to only include actually supported currencies and return as list
-    return orderedCurrencies
-        .where((currency) => CurrencyValidator.isValidCurrency(currency))
-        .toList();
-  }
-
-  /// Get smart default currency for a country
-  /// 
-  /// Returns the best default currency to pre-select when a country is chosen.
-  /// Priority order:
-  /// 1. Primary currency of the selected country
-  /// 2. User's primary currency from settings
-  /// 3. USD as fallback
-  /// 
-  /// Example:
-  /// ```dart
-  /// final defaultCurrency = CountryCurrencyService.getSmartDefault(
-  ///   'Japan', 
-  ///   'USD'
-  /// );
-  /// print(defaultCurrency); // 'JPY'
-  /// ```
-  static String getSmartDefault(String? selectedCountry, String userPrimaryCurrency) {
-    // Try country's primary currency first
-    if (selectedCountry != null) {
-      final countryCurrency = getPrimaryCurrency(selectedCountry);
-      if (countryCurrency != null && CurrencyValidator.isValidCurrency(countryCurrency)) {
-        return countryCurrency;
+    String selectedCountry,
+    String userDefaultCurrency, {
+    bool includeRegionalCurrencies = true,
+    int maxSuggestions = 8,
+  }) {
+    try {
+      final currencies = <String>{};
+      
+      // 1. Add primary currency for the country
+      final primaryCurrency = primaryCurrencyMap[selectedCountry];
+      if (primaryCurrency != null) {
+        currencies.add(primaryCurrency);
       }
+      
+      // 2. Add additional currencies for multi-currency countries
+      final additionalCurrencies = multiCurrencyCountries[selectedCountry];
+      if (additionalCurrencies != null) {
+        currencies.addAll(additionalCurrencies);
+      }
+      
+      // 3. Always include user's default currency
+      if (userDefaultCurrency.isNotEmpty) {
+        currencies.add(userDefaultCurrency);
+      }
+      
+      // 4. Add regional currencies if requested
+      if (includeRegionalCurrencies && currencies.length < maxSuggestions) {
+        final regionalCurrencies = _getRegionalCurrencies(selectedCountry);
+        for (final currency in regionalCurrencies) {
+          if (currencies.length >= maxSuggestions) break;
+          currencies.add(currency);
+        }
+      }
+      
+      // Convert to list and ensure primary currency is first
+      final result = currencies.toList();
+      if (primaryCurrency != null && result.contains(primaryCurrency)) {
+        result.remove(primaryCurrency);
+        result.insert(0, primaryCurrency);
+      }
+      
+      // Ensure user's default is second (if not primary)
+      if (userDefaultCurrency.isNotEmpty && 
+          userDefaultCurrency != primaryCurrency && 
+          result.contains(userDefaultCurrency)) {
+        result.remove(userDefaultCurrency);
+        if (result.isNotEmpty) {
+          result.insert(1, userDefaultCurrency);
+        } else {
+          result.insert(0, userDefaultCurrency);
+        }
+      }
+      
+      // Limit to maxSuggestions
+      return result.take(maxSuggestions).toList();
+      
+    } catch (e) {
+      developer.log('Error filtering currencies for country $selectedCountry: $e');
+      // Fallback: return user's default currency
+      return userDefaultCurrency.isNotEmpty ? [userDefaultCurrency] : ['USD'];
     }
-    
-    // Fall back to user's primary currency
-    if (CurrencyValidator.isValidCurrency(userPrimaryCurrency)) {
-      return userPrimaryCurrency;
-    }
-    
-    // Final fallback to USD
-    return 'USD';
   }
-
-  /// Check if a currency is commonly used in a country
-  /// 
-  /// Returns true if the currency is in the list of currencies commonly
-  /// accepted in the specified country.
-  /// 
-  /// Example:
-  /// ```dart
-  /// final isCommon = CountryCurrencyService.isCurrencyCommonInCountry('EUR', 'Germany');
-  /// print(isCommon); // true
-  /// ```
-  static bool isCurrencyCommonInCountry(String currency, String country) {
-    final currencies = getCurrenciesForCountry(country);
-    return currencies.contains(currency);
-  }
-
+  
   /// Get all countries that primarily use a specific currency
   /// 
-  /// Returns a list of countries that have the specified currency as their primary currency.
-  /// Useful for analytics or informational purposes.
-  /// 
-  /// Example:
-  /// ```dart
-  /// final countries = CountryCurrencyService.getCountriesForCurrency('EUR');
-  /// // Returns: ['Germany', 'France', 'Italy', ...]
-  /// ```
+  /// [currency] - The currency code to search for
+  /// Returns a list of country names that use this currency as their primary currency
   static List<String> getCountriesForCurrency(String currency) {
-    return _countryToCurrency.entries
-        .where((entry) => entry.value == currency)
+    return primaryCurrencyMap.entries
+        .where((entry) => entry.value == currency.toUpperCase())
         .map((entry) => entry.key)
         .toList()
       ..sort();
   }
-
-  /// Get currency statistics for informational purposes
+  
+  /// Get currency information with metadata
   /// 
-  /// Returns a map with statistics about the country-currency mappings.
-  /// Useful for debugging or analytics.
-  static Map<String, int> getCurrencyStatistics() {
-    final Map<String, int> stats = {};
+  /// [currencyCode] - The 3-letter currency code
+  /// Returns CurrencyInfo object with symbol, name, decimal places, etc.
+  static CurrencyInfo? getCurrencyInfo(String currencyCode) {
+    return CurrencyMetadata.getCurrencyInfo(currencyCode);
+  }
+  
+  /// Check if a country commonly uses multiple currencies
+  /// 
+  /// [country] - The country name to check
+  /// Returns true if the country commonly accepts multiple currencies
+  static bool isMultiCurrencyCountry(String country) {
+    return multiCurrencyCountries.containsKey(country);
+  }
+  
+  /// Get the primary currency for a specific country
+  /// 
+  /// [country] - The country name
+  /// Returns the primary currency code, or null if country not found
+  static String? getPrimaryCurrency(String country) {
+    return primaryCurrencyMap[country];
+  }
+  
+  /// Get all currencies that are commonly used in a country
+  /// 
+  /// Includes both primary and additional currencies for multi-currency countries
+  /// 
+  /// [country] - The country name
+  /// Returns a list of currency codes used in that country
+  static List<String> getAllCountryCurrencies(String country) {
+    final currencies = <String>[];
     
-    for (final currency in _countryToCurrency.values) {
-      stats[currency] = (stats[currency] ?? 0) + 1;
+    final primary = primaryCurrencyMap[country];
+    if (primary != null) {
+      currencies.add(primary);
     }
     
-    return Map.fromEntries(
-      stats.entries.toList()..sort((a, b) => b.value.compareTo(a.value))
-    );
+    final additional = multiCurrencyCountries[country];
+    if (additional != null) {
+      currencies.addAll(additional.where((currency) => !currencies.contains(currency)));
+    }
+    
+    return currencies;
+  }
+  
+  /// Get list of all supported countries
+  /// 
+  /// Returns alphabetically sorted list of all countries in the mapping
+  static List<String> getSupportedCountries() {
+    final countries = primaryCurrencyMap.keys.toList()..sort();
+    return countries;
+  }
+  
+  /// Check if a country is supported
+  /// 
+  /// [country] - The country name to check
+  /// Returns true if the country is in our mapping
+  static bool isSupportedCountry(String country) {
+    return primaryCurrencyMap.containsKey(country);
+  }
+  
+  /// Get regional currencies based on geographic proximity
+  /// 
+  /// [country] - The reference country
+  /// Returns a list of currencies commonly used in the same region
+  static List<String> _getRegionalCurrencies(String country) {
+    final region = CurrencyRegionConfig.countryToRegion[country];
+    if (region == null) return [];
+    
+    final regionalCurrencies = CurrencyRegionConfig.regionCurrencies[region] ?? [];
+    
+    // Filter out currencies we already have and return up to 3 regional currencies
+    return regionalCurrencies.take(3).toList();
+  }
+  
+  /// Get currency suggestions with reasons for debugging/UI
+  /// 
+  /// Returns detailed information about why each currency was suggested
+  static List<CurrencySuggestion> getDetailedCurrencySuggestions(
+    String selectedCountry,
+    String userDefaultCurrency, {
+    bool includeRegionalCurrencies = true,
+    int maxSuggestions = 8,
+  }) {
+    final suggestions = <CurrencySuggestion>[];
+    final addedCurrencies = <String>{};
+    
+    try {
+      // 1. Primary currency
+      final primaryCurrency = primaryCurrencyMap[selectedCountry];
+      if (primaryCurrency != null && !addedCurrencies.contains(primaryCurrency)) {
+        suggestions.add(CurrencySuggestion(
+          currencyCode: primaryCurrency,
+          reason: CurrencySuggestionReason.primaryCurrency,
+          countryName: selectedCountry,
+        ));
+        addedCurrencies.add(primaryCurrency);
+      }
+      
+      // 2. User default currency
+      if (userDefaultCurrency.isNotEmpty && !addedCurrencies.contains(userDefaultCurrency)) {
+        suggestions.add(CurrencySuggestion(
+          currencyCode: userDefaultCurrency,
+          reason: CurrencySuggestionReason.userDefault,
+          countryName: selectedCountry,
+        ));
+        addedCurrencies.add(userDefaultCurrency);
+      }
+      
+      // 3. Additional currencies for multi-currency countries
+      final additionalCurrencies = multiCurrencyCountries[selectedCountry];
+      if (additionalCurrencies != null) {
+        for (final currency in additionalCurrencies) {
+          if (suggestions.length >= maxSuggestions) break;
+          if (!addedCurrencies.contains(currency)) {
+            suggestions.add(CurrencySuggestion(
+              currencyCode: currency,
+              reason: CurrencySuggestionReason.multiCurrencyCountry,
+              countryName: selectedCountry,
+            ));
+            addedCurrencies.add(currency);
+          }
+        }
+      }
+      
+      // 4. Regional currencies
+      if (includeRegionalCurrencies && suggestions.length < maxSuggestions) {
+        final regionalCurrencies = _getRegionalCurrencies(selectedCountry);
+        for (final currency in regionalCurrencies) {
+          if (suggestions.length >= maxSuggestions) break;
+          if (!addedCurrencies.contains(currency)) {
+            suggestions.add(CurrencySuggestion(
+              currencyCode: currency,
+              reason: CurrencySuggestionReason.regional,
+              countryName: selectedCountry,
+            ));
+            addedCurrencies.add(currency);
+          }
+        }
+      }
+      
+      return suggestions;
+      
+    } catch (e) {
+      developer.log('Error getting detailed currency suggestions: $e');
+      return [
+        CurrencySuggestion(
+          currencyCode: userDefaultCurrency.isNotEmpty ? userDefaultCurrency : 'USD',
+          reason: CurrencySuggestionReason.fallback,
+          countryName: selectedCountry,
+        )
+      ];
+    }
+  }
+}
+
+/// Enum for different reasons why a currency is suggested
+enum CurrencySuggestionReason {
+  primaryCurrency,
+  userDefault,
+  multiCurrencyCountry,
+  regional,
+  fallback,
+}
+
+/// Detailed currency suggestion with reasoning
+class CurrencySuggestion {
+  final String currencyCode;
+  final CurrencySuggestionReason reason;
+  final String countryName;
+  
+  const CurrencySuggestion({
+    required this.currencyCode,
+    required this.reason,
+    required this.countryName,
+  });
+  
+  /// Get human-readable description of why this currency was suggested
+  String get reasonDescription {
+    switch (reason) {
+      case CurrencySuggestionReason.primaryCurrency:
+        return 'Primary currency of $countryName';
+      case CurrencySuggestionReason.userDefault:
+        return 'Your default currency';
+      case CurrencySuggestionReason.multiCurrencyCountry:
+        return 'Commonly accepted in $countryName';
+      case CurrencySuggestionReason.regional:
+        return 'Regional currency';
+      case CurrencySuggestionReason.fallback:
+        return 'Fallback suggestion';
+    }
+  }
+  
+  @override
+  String toString() {
+    return 'CurrencySuggestion(code: $currencyCode, reason: ${reasonDescription})';
   }
 }
