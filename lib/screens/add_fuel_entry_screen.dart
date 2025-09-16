@@ -10,6 +10,8 @@ import 'package:petrol_tracker/providers/currency_settings_providers.dart';
 import 'package:petrol_tracker/providers/currency_providers.dart';
 import 'package:petrol_tracker/widgets/country_dropdown.dart';
 import 'package:petrol_tracker/widgets/currency_selector.dart';
+import 'package:petrol_tracker/widgets/smart_currency_selector.dart';
+import 'package:petrol_tracker/widgets/currency_selection_hints.dart';
 import 'package:petrol_tracker/widgets/conversion_preview.dart';
 import 'package:petrol_tracker/services/country_currency_service.dart';
 
@@ -900,15 +902,22 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        CurrencySelector(
+        SmartCurrencySelector(
           selectedCurrency: _selectedCurrency,
           selectedCountry: _selectedCountry,
-          onChanged: (currency) {
+          onCurrencyChanged: (currency) {
             setState(() {
               _selectedCurrency = currency;
             });
           },
           helperText: _getCurrencyHelperText(),
+        ),
+        
+        // Currency selection hints
+        CurrencySelectionHints(
+          selectedCountry: _selectedCountry,
+          selectedCurrency: _selectedCurrency,
+          showDetailed: true,
         ),
       ],
     );
