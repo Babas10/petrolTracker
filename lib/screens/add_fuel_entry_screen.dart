@@ -4,10 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
-import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
+import 'package:petrol_tracker/providers/currency_settings_providers.dart';
+import 'package:petrol_tracker/providers/currency_providers.dart';
 import 'package:petrol_tracker/widgets/country_dropdown.dart';
+import 'package:petrol_tracker/widgets/currency_selector.dart';
+import 'package:petrol_tracker/widgets/conversion_preview.dart';
+import 'package:petrol_tracker/services/country_currency_service.dart';
 
 /// Add fuel entry screen with input form
 /// 
@@ -35,6 +39,7 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
   DateTime _selectedDate = DateTime.now();
   int? _selectedVehicleId;
   String? _selectedCountry;
+  String? _selectedCurrency;
   bool _isLoading = false;
   double? _previousKm;
   bool _autoCalculatePricePerLiter = true;
@@ -48,6 +53,11 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
     _fuelAmountController.addListener(_onFormChanged);
     _priceController.addListener(_onFormChanged);
     _pricePerLiterController.addListener(_onPricePerLiterChanged);
+    
+    // Initialize currency with smart default
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeCurrency();
+    });
   }
 
   @override
@@ -100,6 +110,10 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
               _buildPricePerLiterSection(),
               const SizedBox(height: 24),
               _buildCountrySection(),
+              const SizedBox(height: 24),
+              _buildCurrencySection(),
+              const SizedBox(height: 24),
+              _buildConversionPreview(),
               const SizedBox(height: 32),
               _buildSaveButton(),
             ],
@@ -642,6 +656,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
           onChanged: (country) {
             setState(() {
               _selectedCountry = country;
+              // Update currency when country changes
+              _updateCurrencyForCountry(country);
             });
           },
           hintText: 'Select a country',
@@ -758,6 +774,11 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       return;
     }
     
+    if (_selectedCurrency == null || _selectedCurrency!.isEmpty) {
+      _showError('Please select a currency');
+      return;
+    }
+    
     if (_selectedDate.isAfter(DateTime.now())) {
       _showError('Date cannot be in the future');
       return;
@@ -774,13 +795,42 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
       final price = double.parse(_priceController.text.trim());
       final pricePerLiter = double.parse(_pricePerLiterController.text.trim());
       
+      // Get user's primary currency for conversion
+      final currencySettings = await ref.read(currencySettingsNotifierProvider.future);
+      final userPrimaryCurrency = currencySettings.primaryCurrency;
+      
+      // Convert price to user's primary currency if different
+      double convertedPrice = price;
+      double? originalAmount;
+      String transactionCurrency = _selectedCurrency!;
+      
+      if (_selectedCurrency! != userPrimaryCurrency) {
+        try {
+          final conversion = await ref.read(currencyServiceProvider).convertAmount(
+            amount: price,
+            fromCurrency: _selectedCurrency!,
+            toCurrency: userPrimaryCurrency,
+          );
+          
+          if (conversion != null) {
+            convertedPrice = conversion.convertedAmount;
+            originalAmount = price;
+            // Store converted price, original amount, and transaction currency
+          }
+        } catch (e) {
+          // If conversion fails, still save with original price but show warning
+          convertedPrice = price;
+          originalAmount = null; // No conversion happened
+        }
+      }
+      
       // Create fuel entry model
       final fuelEntry = FuelEntryModel.create(
         vehicleId: _selectedVehicleId!,
         date: _selectedDate,
         currentKm: currentKm,
         fuelAmount: fuelAmount,
-        price: price,
+        price: convertedPrice,
         country: _selectedCountry!,
         pricePerLiter: pricePerLiter,
         consumption: _previousKm != null 
@@ -791,6 +841,8 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
             )
           : null,
         isFullTank: _isFullTank,
+        currency: transactionCurrency,
+        originalAmount: originalAmount,
       );
       
       // Validate the entry
@@ -836,5 +888,100 @@ class _AddFuelEntryScreenState extends ConsumerState<AddFuelEntryScreen> {
         ),
       );
     }
+  }
+
+  /// Build currency selection section
+  Widget _buildCurrencySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Currency *',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        CurrencySelector(
+          selectedCurrency: _selectedCurrency,
+          selectedCountry: _selectedCountry,
+          onChanged: (currency) {
+            setState(() {
+              _selectedCurrency = currency;
+            });
+          },
+          helperText: _getCurrencyHelperText(),
+        ),
+      ],
+    );
+  }
+
+  /// Build conversion preview section
+  Widget _buildConversionPreview() {
+    final currencySettings = ref.watch(currencySettingsNotifierProvider);
+    
+    return currencySettings.when(
+      data: (settings) {
+        if (_selectedCurrency == null || 
+            _selectedCurrency == settings.primaryCurrency ||
+            _priceController.text.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        
+        return ConversionPreviewCard(
+          originalAmount: _priceController.text,
+          fromCurrency: _selectedCurrency!,
+          toCurrency: settings.primaryCurrency,
+          showRate: true,
+          showTimestamp: false,
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  /// Update currency when country changes
+  void _updateCurrencyForCountry(String? country) {
+    if (country == null) {
+      return;
+    }
+    
+    final currencySettings = ref.read(currencySettingsNotifierProvider);
+    currencySettings.whenData((settings) {
+      final smartDefault = CountryCurrencyService.getSmartDefault(
+        country, 
+        settings.primaryCurrency,
+      );
+      
+      // Only update if no currency is selected or if the new default is different
+      if (_selectedCurrency == null || 
+          (CountryCurrencyService.getPrimaryCurrency(country) != null &&
+           _selectedCurrency != smartDefault)) {
+        _selectedCurrency = smartDefault;
+      }
+    });
+  }
+
+  /// Get helper text for currency selector
+  String? _getCurrencyHelperText() {
+    if (_selectedCountry != null) {
+      final primaryCurrency = CountryCurrencyService.getPrimaryCurrency(_selectedCountry!);
+      if (primaryCurrency != null) {
+        return 'Primary currency in $_selectedCountry: $primaryCurrency';
+      }
+    }
+    return 'Currency for this transaction';
+  }
+
+  /// Initialize currency with smart default
+  void _initializeCurrency() {
+    final currencySettings = ref.read(currencySettingsNotifierProvider);
+    currencySettings.whenData((settings) {
+      if (_selectedCurrency == null) {
+        _selectedCurrency = CountryCurrencyService.getSmartDefault(
+          _selectedCountry,
+          settings.primaryCurrency,
+        );
+      }
+    });
   }
 }
