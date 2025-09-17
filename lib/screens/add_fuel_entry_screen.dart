@@ -9,7 +9,6 @@ import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/currency_settings_providers.dart';
 import 'package:petrol_tracker/providers/currency_providers.dart';
 import 'package:petrol_tracker/widgets/country_dropdown.dart';
-import 'package:petrol_tracker/widgets/currency_selector.dart';
 import 'package:petrol_tracker/widgets/smart_currency_selector.dart';
 import 'package:petrol_tracker/widgets/currency_selection_hints.dart';
 import 'package:petrol_tracker/widgets/conversion_preview.dart';

@@ -81,10 +81,10 @@ class _SmartCurrencySelectorState extends ConsumerState<SmartCurrencySelector> {
         }
       } else if (widget.selectedCountry == null || widget.selectedCountry!.isEmpty) {
         // No country selected - show major currencies and user default
-        smartCurrencies = <String>[
+        smartCurrencies = {
           userDefaultCurrency,
           'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD'
-        ].toSet().toList();
+        }.toList();
         for (final currency in smartCurrencies) {
           if (currency == userDefaultCurrency) {
             reasons[currency] = 'Your default currency';
@@ -397,7 +397,7 @@ class _SmartCurrencySelectorState extends ConsumerState<SmartCurrencySelector> {
         context: 'fuel_entry',
       ).catchError((e) {
         // Silent error handling - usage tracking shouldn't break the UI
-        debugPrint('Failed to record currency usage: $e');
+        // Error is logged internally by CurrencyUsageTracker
       });
     }
   }
