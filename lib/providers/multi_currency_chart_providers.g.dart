@@ -578,7 +578,7 @@ mixin HasMultiCurrencyEntriesRef on AutoDisposeFutureProviderRef<bool> {
 String _$userPrimaryCurrencyHash() => r'a4b1e8f5d2c9b6a3f0d7e4f1c8b5a2e9f6d3c0b7a4e1f8c5b2a9e6d3f0c7b4';
 
 @ProviderFor(userPrimaryCurrency)
-const userPrimaryCurrencyProvider = UserPrimaryCurrencyProvider._();
+final userPrimaryCurrencyProvider = UserPrimaryCurrencyProvider._();
 
 class UserPrimaryCurrencyProvider extends AutoDisposeFutureProvider<String> {
   UserPrimaryCurrencyProvider._() : super.internal(
