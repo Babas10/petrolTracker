@@ -4,10 +4,11 @@ import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
-import 'package:petrol_tracker/widgets/chart_webview.dart';
+import 'package:petrol_tracker/providers/multi_currency_chart_providers.dart';
 import 'package:petrol_tracker/widgets/country_selection_widget.dart';
+import 'package:petrol_tracker/widgets/currency_summary_card.dart';
+import 'package:petrol_tracker/widgets/currency_usage_statistics.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
-import 'package:petrol_tracker/models/fuel_entry_model.dart';
 
 /// Predefined time periods for cost analysis
 enum CostTimePeriod {
@@ -17,15 +18,17 @@ enum CostTimePeriod {
   allTime,
 }
 
-/// Comprehensive Cost Analysis Dashboard (Issues #10, #11, #14)
+/// Comprehensive Cost Analysis Dashboard (Issues #10, #11, #14, #129)
 /// 
 /// Features:
-/// - Monthly spending breakdown charts
-/// - Price trends by country comparison  
+/// - Monthly spending breakdown charts with multi-currency conversion
+/// - Price trends by country comparison
 /// - Country spending pie charts
-/// - Comprehensive spending statistics
+/// - Comprehensive spending statistics in user's primary currency
 /// - Time period filtering (1M, 6M, 1Y, all-time)
 /// - Multi-country spending visualization
+/// - Currency usage tracking and conversion transparency
+/// - Multi-currency dashboard indicators
 class CostAnalysisDashboardScreen extends ConsumerStatefulWidget {
   const CostAnalysisDashboardScreen({super.key});
 
@@ -38,6 +41,7 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
   CostTimePeriod _selectedTimePeriod = CostTimePeriod.allTime;
   String? _selectedCountry;
   bool _showStatistics = true;
+  bool _showCurrencyDetails = true;
   bool _hasInitializedVehicle = false;
 
   @override
@@ -46,6 +50,8 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
       appBar: NavAppBar(
         title: 'Cost Analysis Dashboard',
         actions: [
+          // Currency indicator in app bar
+          if (_selectedVehicle != null) _buildAppBarCurrencyIndicator(),
           IconButton(
             icon: Icon(_showStatistics ? Icons.analytics : Icons.analytics_outlined),
             onPressed: () {
@@ -54,6 +60,15 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
               });
             },
             tooltip: _showStatistics ? 'Hide Statistics' : 'Show Statistics',
+          ),
+          IconButton(
+            icon: Icon(_showCurrencyDetails ? Icons.currency_exchange : Icons.currency_exchange_outlined),
+            onPressed: () {
+              setState(() {
+                _showCurrencyDetails = !_showCurrencyDetails;
+              });
+            },
+            tooltip: _showCurrencyDetails ? 'Hide Currency Details' : 'Show Currency Details',
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -70,15 +85,24 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  if (_showStatistics) ...[
-                    _buildSpendingStatisticsSection(),
+                  // Currency summary card
+                  if (_showCurrencyDetails && _selectedVehicle != null) ...[
+                    _buildCurrencySummarySection(),
                     const SizedBox(height: 16),
                   ],
-                  _buildMonthlySpendingChart(),
+                  if (_showStatistics) ...[
+                    _buildMultiCurrencySpendingStatisticsSection(),
+                    const SizedBox(height: 16),
+                  ],
+                  _buildMultiCurrencyMonthlySpendingChart(),
                   const SizedBox(height: 16),
-                  _buildCountrySpendingComparison(),
+                  _buildMultiCurrencyCountrySpendingComparison(),
                   const SizedBox(height: 16),
                   _buildPriceTrendsChart(),
+                  if (_showCurrencyDetails && _selectedVehicle != null) ...[
+                    const SizedBox(height: 16),
+                    _buildCurrencyUsageStatisticsSection(),
+                  ],
                 ],
               ),
             ),
@@ -794,10 +818,546 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
     }
   }
 
+  /// App bar currency indicator widget
+  Widget _buildAppBarCurrencyIndicator() {
+    final currencyIndicatorAsync = ref.watch(dashboardCurrencyIndicatorProvider(_selectedVehicle!.id!));
+    
+    return currencyIndicatorAsync.when(
+      data: (data) {
+        final primaryCurrency = data['primaryCurrency'] as String;
+        final hasMultiCurrency = data['hasMultiCurrency'] as bool;
+        final totalCurrencies = data['totalCurrencies'] as int;
+        
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: CurrencyIndicatorChip(
+            currency: primaryCurrency,
+            label: hasMultiCurrency ? '$totalCurrencies currencies' : null,
+            showConversionWarning: false,
+            onTap: () {
+              setState(() {
+                _showCurrencyDetails = !_showCurrencyDetails;
+              });
+            },
+          ),
+        );
+      },
+      loading: () => const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  /// Currency summary section
+  Widget _buildCurrencySummarySection() {
+    if (_selectedVehicle == null) return const SizedBox.shrink();
+
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final currencyUsageAsync = ref.watch(currencyUsageSummaryProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+      countryFilter: _selectedCountry,
+    ));
+
+    return currencyUsageAsync.when(
+      data: (currencyUsage) {
+        return CurrencySummaryCard(
+          currencyUsage: currencyUsage,
+          primaryCurrency: currencyUsage.primaryCurrency,
+          showConversionDetails: _showCurrencyDetails,
+          onTap: () {
+            setState(() {
+              _showCurrencyDetails = !_showCurrencyDetails;
+            });
+          },
+        );
+      },
+      loading: () => const CurrencySummaryCard(primaryCurrency: 'USD'),
+      error: (error, stack) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Error loading currency usage: $error'),
+        ),
+      ),
+    );
+  }
+
+  /// Multi-currency spending statistics section
+  Widget _buildMultiCurrencySpendingStatisticsSection() {
+    if (_selectedVehicle == null) {
+      return _buildNoDataCard('Select a vehicle to view spending statistics');
+    }
+
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final enhancedStatsAsync = ref.watch(enhancedSpendingStatisticsProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+      countryFilter: _selectedCountry,
+    ));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.analytics,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Multi-Currency Spending Statistics',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                if (_showCurrencyDetails) 
+                  Icon(
+                    Icons.currency_exchange,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            enhancedStatsAsync.when(
+              data: (stats) => _buildEnhancedStatisticsGrid(stats),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Text('Error: $error'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Enhanced statistics grid with currency conversion info
+  Widget _buildEnhancedStatisticsGrid(Map<String, dynamic> stats) {
+    final primaryCurrency = stats['primaryCurrency'] as String;
+    final hasConversionFailures = stats['hasConversionFailures'] as bool;
+    final totalCurrencies = stats['totalCurrencies'] as int;
+
+    return Column(
+      children: [
+        // Show conversion status if relevant
+        if (_showCurrencyDetails && totalCurrencies > 1) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: hasConversionFailures 
+                  ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  hasConversionFailures ? Icons.warning_amber : Icons.check_circle,
+                  size: 16,
+                  color: hasConversionFailures 
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    hasConversionFailures 
+                        ? 'Some currency conversions failed - amounts in original currencies'
+                        : 'All amounts converted to $primaryCurrency',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        
+        // Statistics grid
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 2.0,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          children: [
+            _buildStatCard(
+              'Total Spent',
+              '${stats['totalSpent'].toStringAsFixed(2)} $primaryCurrency',
+              Icons.attach_money,
+              Colors.green,
+            ),
+            _buildStatCard(
+              'Average per Fill-up',
+              '${stats['averagePerFillUp'].toStringAsFixed(2)} $primaryCurrency',
+              Icons.local_gas_station,
+              Colors.blue,
+            ),
+            _buildStatCard(
+              'Monthly Average',
+              '${stats['averagePerMonth'].toStringAsFixed(2)} $primaryCurrency',
+              Icons.calendar_month,
+              Colors.orange,
+            ),
+            _buildStatCard(
+              'Currencies Used',
+              '${stats['totalCurrencies']}',
+              Icons.language,
+              Colors.purple,
+            ),
+            _buildStatCard(
+              'Most Expensive',
+              '${stats['mostExpensiveFillUp'].toStringAsFixed(2)} $primaryCurrency',
+              Icons.trending_up,
+              Colors.red,
+            ),
+            _buildStatCard(
+              'Cheapest',
+              '${stats['cheapestFillUp'].toStringAsFixed(2)} $primaryCurrency',
+              Icons.trending_down,
+              Colors.teal,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Multi-currency monthly spending chart
+  Widget _buildMultiCurrencyMonthlySpendingChart() {
+    if (_selectedVehicle == null) {
+      return _buildNoDataCard('Select a vehicle to view monthly spending');
+    }
+
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final chartDataAsync = ref.watch(multiCurrencyMonthlySpendingDataProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+      countryFilter: _selectedCountry,
+    ));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.bar_chart,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Monthly Spending Breakdown',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                if (_showCurrencyDetails) 
+                  Icon(
+                    Icons.currency_exchange,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 300,
+              child: chartDataAsync.when(
+                data: (spendingData) {
+                  if (spendingData.isEmpty) {
+                    return const Center(child: Text('No spending data available'));
+                  }
+                  
+                  return _buildSimpleMultiCurrencyBarChart(spendingData);
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Multi-currency country spending comparison
+  Widget _buildMultiCurrencyCountrySpendingComparison() {
+    if (_selectedVehicle == null) {
+      return _buildNoDataCard('Select a vehicle to compare country spending');
+    }
+
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final comparisonAsync = ref.watch(multiCurrencyCountrySpendingComparisonProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+    ));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.pie_chart,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Multi-Currency Spending by Country',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                if (_showCurrencyDetails) 
+                  Icon(
+                    Icons.currency_exchange,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            comparisonAsync.when(
+              data: (countryData) {
+                if (countryData.isEmpty) {
+                  return const Center(child: Text('No country spending data available'));
+                }
+                
+                return _buildMultiCurrencyCountrySpendingList(countryData);
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Currency usage statistics section
+  Widget _buildCurrencyUsageStatisticsSection() {
+    if (_selectedVehicle == null) return const SizedBox.shrink();
+
+    final dateRange = _getDateRangeFromPeriod(_selectedTimePeriod);
+    final currencyUsageAsync = ref.watch(currencyUsageSummaryProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+      countryFilter: _selectedCountry,
+    ));
+
+    final spendingStatsAsync = ref.watch(multiCurrencySpendingStatisticsProvider(
+      _selectedVehicle!.id!,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
+      countryFilter: _selectedCountry,
+    ));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.account_balance_wallet,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Currency Usage Statistics',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            currencyUsageAsync.when(
+              data: (currencyUsage) {
+                return spendingStatsAsync.when(
+                  data: (spendingStats) {
+                    return CurrencyUsageStatistics(
+                      currencyUsage: currencyUsage,
+                      spendingStats: spendingStats,
+                      primaryCurrency: currencyUsage.primaryCurrency,
+                      showConversionDetails: _showCurrencyDetails,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Text('Error loading spending stats: $error'),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Text('Error loading currency statistics: $error'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Simple multi-currency bar chart
+  Widget _buildSimpleMultiCurrencyBarChart(List<dynamic> data) {
+    final maxAmount = data.map((d) => d.amount.displayAmount as double).reduce((a, b) => a > b ? a : b);
+    
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: data.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 8),
+      itemBuilder: (context, index) {
+        final dataPoint = data[index];
+        final amount = dataPoint.amount;
+        final height = (amount.displayAmount / maxAmount * 250).clamp(10.0, 250.0);
+        
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (_showCurrencyDetails && amount.isConverted) ...[
+              Text(
+                'orig: ${amount.originalAmount.toStringAsFixed(0)} ${amount.originalCurrency}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 8),
+              ),
+              const SizedBox(height: 2),
+            ],
+            Text(
+              '${amount.displayAmount.toStringAsFixed(0)} ${amount.displayCurrency}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 40,
+              height: height,
+              decoration: BoxDecoration(
+                color: amount.conversionFailed 
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 50,
+              child: Text(
+                dataPoint.periodLabel,
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Multi-currency country spending list
+  Widget _buildMultiCurrencyCountrySpendingList(List<dynamic> data) {
+    return Column(
+      children: data.map((countryData) {
+        final totalSpent = countryData.totalSpent;
+        final avgPrice = countryData.averagePricePerLiter;
+        
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              // Country flag (simplified)
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    countryData.country.substring(0, 2).toUpperCase(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          countryData.country,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (countryData.isMultiCurrency) 
+                          Icon(
+                            Icons.language,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${countryData.entryCount} fill-ups • Avg: ${avgPrice.toDisplayString()}/L',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        ConversionTransparencyWidget(
+                          amount: totalSpent,
+                          showDetails: false,
+                        ),
+                      ],
+                    ),
+                    if (_showCurrencyDetails && totalSpent.isConverted) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Converted from ${totalSpent.originalAmount.toStringAsFixed(2)} ${totalSpent.originalCurrency}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   void _refreshData() {
     ref.invalidate(monthlySpendingDataProvider);
     ref.invalidate(countrySpendingComparisonProvider);
     ref.invalidate(priceTrendsByCountryProvider);
     ref.invalidate(spendingStatisticsProvider);
+    // Invalidate multi-currency providers
+    ref.invalidate(multiCurrencySpendingStatisticsProvider);
+    ref.invalidate(multiCurrencyMonthlySpendingDataProvider);
+    ref.invalidate(multiCurrencyCountrySpendingComparisonProvider);
+    ref.invalidate(currencyUsageSummaryProvider);
+    ref.invalidate(dashboardCurrencyIndicatorProvider);
   }
 }
