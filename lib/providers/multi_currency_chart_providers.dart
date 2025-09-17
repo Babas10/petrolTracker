@@ -179,7 +179,6 @@ Future<bool> hasMultiCurrencyEntries(
 
   // Extract currencies from entries
   final currencies = <String>{};
-  final service = MultiCurrencyCostAnalysisService.instance;
   
   for (final entry in entries) {
     // Use the same currency extraction logic as the service

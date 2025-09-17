@@ -1186,18 +1186,19 @@ class _CostAnalysisDashboardScreenState extends ConsumerState<CostAnalysisDashbo
               ],
             ),
             const SizedBox(height: 16),
-            AsyncValue.guard(() async {
-              final currencyUsage = await currencyUsageAsync.future;
-              final spendingStats = await spendingStatsAsync.future;
-              return (currencyUsage, spendingStats);
-            }).when(
-              data: (data) {
-                final (currencyUsage, spendingStats) = data;
-                return CurrencyUsageStatistics(
-                  currencyUsage: currencyUsage,
-                  spendingStats: spendingStats,
-                  primaryCurrency: currencyUsage.primaryCurrency,
-                  showConversionDetails: _showCurrencyDetails,
+            currencyUsageAsync.when(
+              data: (currencyUsage) {
+                return spendingStatsAsync.when(
+                  data: (spendingStats) {
+                    return CurrencyUsageStatistics(
+                      currencyUsage: currencyUsage,
+                      spendingStats: spendingStats,
+                      primaryCurrency: currencyUsage.primaryCurrency,
+                      showConversionDetails: _showCurrencyDetails,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Text('Error loading spending stats: $error'),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),

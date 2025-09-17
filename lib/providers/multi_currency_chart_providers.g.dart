@@ -581,7 +581,7 @@ String _$userPrimaryCurrencyHash() => r'a4b1e8f5d2c9b6a3f0d7e4f1c8b5a2e9f6d3c0b7
 const userPrimaryCurrencyProvider = UserPrimaryCurrencyProvider._();
 
 class UserPrimaryCurrencyProvider extends AutoDisposeFutureProvider<String> {
-  const UserPrimaryCurrencyProvider._() : super.internal(
+  UserPrimaryCurrencyProvider._() : super.internal(
     userPrimaryCurrency,
     name: r'userPrimaryCurrencyProvider',
     debugGetCreateSourceHash: _$userPrimaryCurrencyHash,
