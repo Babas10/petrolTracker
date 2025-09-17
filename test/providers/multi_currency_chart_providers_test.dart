@@ -112,18 +112,7 @@ void main() {
         // Test currency extraction logic
         final currencies = <String>{};
         for (final entry in entries) {
-          final country = entry.country.toLowerCase();
-          String currency;
-          switch (country) {
-            case 'canada': currency = 'CAD'; break;
-            case 'usa': case 'united states': currency = 'USD'; break;
-            case 'germany': case 'france': case 'spain': case 'italy': currency = 'EUR'; break;
-            case 'australia': currency = 'AUD'; break;
-            case 'japan': currency = 'JPY'; break;
-            case 'united kingdom': case 'uk': currency = 'GBP'; break;
-            case 'switzerland': currency = 'CHF'; break;
-            default: currency = 'USD'; break;
-          }
+          final currency = MultiCurrencyCostAnalysisService.extractCurrencyFromCountry(entry.country);
           currencies.add(currency);
         }
         
@@ -142,18 +131,7 @@ void main() {
         // Test currency extraction logic
         final currencies = <String>{};
         for (final entry in entries) {
-          final country = entry.country.toLowerCase();
-          String currency;
-          switch (country) {
-            case 'canada': currency = 'CAD'; break;
-            case 'usa': case 'united states': currency = 'USD'; break;
-            case 'germany': case 'france': case 'spain': case 'italy': currency = 'EUR'; break;
-            case 'australia': currency = 'AUD'; break;
-            case 'japan': currency = 'JPY'; break;
-            case 'united kingdom': case 'uk': currency = 'GBP'; break;
-            case 'switzerland': currency = 'CHF'; break;
-            default: currency = 'USD'; break;
-          }
+          final currency = MultiCurrencyCostAnalysisService.extractCurrencyFromCountry(entry.country);
           currencies.add(currency);
         }
         

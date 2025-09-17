@@ -579,10 +579,14 @@ class MultiCurrencyCostAnalysisService {
   /// Extract currency from fuel entry (simplified approach)
   /// In a real implementation, currency would be stored directly in the entry
   String _extractCurrencyFromEntry(FuelEntryModel entry) {
-    // This is a simplified approach based on country
-    // In a real implementation, the currency would be stored directly
-    final country = entry.country.toLowerCase();
-    switch (country) {
+    return extractCurrencyFromCountry(entry.country);
+  }
+
+  /// Extract currency code from country name (static utility method)
+  /// This consolidates duplicate currency extraction logic across the app
+  static String extractCurrencyFromCountry(String country) {
+    final lowerCountry = country.toLowerCase();
+    switch (lowerCountry) {
       case 'canada': return 'CAD';
       case 'usa': case 'united states': return 'USD';
       case 'germany': case 'france': case 'spain': case 'italy': return 'EUR';

@@ -5,12 +5,10 @@ import 'package:petrol_tracker/providers/vehicle_providers.dart';
 import 'package:petrol_tracker/providers/chart_providers.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/multi_currency_chart_providers.dart';
-import 'package:petrol_tracker/widgets/chart_webview.dart';
 import 'package:petrol_tracker/widgets/country_selection_widget.dart';
 import 'package:petrol_tracker/widgets/currency_summary_card.dart';
 import 'package:petrol_tracker/widgets/currency_usage_statistics.dart';
 import 'package:petrol_tracker/models/vehicle_model.dart';
-import 'package:petrol_tracker/models/fuel_entry_model.dart';
 
 /// Predefined time periods for cost analysis
 enum CostTimePeriod {

@@ -217,7 +217,7 @@ void main() {
         // Mock currency extraction logic
         final currencyCount = <String, int>{};
         for (final entry in entries) {
-          final currency = _extractCurrencyFromCountry(entry.country);
+          final currency = MultiCurrencyCostAnalysisService.extractCurrencyFromCountry(entry.country);
           currencyCount[currency] = (currencyCount[currency] ?? 0) + 1;
         }
 
@@ -278,15 +278,15 @@ void main() {
 
     group('_extractCurrencyFromEntry', () {
       test('should extract correct currency based on country', () {
-        expect(_extractCurrencyFromCountry('USA'), equals('USD'));
-        expect(_extractCurrencyFromCountry('Canada'), equals('CAD'));
-        expect(_extractCurrencyFromCountry('Germany'), equals('EUR'));
-        expect(_extractCurrencyFromCountry('France'), equals('EUR'));
-        expect(_extractCurrencyFromCountry('Japan'), equals('JPY'));
-        expect(_extractCurrencyFromCountry('Australia'), equals('AUD'));
-        expect(_extractCurrencyFromCountry('United Kingdom'), equals('GBP'));
-        expect(_extractCurrencyFromCountry('Switzerland'), equals('CHF'));
-        expect(_extractCurrencyFromCountry('Unknown Country'), equals('USD')); // Default fallback
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('USA'), equals('USD'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Canada'), equals('CAD'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Germany'), equals('EUR'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('France'), equals('EUR'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Japan'), equals('JPY'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Australia'), equals('AUD'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('United Kingdom'), equals('GBP'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Switzerland'), equals('CHF'));
+        expect(MultiCurrencyCostAnalysisService.extractCurrencyFromCountry('Unknown Country'), equals('USD')); // Default fallback
       });
     });
   });
@@ -309,16 +309,3 @@ FuelEntryModel _createMockFuelEntry(DateTime date, double price, String country)
   );
 }
 
-String _extractCurrencyFromCountry(String country) {
-  final lowerCountry = country.toLowerCase();
-  switch (lowerCountry) {
-    case 'canada': return 'CAD';
-    case 'usa': case 'united states': return 'USD';
-    case 'germany': case 'france': case 'spain': case 'italy': return 'EUR';
-    case 'australia': return 'AUD';
-    case 'japan': return 'JPY';
-    case 'united kingdom': case 'uk': return 'GBP';
-    case 'switzerland': return 'CHF';
-    default: return 'USD';
-  }
-}
