@@ -10,7 +10,7 @@ part 'currency_providers.g.dart';
 /// Provides access to the singleton instance of CurrencyService for
 /// converting currencies and fetching exchange rates.
 @riverpod
-CurrencyService currencyService(CurrencyServiceRef ref) {
+CurrencyService currencyService(Ref ref) {
   return CurrencyService.instance;
 }
 

@@ -6,7 +6,6 @@ import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
-import 'package:petrol_tracker/providers/units_providers.dart';
 import 'package:petrol_tracker/providers/currency_providers.dart';
 import 'package:petrol_tracker/widgets/multi_currency_fuel_entry_card.dart';
 
