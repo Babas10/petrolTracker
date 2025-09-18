@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:petrol_tracker/navigation/main_layout.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
-import 'package:petrol_tracker/models/vehicle_model.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/vehicle_providers.dart';
-import 'package:petrol_tracker/providers/units_providers.dart';
+import 'package:petrol_tracker/providers/currency_providers.dart';
+import 'package:petrol_tracker/widgets/multi_currency_fuel_entry_card.dart';
 
 /// Fuel entries screen displaying list of all fuel entries
 /// 
@@ -31,6 +31,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
   bool _ascending = false;
   String _searchQuery = '';
   String? _selectedCountryFilter;
+  String? _selectedCurrencyFilter;
   DateTimeRange? _selectedDateRange;
   bool _showSearch = false;
 
@@ -92,10 +93,16 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
           if (_showSearch) _buildSearchBar(),
           _FilterChips(
             selectedCountryFilter: _selectedCountryFilter,
+            selectedCurrencyFilter: _selectedCurrencyFilter,
             selectedDateRange: _selectedDateRange,
             onCountryFilterChanged: (country) {
               setState(() {
                 _selectedCountryFilter = country;
+              });
+            },
+            onCurrencyFilterChanged: (currency) {
+              setState(() {
+                _selectedCurrencyFilter = currency;
               });
             },
             onDateRangeChanged: (range) {
@@ -106,6 +113,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
             onClearFilters: () {
               setState(() {
                 _selectedCountryFilter = null;
+                _selectedCurrencyFilter = null;
                 _selectedDateRange = null;
               });
             },
@@ -114,6 +122,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
             vehicleFilter: widget.vehicleFilter,
             searchQuery: _searchQuery,
             countryFilter: _selectedCountryFilter,
+            currencyFilter: _selectedCurrencyFilter,
             dateRange: _selectedDateRange,
             sortBy: _sortBy,
             ascending: _ascending,
@@ -261,10 +270,16 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
       context: context,
       builder: (context) => _FilterDialog(
         selectedCountry: _selectedCountryFilter,
+        selectedCurrency: _selectedCurrencyFilter,
         selectedDateRange: _selectedDateRange,
         onCountryChanged: (country) {
           setState(() {
             _selectedCountryFilter = country;
+          });
+        },
+        onCurrencyChanged: (currency) {
+          setState(() {
+            _selectedCurrencyFilter = currency;
           });
         },
         onDateRangeChanged: (range) {
@@ -275,6 +290,7 @@ class _FuelEntriesScreenState extends ConsumerState<FuelEntriesScreen> {
         onClearFilters: () {
           setState(() {
             _selectedCountryFilter = null;
+            _selectedCurrencyFilter = null;
             _selectedDateRange = null;
           });
         },
@@ -429,15 +445,19 @@ class _VehicleAppBar extends ConsumerWidget implements PreferredSizeWidget {
 /// Filter chips for quick filtering options
 class _FilterChips extends StatefulWidget {
   final String? selectedCountryFilter;
+  final String? selectedCurrencyFilter;
   final DateTimeRange? selectedDateRange;
   final ValueChanged<String?> onCountryFilterChanged;
+  final ValueChanged<String?> onCurrencyFilterChanged;
   final ValueChanged<DateTimeRange?> onDateRangeChanged;
   final VoidCallback onClearFilters;
 
   const _FilterChips({
     required this.selectedCountryFilter,
+    required this.selectedCurrencyFilter,
     required this.selectedDateRange,
     required this.onCountryFilterChanged,
+    required this.onCurrencyFilterChanged,
     required this.onDateRangeChanged,
     required this.onClearFilters,
   });
@@ -458,6 +478,7 @@ class _FilterChipsState extends State<_FilterChips> {
     ];
 
     final hasActiveFilters = widget.selectedCountryFilter != null ||
+                           widget.selectedCurrencyFilter != null ||
                            widget.selectedDateRange != null ||
                            _selectedTimeFilter != null;
 
@@ -497,6 +518,16 @@ class _FilterChipsState extends State<_FilterChips> {
                   label: Text('Country: ${widget.selectedCountryFilter}'),
                   deleteIcon: const Icon(Icons.close, size: 18),
                   onDeleted: () => widget.onCountryFilterChanged(null),
+                ),
+              ),
+            
+            if (widget.selectedCurrencyFilter != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Chip(
+                  label: Text('Currency: ${widget.selectedCurrencyFilter}'),
+                  deleteIcon: const Icon(Icons.close, size: 18),
+                  onDeleted: () => widget.onCurrencyFilterChanged(null),
                 ),
               ),
             
@@ -572,6 +603,7 @@ class _EntriesList extends ConsumerWidget {
   final int? vehicleFilter;
   final String searchQuery;
   final String? countryFilter;
+  final String? currencyFilter;
   final DateTimeRange? dateRange;
   final String sortBy;
   final bool ascending;
@@ -580,6 +612,7 @@ class _EntriesList extends ConsumerWidget {
     this.vehicleFilter,
     required this.searchQuery,
     this.countryFilter,
+    this.currencyFilter,
     this.dateRange,
     required this.sortBy,
     required this.ascending,
@@ -620,6 +653,7 @@ class _EntriesList extends ConsumerWidget {
           return _EmptyEntriesState(
             hasFilters: searchQuery.isNotEmpty ||
                        countryFilter != null ||
+                       currencyFilter != null ||
                        dateRange != null ||
                        vehicleFilter != null,
           );
@@ -633,9 +667,10 @@ class _EntriesList extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: entries.length,
             itemBuilder: (context, index) {
-              return _FuelEntryCard(
+              final primaryCurrency = ref.watch(primaryCurrencyProvider);
+              return MultiCurrencyFuelEntryCard(
                 entry: entries[index],
-                ref: ref,
+                primaryCurrency: primaryCurrency,
               );
             },
           ),
@@ -661,6 +696,7 @@ class _EntriesList extends ConsumerWidget {
           return _EmptyEntriesState(
             hasFilters: searchQuery.isNotEmpty ||
                        countryFilter != null ||
+                       currencyFilter != null ||
                        dateRange != null ||
                        vehicleFilter != null,
           );
@@ -674,9 +710,10 @@ class _EntriesList extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: sortedEntries.length,
             itemBuilder: (context, index) {
-              return _FuelEntryCard(
+              final primaryCurrency = ref.watch(primaryCurrencyProvider);
+              return MultiCurrencyFuelEntryCard(
                 entry: sortedEntries[index],
-                ref: ref,
+                primaryCurrency: primaryCurrency,
               );
             },
           ),
@@ -701,13 +738,19 @@ class _EntriesList extends ConsumerWidget {
       filtered = filtered.where((entry) {
         return entry.country.toLowerCase().contains(query) ||
                DateFormat('MMM d, yyyy').format(entry.date).toLowerCase().contains(query) ||
-               entry.formattedPrice.toLowerCase().contains(query);
+               entry.formattedPrice.toLowerCase().contains(query) ||
+               entry.currency.toLowerCase().contains(query);
       }).toList();
     }
 
     // Country filter
     if (countryFilter != null) {
       filtered = filtered.where((entry) => entry.country == countryFilter).toList();
+    }
+
+    // Currency filter
+    if (currencyFilter != null) {
+      filtered = filtered.where((entry) => entry.currency == currencyFilter).toList();
     }
 
     // Date range filter
@@ -730,13 +773,19 @@ class _EntriesList extends ConsumerWidget {
       filtered = filtered.where((entry) {
         return entry.country.toLowerCase().contains(query) ||
                DateFormat('MMM d, yyyy').format(entry.date).toLowerCase().contains(query) ||
-               entry.formattedPrice.toLowerCase().contains(query);
+               entry.formattedPrice.toLowerCase().contains(query) ||
+               entry.currency.toLowerCase().contains(query);
       }).toList();
     }
 
     // Country filter
     if (countryFilter != null) {
       filtered = filtered.where((entry) => entry.country == countryFilter).toList();
+    }
+
+    // Currency filter
+    if (currencyFilter != null) {
+      filtered = filtered.where((entry) => entry.currency == currencyFilter).toList();
     }
 
     // Date range filter
@@ -909,352 +958,23 @@ class _EmptyEntriesState extends StatelessWidget {
   }
 }
 
-/// Individual fuel entry card widget
-class _FuelEntryCard extends ConsumerWidget {
-  final FuelEntryModel entry;
-  final WidgetRef ref;
-
-  const _FuelEntryCard({
-    required this.entry,
-    required this.ref,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleAsync = ref.watch(vehicleProvider(entry.vehicleId));
-
-    return Dismissible(
-      key: ValueKey(entry.id),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) => _showDeleteConfirmation(context),
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.error,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.onError,
-            ),
-            Text(
-              'Delete',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onError,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        elevation: 2,
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(16),
-          leading: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: Icon(
-              Icons.local_gas_station,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
-          title: vehicleAsync.when(
-            data: (vehicle) => Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    vehicle?.name ?? 'Unknown Vehicle',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _TankTypeChip(isFullTank: entry.isFullTank),
-              ],
-            ),
-            loading: () => Row(
-              children: [
-                const Expanded(child: Text('Loading vehicle...')),
-                const SizedBox(width: 8),
-                _TankTypeChip(isFullTank: entry.isFullTank),
-              ],
-            ),
-            error: (_, __) => Row(
-              children: [
-                const Expanded(child: Text('Unknown Vehicle')),
-                const SizedBox(width: 8),
-                _TankTypeChip(isFullTank: entry.isFullTank),
-              ],
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      DateFormat('MMM d, yyyy').format(entry.date),
-                      style: Theme.of(context).textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.public,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      entry.country,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_gas_station,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${entry.fuelAmount.toStringAsFixed(1)}L',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.attach_money,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      '\$${entry.price.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (entry.consumption != null)
-                    Flexible(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.speed,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Consumer(
-                              builder: (context, ref, child) {
-                                final unitSystem = ref.watch(unitsProvider);
-                                return unitSystem.when(
-                                  data: (units) {
-                                    final displayConsumption = units == UnitSystem.metric 
-                                        ? entry.consumption! 
-                                        : UnitConverter.consumptionToImperial(entry.consumption!);
-                                    return Text(
-                                      '${displayConsumption.toStringAsFixed(1)} ${units.consumptionUnit}',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    );
-                                  },
-                                  loading: () => Text(
-                                    '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  error: (_, __) => Text(
-                                    '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.speed,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${entry.currentKm.toStringAsFixed(0)} km',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.calculate,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '\$${entry.pricePerLiter.toStringAsFixed(3)}/L',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          trailing: PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'edit':
-                  // TODO: Navigate to edit screen
-                  context.go('/add-entry'); // For now, goes to add screen
-                  break;
-                case 'delete':
-                  _deleteEntry(context);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit),
-                    SizedBox(width: 8),
-                    Text('Edit'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Delete', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          onTap: () {
-            _showEntryDetails(context);
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<bool?> _showDeleteConfirmation(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: const Text(
-          'Are you sure you want to delete this fuel entry? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteEntry(BuildContext context) async {
-    final confirmed = await _showDeleteConfirmation(context);
-    if (confirmed == true && entry.id != null) {
-      try {
-        await ref.read(fuelEntriesNotifierProvider.notifier).deleteFuelEntry(entry.id!);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Entry deleted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error deleting entry: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  void _showEntryDetails(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => _EntryDetailsDialog(entry: entry),
-    );
-  }
-}
 
 /// Filter dialog for advanced filtering
 class _FilterDialog extends StatefulWidget {
   final String? selectedCountry;
+  final String? selectedCurrency;
   final DateTimeRange? selectedDateRange;
   final ValueChanged<String?> onCountryChanged;
+  final ValueChanged<String?> onCurrencyChanged;
   final ValueChanged<DateTimeRange?> onDateRangeChanged;
   final VoidCallback onClearFilters;
 
   const _FilterDialog({
     required this.selectedCountry,
+    required this.selectedCurrency,
     required this.selectedDateRange,
     required this.onCountryChanged,
+    required this.onCurrencyChanged,
     required this.onDateRangeChanged,
     required this.onClearFilters,
   });
@@ -1265,12 +985,14 @@ class _FilterDialog extends StatefulWidget {
 
 class _FilterDialogState extends State<_FilterDialog> {
   late String? _selectedCountry;
+  late String? _selectedCurrency;
   late DateTimeRange? _selectedDateRange;
 
   @override
   void initState() {
     super.initState();
     _selectedCountry = widget.selectedCountry;
+    _selectedCurrency = widget.selectedCurrency;
     _selectedDateRange = widget.selectedDateRange;
   }
 
@@ -1315,6 +1037,41 @@ class _FilterDialogState extends State<_FilterDialog> {
                 setState(() {
                   _selectedCountry = value;
                 });
+              },
+            ),
+            const SizedBox(height: 16),
+            
+            // Currency filter
+            Text(
+              'Currency',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, child) {
+                final availableCurrencies = ref.watch(availableCurrenciesProvider);
+                return DropdownButtonFormField<String>(
+                  value: _selectedCurrency,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'All currencies',
+                  ),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('All currencies'),
+                    ),
+                    ...availableCurrencies.map((currency) => DropdownMenuItem<String>(
+                      value: currency,
+                      child: Text(currency),
+                    )),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCurrency = value;
+                    });
+                  },
+                );
               },
             ),
             const SizedBox(height: 16),
@@ -1377,6 +1134,7 @@ class _FilterDialogState extends State<_FilterDialog> {
         ElevatedButton(
           onPressed: () {
             widget.onCountryChanged(_selectedCountry);
+            widget.onCurrencyChanged(_selectedCurrency);
             widget.onDateRangeChanged(_selectedDateRange);
             Navigator.of(context).pop();
           },
@@ -1402,197 +1160,3 @@ class _FilterDialogState extends State<_FilterDialog> {
   }
 }
 
-/// Entry details dialog
-class _EntryDetailsDialog extends ConsumerWidget {
-  final FuelEntryModel entry;
-
-  const _EntryDetailsDialog({required this.entry});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final vehicleAsync = ref.watch(vehicleProvider(entry.vehicleId));
-
-    return AlertDialog(
-      title: const Text('Entry Details'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            vehicleAsync.when(
-              data: (vehicle) => _buildDetailRow(
-                context,
-                'Vehicle',
-                vehicle?.name ?? 'Unknown Vehicle',
-                Icons.directions_car,
-              ),
-              loading: () => const CircularProgressIndicator(),
-              error: (_, __) => _buildDetailRow(
-                context,
-                'Vehicle',
-                'Unknown Vehicle',
-                Icons.directions_car,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Date',
-              DateFormat('EEEE, MMM d, yyyy').format(entry.date),
-              Icons.calendar_today,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Country',
-              entry.country,
-              Icons.public,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Odometer Reading',
-              '${entry.currentKm.toStringAsFixed(0)} km',
-              Icons.speed,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Fuel Amount',
-              '${entry.fuelAmount.toStringAsFixed(1)} L',
-              Icons.local_gas_station,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Total Price',
-              '\$${entry.price.toStringAsFixed(2)}',
-              Icons.attach_money,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              'Price per Liter',
-              '\$${entry.pricePerLiter.toStringAsFixed(3)}/L',
-              Icons.calculate,
-            ),
-            if (entry.consumption != null) ...[
-              const SizedBox(height: 12),
-              Consumer(
-                builder: (context, ref, child) {
-                  final unitSystem = ref.watch(unitsProvider);
-                  return unitSystem.when(
-                    data: (units) {
-                      final displayConsumption = units == UnitSystem.metric 
-                          ? entry.consumption! 
-                          : UnitConverter.consumptionToImperial(entry.consumption!);
-                      return _buildDetailRow(
-                        context,
-                        'Consumption',
-                        '${displayConsumption.toStringAsFixed(1)} ${units.consumptionUnit}',
-                        Icons.trending_up,
-                      );
-                    },
-                    loading: () => _buildDetailRow(
-                      context,
-                      'Consumption',
-                      '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                      Icons.trending_up,
-                    ),
-                    error: (_, __) => _buildDetailRow(
-                      context,
-                      'Consumption',
-                      '${entry.consumption!.toStringAsFixed(1)} L/100km',
-                      Icons.trending_up,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            // TODO: Navigate to edit screen
-            context.go('/add-entry');
-          },
-          child: const Text('Edit'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-              ),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Tank type indicator chip widget
-/// 
-/// Displays "Full" or "Partial" based on the isFullTank boolean value
-/// with appropriate styling and colors.
-class _TankTypeChip extends StatelessWidget {
-  final bool isFullTank;
-
-  const _TankTypeChip({
-    required this.isFullTank,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      label: Text(
-        isFullTank ? 'Full' : 'Partial',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.onPrimary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      visualDensity: VisualDensity.compact,
-      side: BorderSide.none,
-    );
-  }
-}
