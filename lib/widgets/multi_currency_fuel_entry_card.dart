@@ -82,15 +82,21 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
           _isConverting = false;
         });
       } else {
+        // For now, show original currency when conversion fails
+        // This allows the feature to work even without exchange rates
         setState(() {
-          _conversionError = 'Conversion failed';
+          _convertedAmount = null;
+          _exchangeRate = null;
           _isConverting = false;
+          _conversionError = null; // Don't show error, just use original currency
         });
       }
     } catch (e) {
       setState(() {
-        _conversionError = 'Currency conversion error: $e';
+        _convertedAmount = null;
+        _exchangeRate = null;
         _isConverting = false;
+        _conversionError = null; // Don't show error, just use original currency
       });
     }
   }
@@ -158,7 +164,7 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
                   const SizedBox(width: 8),
                   _TankTypeChip(isFullTank: widget.entry.isFullTank),
                   const SizedBox(width: 8),
-                  if (needsConversion)
+                  if (needsConversion && (_isConverting || _convertedAmount != null))
                     CurrencyConversionIndicator(
                       fromCurrency: widget.entry.currency,
                       toCurrency: primaryCurrency,
@@ -173,7 +179,7 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
                   const SizedBox(width: 8),
                   _TankTypeChip(isFullTank: widget.entry.isFullTank),
                   const SizedBox(width: 8),
-                  if (needsConversion)
+                  if (needsConversion && (_isConverting || _convertedAmount != null))
                     CurrencyConversionIndicator(
                       fromCurrency: widget.entry.currency,
                       toCurrency: primaryCurrency,
@@ -188,7 +194,7 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
                   const SizedBox(width: 8),
                   _TankTypeChip(isFullTank: widget.entry.isFullTank),
                   const SizedBox(width: 8),
-                  if (needsConversion)
+                  if (needsConversion && (_isConverting || _convertedAmount != null))
                     CurrencyConversionIndicator(
                       fromCurrency: widget.entry.currency,
                       toCurrency: primaryCurrency,
@@ -364,7 +370,7 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
                     ],
                   ),
                 ),
-                if (needsConversion && _convertedAmount != null)
+                if (needsConversion && (_convertedAmount != null || _conversionError != null))
                   const PopupMenuItem(
                     value: 'conversion_details',
                     child: Row(
@@ -388,7 +394,7 @@ class _MultiCurrencyFuelEntryCardState extends ConsumerState<MultiCurrencyFuelEn
               ],
             ),
             children: [
-              if (needsConversion && (_convertedAmount != null || _conversionError != null))
+              if (needsConversion && (_isConverting || _convertedAmount != null || _conversionError != null))
                 ConversionDetailCard(
                   entry: widget.entry,
                   convertedAmount: _convertedAmount,
