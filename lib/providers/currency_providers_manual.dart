@@ -1,101 +1,51 @@
+/// Manual provider definitions for currency operations
+/// 
+/// This file contains manually created providers that bypass build_runner
+/// issues while providing the same functionality as the @riverpod annotations.
+library;
+
 import 'dart:async';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:petrol_tracker/services/currency_service.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
 import 'package:petrol_tracker/providers/currency_settings_providers.dart';
-
-part 'currency_providers.g.dart';
+import 'package:petrol_tracker/providers/currency_providers.dart' as original;
 
 /// Provider for the currency service
-/// 
-/// Provides access to the singleton instance of CurrencyService for
-/// converting currencies and fetching exchange rates.
-@riverpod
-CurrencyService currencyService(Ref ref) {
+final currencyServiceProvider = Provider<CurrencyService>((ref) {
   return CurrencyService.instance;
-}
-
-/// Provider for user's primary currency preference
-final primaryCurrencyProvider = StateNotifierProvider<PrimaryCurrencyNotifier, String>((ref) {
-  return PrimaryCurrencyNotifier();
 });
-
-class PrimaryCurrencyNotifier extends StateNotifier<String> {
-  static const String _key = 'primary_currency';
-  static const String _defaultCurrency = 'USD';
-
-  PrimaryCurrencyNotifier() : super(_defaultCurrency) {
-    _loadPrimaryCurrency();
-  }
-
-  Future<void> _loadPrimaryCurrency() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedCurrency = prefs.getString(_key);
-      if (savedCurrency != null && savedCurrency.isNotEmpty) {
-        state = savedCurrency;
-      }
-    } catch (e) {
-      // Keep default currency if loading fails
-    }
-  }
-
-  Future<void> setPrimaryCurrency(String currency) async {
-    if (currency.length == 3 && currency == currency.toUpperCase()) {
-      state = currency;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_key, currency);
-      } catch (e) {
-        // Continue with state update even if saving fails
-      }
-    }
-  }
-}
-
-/// Provider for available currencies in the fuel entries
-final availableCurrenciesProvider = Provider<List<String>>((ref) {
-  // For now, return common currencies
-  // This could be enhanced to dynamically load from fuel entries
-  return [
-    'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'CNY', 'INR', 'BRL',
-    'MXN', 'SGD', 'HKD', 'NZD', 'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF',
-  ];
-});
-
-/// Provider for currency filter in the fuel entries screen
-final currencyFilterProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for reactive exchange rates monitoring
-/// 
-/// Monitors exchange rates freshness and triggers updates when rates become stale.
-/// Automatically watches user's primary currency to ensure relevant rates are fresh.
-@riverpod
-class ExchangeRatesMonitor extends _$ExchangeRatesMonitor {
+final exchangeRatesMonitorProvider = StateNotifierProvider<ExchangeRatesMonitorNotifier, AsyncValue<Map<String, DateTime>>>((ref) {
+  return ExchangeRatesMonitorNotifier(ref);
+});
+
+class ExchangeRatesMonitorNotifier extends StateNotifier<AsyncValue<Map<String, DateTime>>> {
+  final Ref ref;
   Timer? _refreshTimer;
   
-  @override
-  Future<Map<String, DateTime>> build() async {
-    final currencyService = ref.read(currencyServiceProvider);
-    final primaryCurrency = ref.watch(primaryCurrencyProvider);
-    
-    // Check freshness of rates for primary currency
-    final isFresh = await currencyService.areRatesFresh(primaryCurrency);
-    final now = DateTime.now();
-    
-    ref.onDispose(() {
-      _refreshTimer?.cancel();
-    });
-    
-    // Set up periodic refresh monitoring
-    _setupPeriodicCheck();
-    
-    return {
-      primaryCurrency: isFresh ? now : now.subtract(const Duration(hours: 25)),
-    };
+  ExchangeRatesMonitorNotifier(this.ref) : super(const AsyncValue.loading()) {
+    _initialize();
+  }
+  
+  Future<void> _initialize() async {
+    try {
+      final currencyService = ref.read(currencyServiceProvider);
+      final primaryCurrency = ref.read(original.primaryCurrencyProvider);
+      
+      final isFresh = await currencyService.areRatesFresh(primaryCurrency);
+      final now = DateTime.now();
+      
+      state = AsyncValue.data({
+        primaryCurrency: isFresh ? now : now.subtract(const Duration(hours: 25)),
+      });
+      
+      _setupPeriodicCheck();
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
   
   void _setupPeriodicCheck() {
@@ -108,7 +58,7 @@ class ExchangeRatesMonitor extends _$ExchangeRatesMonitor {
   Future<void> _checkAndRefreshRates() async {
     try {
       final currencyService = ref.read(currencyServiceProvider);
-      final primaryCurrency = ref.read(primaryCurrencyProvider);
+      final primaryCurrency = ref.read(original.primaryCurrencyProvider);
       
       final isFresh = await currencyService.areRatesFresh(primaryCurrency);
       if (!isFresh) {
@@ -117,7 +67,7 @@ class ExchangeRatesMonitor extends _$ExchangeRatesMonitor {
         ref.invalidate(currencyConversionProvider);
         
         // Update state to reflect refresh attempt
-        final currentState = await future;
+        final currentState = state.value ?? <String, DateTime>{};
         state = AsyncValue.data({
           ...currentState,
           primaryCurrency: DateTime.now(),
@@ -128,13 +78,12 @@ class ExchangeRatesMonitor extends _$ExchangeRatesMonitor {
     }
   }
   
-  /// Manually trigger rate refresh for a specific currency
   Future<void> refreshRatesFor(String currency) async {
     try {
       final currencyService = ref.read(currencyServiceProvider);
       await currencyService.fetchDailyRates(currency);
       
-      final currentState = await future;
+      final currentState = state.value ?? <String, DateTime>{};
       state = AsyncValue.data({
         ...currentState,
         currency: DateTime.now(),
@@ -142,21 +91,20 @@ class ExchangeRatesMonitor extends _$ExchangeRatesMonitor {
       
       // Invalidate dependent providers
       ref.invalidate(exchangeRatesForCurrencyProvider);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
     }
+  }
+  
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 }
 
 /// Provider for exchange rates for a specific currency
-/// 
-/// Provides cached exchange rates with automatic freshness checking.
-/// Automatically refreshes stale rates and provides fallback handling.
-@riverpod
-Future<Map<String, double>> exchangeRatesForCurrency(
-  ExchangeRatesForCurrencyRef ref,
-  String baseCurrency,
-) async {
+final exchangeRatesForCurrencyProvider = FutureProvider.family<Map<String, double>, String>((ref, baseCurrency) async {
   final currencyService = ref.read(currencyServiceProvider);
   
   // Watch exchange rates monitor to be notified of refresh events
@@ -166,106 +114,39 @@ Future<Map<String, double>> exchangeRatesForCurrency(
     final rates = await currencyService.getLocalRates(baseCurrency);
     return rates;
   } catch (e) {
-    // Try to get cached rates even if stale as fallback
-    // For now, just provide basic fallback
-    
     // Return basic fallback rates
     return {baseCurrency: 1.0};
   }
-}
+});
 
 /// Provider for currency conversion between two specific currencies
-/// 
-/// Performs currency conversion with caching and error handling.
-/// Automatically updates when exchange rates change.
-@riverpod
-Future<CurrencyConversion?> currencyConversion(
-  CurrencyConversionRef ref,
-  double amount,
-  String fromCurrency,
-  String toCurrency,
-) async {
-  if (fromCurrency == toCurrency) {
+final currencyConversionProvider = FutureProvider.family<CurrencyConversion?, ConversionParams>((ref, params) async {
+  if (params.fromCurrency == params.toCurrency) {
     return CurrencyConversion.sameCurrency(
-      amount: amount,
-      currency: fromCurrency,
+      amount: params.amount,
+      currency: params.fromCurrency,
     );
   }
   
   final currencyService = ref.read(currencyServiceProvider);
   
   // Watch exchange rates to get automatic updates
-  ref.watch(exchangeRatesForCurrencyProvider(fromCurrency));
+  ref.watch(exchangeRatesForCurrencyProvider(params.fromCurrency));
   
   return await currencyService.convertAmount(
-    amount: amount,
-    fromCurrency: fromCurrency,
-    toCurrency: toCurrency,
+    amount: params.amount,
+    fromCurrency: params.fromCurrency,
+    toCurrency: params.toCurrency,
   );
-}
-
-/// Provider for batch currency conversions
-/// 
-/// Efficiently converts multiple amounts to a target currency.
-/// Useful for converting lists of fuel entries or statistical calculations.
-@riverpod
-Future<List<CurrencyConversion?>> batchCurrencyConversions(
-  BatchCurrencyConversionsRef ref,
-  List<({double amount, String currency})> conversions,
-  String toCurrency,
-) async {
-  final currencyService = ref.read(currencyServiceProvider);
-  
-  // Group conversions by source currency for efficient rate fetching
-  final grouped = <String, List<({double amount, int index})>>{};
-  
-  for (int i = 0; i < conversions.length; i++) {
-    final conversion = conversions[i];
-    grouped.putIfAbsent(conversion.currency, () => [])
-        .add((amount: conversion.amount, index: i));
-  }
-  
-  final results = List<CurrencyConversion?>.filled(conversions.length, null);
-  
-  // Process each currency group
-  for (final entry in grouped.entries) {
-    final sourceCurrency = entry.key;
-    final amounts = entry.value;
-    
-    // Watch rates for this currency
-    ref.watch(exchangeRatesForCurrencyProvider(sourceCurrency));
-    
-    for (final amountData in amounts) {
-      try {
-        final conversion = await currencyService.convertAmount(
-          amount: amountData.amount,
-          fromCurrency: sourceCurrency,
-          toCurrency: toCurrency,
-        );
-        results[amountData.index] = conversion;
-      } catch (e) {
-        // Keep null for failed conversions
-      }
-    }
-  }
-  
-  return results;
-}
+});
 
 /// Provider for dynamic available currencies based on fuel entries
-/// 
-/// Returns currencies actually used in fuel entries, replacing the static list.
-/// Automatically updates when new entries with different currencies are added.
-@riverpod
-Future<List<String>> dynamicAvailableCurrencies(
-  DynamicAvailableCurrenciesRef ref,
-) async {
+final dynamicAvailableCurrenciesProvider = FutureProvider<List<String>>((ref) async {
   final fuelEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
   final allEntries = fuelEntriesState.entries;
   
   final currencies = <String>{};
   for (final entry in allEntries) {
-    // Extract currency from country or use a direct currency field if available
     if (entry.country.isNotEmpty) {
       final currency = _extractCurrencyFromCountry(entry.country);
       currencies.add(currency);
@@ -277,19 +158,13 @@ Future<List<String>> dynamicAvailableCurrencies(
   
   final sortedCurrencies = currencies.toList()..sort();
   return sortedCurrencies;
-}
+});
 
 /// Provider for currency statistics and usage analytics
-/// 
-/// Provides insights into currency usage patterns in fuel entries.
-/// Useful for UI components showing currency distribution or recommendations.
-@riverpod
-Future<CurrencyUsageStatistics> currencyUsageStatistics(
-  CurrencyUsageStatisticsRef ref,
-) async {
+final currencyUsageStatisticsProvider = FutureProvider<CurrencyUsageStatistics>((ref) async {
   final fuelEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
   final allEntries = fuelEntriesState.entries;
-  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final primaryCurrency = ref.watch(original.primaryCurrencyProvider);
   
   final currencyCountMap = <String, int>{};
   final currencyAmountMap = <String, double>{};
@@ -297,7 +172,7 @@ Future<CurrencyUsageStatistics> currencyUsageStatistics(
   for (final entry in allEntries) {
     final currency = _extractCurrencyFromCountry(entry.country);
     currencyCountMap[currency] = (currencyCountMap[currency] ?? 0) + 1;
-    currencyAmountMap[currency] = (currencyAmountMap[currency] ?? 0) + entry.totalCost;
+    currencyAmountMap[currency] = (currencyAmountMap[currency] ?? 0) + entry.price;
   }
   
   return CurrencyUsageStatistics(
@@ -307,18 +182,12 @@ Future<CurrencyUsageStatistics> currencyUsageStatistics(
     totalEntries: allEntries.length,
     uniqueCurrencies: currencyCountMap.keys.toList(),
   );
-}
+});
 
 /// Provider for conversion rate health monitoring
-/// 
-/// Monitors the health of exchange rate data and conversion capabilities.
-/// Provides status information for admin/debug interfaces.
-@riverpod
-Future<ConversionHealthStatus> conversionHealthStatus(
-  ConversionHealthStatusRef ref,
-) async {
+final conversionHealthStatusProvider = FutureProvider<ConversionHealthStatus>((ref) async {
   final currencyService = ref.read(currencyServiceProvider);
-  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final primaryCurrency = ref.watch(original.primaryCurrencyProvider);
   final availableCurrencies = await ref.watch(dynamicAvailableCurrenciesProvider.future);
   
   final healthChecks = <String, bool>{};
@@ -363,11 +232,10 @@ Future<ConversionHealthStatus> conversionHealthStatus(
     failedCurrencies: failedCurrencies,
     lastChecked: DateTime.now(),
   );
-}
+});
 
 /// Helper function to extract currency from country
 String _extractCurrencyFromCountry(String country) {
-  // This is a simplified mapping - in a real app you'd use a comprehensive country-to-currency mapping
   switch (country.toLowerCase()) {
     case 'united states':
     case 'usa':
@@ -427,6 +295,33 @@ String _extractCurrencyFromCountry(String country) {
       return 'HUF';
     default:
       return 'USD'; // Default fallback
+  }
+}
+
+/// Parameter class for currency conversion
+class ConversionParams {
+  final double amount;
+  final String fromCurrency;
+  final String toCurrency;
+  
+  const ConversionParams({
+    required this.amount,
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+  
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ConversionParams &&
+        other.amount == amount &&
+        other.fromCurrency == fromCurrency &&
+        other.toCurrency == toCurrency;
+  }
+  
+  @override
+  int get hashCode {
+    return Object.hash(amount, fromCurrency, toCurrency);
   }
 }
 

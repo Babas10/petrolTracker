@@ -864,8 +864,6 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
 
   void _handlePeriodDetailClick(Map<String, dynamic> data) {
     try {
-      debugPrint('🔍 CLICK DEBUG: Received data keys: ${data.keys}');
-      debugPrint('🔍 CLICK DEBUG: Full data: $data');
       
       final periodData = data['periodData'] as Map<String, dynamic>?;
       if (periodData == null) {
@@ -873,8 +871,6 @@ class _FuelConsumptionChartScreenState extends ConsumerState<FuelConsumptionChar
         return;
       }
 
-      debugPrint('🔍 CLICK DEBUG: Period data keys: ${periodData.keys}');
-      debugPrint('🔍 CLICK DEBUG: Period data types: ${periodData.map((k, v) => MapEntry(k, v.runtimeType))}');
 
       // Reconstruct EnhancedConsumptionDataPoint from the data with safe type casting
       final enhancedPoint = EnhancedConsumptionDataPoint(
