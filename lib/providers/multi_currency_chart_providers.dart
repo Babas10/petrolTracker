@@ -6,6 +6,7 @@
 library;
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
 import 'package:petrol_tracker/models/multi_currency_cost_analysis.dart';
 import 'package:petrol_tracker/services/multi_currency_cost_analysis_service.dart';
@@ -91,7 +92,7 @@ Future<List<MultiCurrencySpendingDataPoint>> multiCurrencyMonthlySpendingData(
 /// Provider for multi-currency country spending comparison
 @riverpod
 Future<List<MultiCurrencyCountrySpendingDataPoint>> multiCurrencyCountrySpendingComparison(
-  MultiCurrencyCountrySpendingComparisonRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -122,7 +123,7 @@ Future<List<MultiCurrencyCountrySpendingDataPoint>> multiCurrencyCountrySpending
 /// Provider for currency usage summary
 @riverpod
 Future<CurrencyUsageSummary> currencyUsageSummary(
-  CurrencyUsageSummaryRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
@@ -238,7 +239,7 @@ Future<List<Map<String, dynamic>>> multiCurrencyCountryChartData(
 /// Provider that combines original chart data with currency conversion info
 @riverpod
 Future<Map<String, dynamic>> enhancedSpendingStatistics(
-  EnhancedSpendingStatisticsRef ref,
+  Ref ref,
   int vehicleId, {
   DateTime? startDate,
   DateTime? endDate,
