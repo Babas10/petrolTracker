@@ -1364,10 +1364,6 @@ class _ChartWebViewState extends ConsumerState<ChartWebView> {
     final dataMax = values.reduce((a, b) => a > b ? a : b);
     final dataRange = dataMax - dataMin;
     
-    // DEBUG: Print actual data values and range
-    print('🔍 Y-AXIS DEBUG:');
-    print('  Data values: $values');
-    print('  DataMin: $dataMin, DataMax: $dataMax, Range: $dataRange');
     
     // Handle identical values (single point or all same values)
     if (dataRange <= 0.001) { // Use small epsilon for floating point comparison

@@ -421,7 +421,7 @@ class MultiCurrencyCountrySpendingComparisonFamily extends Family<AsyncValue<Lis
 class MultiCurrencyCountrySpendingComparisonProvider extends AutoDisposeFutureProvider<List<MultiCurrencyCountrySpendingDataPoint>> {
   MultiCurrencyCountrySpendingComparisonProvider(int vehicleId, {DateTime? startDate, DateTime? endDate}) 
     : vehicleId = vehicleId, startDate = startDate, endDate = endDate,
-      super.internal((ref) => multiCurrencyCountrySpendingComparison(ref as MultiCurrencyCountrySpendingComparisonRef, vehicleId, startDate: startDate, endDate: endDate),
+      super.internal((ref) => multiCurrencyCountrySpendingComparison(ref, vehicleId, startDate: startDate, endDate: endDate),
         from: multiCurrencyCountrySpendingComparisonProvider,
         name: r'multiCurrencyCountrySpendingComparisonProvider',
         debugGetCreateSourceHash: _$multiCurrencyCountrySpendingComparisonHash,
@@ -482,7 +482,7 @@ class CurrencyUsageSummaryFamily extends Family<AsyncValue<CurrencyUsageSummary>
 class CurrencyUsageSummaryProvider extends AutoDisposeFutureProvider<CurrencyUsageSummary> {
   CurrencyUsageSummaryProvider(int vehicleId, {DateTime? startDate, DateTime? endDate, String? countryFilter}) 
     : vehicleId = vehicleId, startDate = startDate, endDate = endDate, countryFilter = countryFilter,
-      super.internal((ref) => currencyUsageSummary(ref as CurrencyUsageSummaryRef, vehicleId, startDate: startDate, endDate: endDate, countryFilter: countryFilter),
+      super.internal((ref) => currencyUsageSummary(ref, vehicleId, startDate: startDate, endDate: endDate, countryFilter: countryFilter),
         from: currencyUsageSummaryProvider,
         name: r'currencyUsageSummaryProvider',
         debugGetCreateSourceHash: _$currencyUsageSummaryHash,
@@ -731,7 +731,7 @@ class EnhancedSpendingStatisticsFamily extends Family<AsyncValue<Map<String, dyn
 class EnhancedSpendingStatisticsProvider extends AutoDisposeFutureProvider<Map<String, dynamic>> {
   EnhancedSpendingStatisticsProvider(int vehicleId, {DateTime? startDate, DateTime? endDate, String? countryFilter}) 
     : vehicleId = vehicleId, startDate = startDate, endDate = endDate, countryFilter = countryFilter,
-      super.internal((ref) => enhancedSpendingStatistics(ref as EnhancedSpendingStatisticsRef, vehicleId, startDate: startDate, endDate: endDate, countryFilter: countryFilter),
+      super.internal((ref) => enhancedSpendingStatistics(ref, vehicleId, startDate: startDate, endDate: endDate, countryFilter: countryFilter),
         from: enhancedSpendingStatisticsProvider,
         name: r'enhancedSpendingStatisticsProvider',
         debugGetCreateSourceHash: _$enhancedSpendingStatisticsHash,

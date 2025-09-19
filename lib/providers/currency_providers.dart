@@ -1,18 +1,15 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:petrol_tracker/services/currency_service.dart';
-
-part 'currency_providers.g.dart';
 
 /// Provider for the currency service
 /// 
 /// Provides access to the singleton instance of CurrencyService for
 /// converting currencies and fetching exchange rates.
-@riverpod
-CurrencyService currencyService(Ref ref) {
+final currencyServiceProvider = Provider<CurrencyService>((ref) {
   return CurrencyService.instance;
-}
+});
 
 /// Provider for user's primary currency preference
 final primaryCurrencyProvider = StateNotifierProvider<PrimaryCurrencyNotifier, String>((ref) {
@@ -64,3 +61,21 @@ final availableCurrenciesProvider = Provider<List<String>>((ref) {
 
 /// Provider for currency filter in the fuel entries screen
 final currencyFilterProvider = StateProvider<String?>((ref) => null);
+
+/// NOTE: Advanced currency providers with reactive state management,
+/// performance optimization, and error handling are available in:
+/// 
+/// - currency_providers_manual.dart: Full-featured manual implementations
+/// - currency_performance_providers.dart: Performance optimization providers
+/// - currency_error_handling_providers.dart: Error handling and resilience
+/// 
+/// These provide comprehensive currency management capabilities including:
+/// - Exchange rate monitoring with automatic refresh
+/// - Currency conversion with caching and batch processing
+/// - Dynamic currency detection from fuel entries
+/// - Usage statistics and health monitoring
+/// - Performance optimization with memory management
+/// - Robust error handling with circuit breaker pattern
+/// 
+/// Use these providers instead of @riverpod annotations due to build_runner
+/// compatibility issues with the current analyzer version.
