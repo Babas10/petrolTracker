@@ -1,330 +1,315 @@
-/// Multi-currency chart providers for Issue #129
+/// Multi-Currency Chart Providers for Issue #132
 /// 
-/// This file contains Riverpod providers that extend the existing chart
-/// providers with multi-currency conversion capabilities for unified
-/// cost analysis dashboard.
+/// These providers handle chart data generation with proper currency conversion
+/// and state management for multi-currency aware chart visualizations.
 library;
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petrol_tracker/models/fuel_entry_model.dart';
-import 'package:petrol_tracker/models/multi_currency_cost_analysis.dart';
-import 'package:petrol_tracker/services/multi_currency_cost_analysis_service.dart';
+import 'package:petrol_tracker/models/chart_data_models.dart';
+import 'package:petrol_tracker/services/multi_currency_chart_data_service.dart';
+import 'package:petrol_tracker/services/multi_currency_consumption_calculation_service.dart';
 import 'package:petrol_tracker/providers/fuel_entry_providers.dart';
-import 'package:petrol_tracker/providers/currency_settings_providers.dart';
+import 'package:petrol_tracker/providers/currency_providers.dart';
 
-part 'multi_currency_chart_providers.g.dart';
-
-/// Provider for multi-currency spending statistics
-@riverpod
-Future<MultiCurrencySpendingStats> multiCurrencySpendingStatistics(
-  MultiCurrencySpendingStatisticsRef ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-  String? countryFilter,
-}) async {
-  // Get fuel entries for the vehicle
-  List<FuelEntryModel> entries;
+/// Provider for multi-currency chart data service
+final multiCurrencyChartDataServiceProvider = Provider.family<MultiCurrencyChartDataService, String>((ref, primaryCurrency) {
+  final currencyService = ref.read(currencyServiceProvider);
   
-  if (startDate != null && endDate != null) {
-    entries = await ref.watch(
-      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
-    );
-  } else {
-    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
-  }
-
-  // Apply country filter if specified
-  if (countryFilter != null) {
-    entries = entries.where((entry) => entry.country == countryFilter).toList();
-  }
-
-  // Get user's primary currency
-  final currencySettings = await ref.watch(currencySettingsNotifierProvider.future);
-  final primaryCurrency = currencySettings.primaryCurrency;
-
-  // Calculate multi-currency statistics
-  final service = MultiCurrencyCostAnalysisService.instance;
-  return await service.calculateSpendingStatistics(
-    entries: entries,
+  return MultiCurrencyChartDataService(
+    currencyService: currencyService,
     primaryCurrency: primaryCurrency,
   );
-}
+});
 
-/// Provider for multi-currency monthly spending data
-@riverpod
-Future<List<MultiCurrencySpendingDataPoint>> multiCurrencyMonthlySpendingData(
-  MultiCurrencyMonthlySpendingDataRef ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-  String? countryFilter,
-}) async {
-  // Get fuel entries for the vehicle
-  List<FuelEntryModel> entries;
+/// Provider for multi-currency consumption calculation service
+final multiCurrencyConsumptionServiceProvider = Provider.family<MultiCurrencyConsumptionCalculationService, String>((ref, primaryCurrency) {
+  final currencyService = ref.read(currencyServiceProvider);
   
-  if (startDate != null && endDate != null) {
-    entries = await ref.watch(
-      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
-    );
-  } else {
-    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
-  }
-
-  // Apply country filter if specified
-  if (countryFilter != null) {
-    entries = entries.where((entry) => entry.country == countryFilter).toList();
-  }
-
-  // Get user's primary currency
-  final currencySettings = await ref.watch(currencySettingsNotifierProvider.future);
-  final primaryCurrency = currencySettings.primaryCurrency;
-
-  // Generate monthly spending data with currency conversion
-  final service = MultiCurrencyCostAnalysisService.instance;
-  return await service.generateMonthlySpendingData(
-    entries: entries,
+  return MultiCurrencyConsumptionCalculationService(
+    currencyService: currencyService,
     primaryCurrency: primaryCurrency,
   );
-}
+});
 
-/// Provider for multi-currency country spending comparison
-@riverpod
-Future<List<MultiCurrencyCountrySpendingDataPoint>> multiCurrencyCountrySpendingComparison(
-  Ref ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-}) async {
-  // Get fuel entries for the vehicle
+/// Provider for multi-currency chart data
+final multiCurrencyChartDataProvider = FutureProvider.family<List<ChartDataPoint>, ChartDataParams>((ref, params) async {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final chartService = ref.read(multiCurrencyChartDataServiceProvider(primaryCurrency));
+  
+  // Get fuel entries based on vehicle filter
   List<FuelEntryModel> entries;
   
-  if (startDate != null && endDate != null) {
-    entries = await ref.watch(
-      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
-    );
+  if (params.vehicleId != null) {
+    final vehicleEntries = await ref.watch(fuelEntriesByVehicleProvider(params.vehicleId!).future);
+    entries = vehicleEntries;
   } else {
-    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+    final allEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+    entries = allEntriesState.entries;
   }
+  
+  // Filter entries by date range if provided
+  if (params.dateRange != null) {
+    entries = entries.where((entry) => params.dateRange!.contains(entry.date)).toList();
+  }
+  
+  // Generate chart data based on type
+  switch (params.chartType) {
+    case ChartType.cost:
+      return await chartService.generateCostChart(
+        entries: entries,
+        period: params.period,
+        dateRange: params.dateRange ?? DateRange(
+          start: DateTime.now().subtract(const Duration(days: 365)),
+          end: DateTime.now(),
+        ),
+      );
+    case ChartType.consumption:
+      return await chartService.generateConsumptionChart(
+        entries: entries,
+        period: params.period,
+        dateRange: params.dateRange ?? DateRange(
+          start: DateTime.now().subtract(const Duration(days: 365)),
+          end: DateTime.now(),
+        ),
+      );
+    case ChartType.efficiency:
+      return await chartService.generateEfficiencyChart(
+        entries: entries,
+        period: params.period,
+        dateRange: params.dateRange ?? DateRange(
+          start: DateTime.now().subtract(const Duration(days: 365)),
+          end: DateTime.now(),
+        ),
+      );
+    case ChartType.price:
+      return await chartService.generatePriceChart(
+        entries: entries,
+        period: params.period,
+        dateRange: params.dateRange ?? DateRange(
+          start: DateTime.now().subtract(const Duration(days: 365)),
+          end: DateTime.now(),
+        ),
+      );
+  }
+});
 
-  // Get user's primary currency
-  final currencySettings = await ref.watch(currencySettingsNotifierProvider.future);
-  final primaryCurrency = currencySettings.primaryCurrency;
-
-  // Generate country spending comparison with currency conversion
-  final service = MultiCurrencyCostAnalysisService.instance;
-  return await service.generateCountrySpendingComparison(
-    entries: entries,
+/// Provider for chart configuration
+final chartConfigurationProvider = Provider.family<ChartConfiguration, ChartType>((ref, chartType) {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  
+  return ChartConfiguration(
+    chartType: chartType.name,
     primaryCurrency: primaryCurrency,
+    showCurrencyBreakdown: true,
+    enableCurrencyTooltips: true,
+    currencyFormatter: 'currency',
   );
-}
+});
 
-/// Provider for currency usage summary
-@riverpod
-Future<CurrencyUsageSummary> currencyUsageSummary(
-  Ref ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-  String? countryFilter,
-}) async {
-  // Get fuel entries for the vehicle
+/// Provider for consumption analysis
+final consumptionAnalysisProvider = FutureProvider.family<ConsumptionAnalysis, ConsumptionAnalysisParams>((ref, params) async {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final consumptionService = ref.read(multiCurrencyConsumptionServiceProvider(primaryCurrency));
+  
+  // Get fuel entries
   List<FuelEntryModel> entries;
   
-  if (startDate != null && endDate != null) {
-    entries = await ref.watch(
-      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
-    );
+  if (params.vehicleId != null) {
+    final vehicleEntries = await ref.watch(fuelEntriesByVehicleProvider(params.vehicleId!).future);
+    entries = vehicleEntries;
   } else {
-    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+    final allEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+    entries = allEntriesState.entries;
   }
-
-  // Apply country filter if specified
-  if (countryFilter != null) {
-    entries = entries.where((entry) => entry.country == countryFilter).toList();
-  }
-
-  // Get user's primary currency
-  final currencySettings = await ref.watch(currencySettingsNotifierProvider.future);
-  final primaryCurrency = currencySettings.primaryCurrency;
-
-  // Generate currency usage summary
-  final service = MultiCurrencyCostAnalysisService.instance;
-  return await service.generateCurrencyUsageSummary(
+  
+  // Filter by date range
+  entries = entries.where((entry) => 
+    entry.date.isAfter(params.periodStart.subtract(const Duration(days: 1))) &&
+    entry.date.isBefore(params.periodEnd.add(const Duration(days: 1)))
+  ).toList();
+  
+  return await consumptionService.calculateConsumption(
     entries: entries,
-    primaryCurrency: primaryCurrency,
+    periodStart: params.periodStart,
+    periodEnd: params.periodEnd,
   );
-}
+});
 
-/// Provider for checking if a vehicle has multi-currency entries
-@riverpod
-Future<bool> hasMultiCurrencyEntries(
-  HasMultiCurrencyEntriesRef ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-}) async {
-  // Get fuel entries for the vehicle
+/// Provider for monthly consumption trends
+final monthlyConsumptionTrendsProvider = FutureProvider.family<List<ConsumptionAnalysis>, ConsumptionAnalysisParams>((ref, params) async {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final consumptionService = ref.read(multiCurrencyConsumptionServiceProvider(primaryCurrency));
+  
+  // Get fuel entries
   List<FuelEntryModel> entries;
   
-  if (startDate != null && endDate != null) {
-    entries = await ref.watch(
-      fuelEntriesByVehicleAndDateRangeProvider(vehicleId, startDate, endDate).future,
-    );
+  if (params.vehicleId != null) {
+    final vehicleEntries = await ref.watch(fuelEntriesByVehicleProvider(params.vehicleId!).future);
+    entries = vehicleEntries;
   } else {
-    entries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+    final allEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+    entries = allEntriesState.entries;
+  }
+  
+  return await consumptionService.calculateMonthlyTrends(
+    entries: entries,
+    periodStart: params.periodStart,
+    periodEnd: params.periodEnd,
+  );
+});
+
+/// Provider for consumption by vehicle
+final consumptionByVehicleProvider = FutureProvider.family<Map<int, ConsumptionAnalysis>, ConsumptionAnalysisParams>((ref, params) async {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final consumptionService = ref.read(multiCurrencyConsumptionServiceProvider(primaryCurrency));
+  
+  final allEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+  final entries = allEntriesState.entries;
+  
+  return await consumptionService.calculateConsumptionByVehicle(
+    entries: entries,
+    periodStart: params.periodStart,
+    periodEnd: params.periodEnd,
+  );
+});
+
+/// Provider for efficiency metrics
+final efficiencyMetricsProvider = FutureProvider.family<Map<String, double>, int?>((ref, vehicleId) async {
+  final primaryCurrency = ref.watch(primaryCurrencyProvider);
+  final consumptionService = ref.read(multiCurrencyConsumptionServiceProvider(primaryCurrency));
+  
+  // Get fuel entries
+  List<FuelEntryModel> entries;
+  
+  if (vehicleId != null) {
+    final vehicleEntries = await ref.watch(fuelEntriesByVehicleProvider(vehicleId).future);
+    entries = vehicleEntries;
+  } else {
+    final allEntriesState = await ref.watch(fuelEntriesNotifierProvider.future);
+    entries = allEntriesState.entries;
+  }
+  
+  return await consumptionService.calculateEfficiencyMetrics(entries: entries);
+});
+
+/// Provider for chart data cache management
+final chartDataCacheProvider = StateNotifierProvider<ChartDataCacheNotifier, Map<String, ChartDataCacheEntry>>((ref) {
+  return ChartDataCacheNotifier();
+});
+
+/// Chart data cache notifier
+class ChartDataCacheNotifier extends StateNotifier<Map<String, ChartDataCacheEntry>> {
+  ChartDataCacheNotifier() : super({});
+
+  /// Get cached chart data
+  List<ChartDataPoint>? getCachedData(String cacheKey) {
+    final cacheEntry = state[cacheKey];
+    if (cacheEntry != null && cacheEntry.isValid) {
+      return cacheEntry.data;
+    }
+    return null;
   }
 
-  if (entries.isEmpty) return false;
-
-  // Extract currencies from entries
-  final currencies = <String>{};
-  
-  for (final entry in entries) {
-    // Use the consolidated currency extraction method
-    final currency = MultiCurrencyCostAnalysisService.extractCurrencyFromCountry(entry.country);
-    currencies.add(currency);
+  /// Cache chart data
+  void cacheData(String cacheKey, List<ChartDataPoint> data, String currency) {
+    final cacheEntry = ChartDataCacheEntry(
+      cacheKey: cacheKey,
+      data: data,
+      timestamp: DateTime.now(),
+      currency: currency,
+    );
+    
+    state = {...state, cacheKey: cacheEntry};
+    
+    // Clean up expired entries
+    _cleanExpiredEntries();
   }
 
-  return currencies.length > 1;
-}
+  /// Clear all cached data
+  void clearCache() {
+    state = {};
+  }
 
-/// Provider for getting the user's primary currency
-@riverpod
-Future<String> userPrimaryCurrency(UserPrimaryCurrencyRef ref) async {
-  final currencySettings = await ref.watch(currencySettingsNotifierProvider.future);
-  return currencySettings.primaryCurrency;
-}
-
-/// Provider for multi-currency aware chart data (converted to primary currency)
-@riverpod
-Future<List<Map<String, dynamic>>> multiCurrencyChartData(
-  MultiCurrencyChartDataRef ref,
-  List<MultiCurrencySpendingDataPoint> dataPoints,
-) async {
-  return dataPoints.map((point) => {
-    'date': point.date.toIso8601String().split('T')[0],
-    'amount': point.amount.displayAmount,
-    'originalAmount': point.amount.originalAmount,
-    'originalCurrency': point.amount.originalCurrency,
-    'convertedAmount': point.amount.convertedAmount,
-    'targetCurrency': point.amount.targetCurrency,
-    'exchangeRate': point.amount.exchangeRate,
-    'conversionFailed': point.amount.conversionFailed,
-    'country': point.country,
-    'periodLabel': point.periodLabel,
-  }).toList();
-}
-
-/// Provider for multi-currency country comparison chart data
-@riverpod
-Future<List<Map<String, dynamic>>> multiCurrencyCountryChartData(
-  MultiCurrencyCountryChartDataRef ref,
-  List<MultiCurrencyCountrySpendingDataPoint> dataPoints,
-) async {
-  return dataPoints.map((point) => {
-    'country': point.country,
-    'totalSpent': point.totalSpent.displayAmount,
-    'originalTotalSpent': point.totalSpent.originalAmount,
-    'originalCurrency': point.totalSpent.originalCurrency,
-    'averagePricePerLiter': point.averagePricePerLiter.displayAmount,
-    'originalAveragePrice': point.averagePricePerLiter.originalAmount,
-    'entryCount': point.entryCount,
-    'currenciesUsed': point.currenciesUsed.toList(),
-    'isMultiCurrency': point.isMultiCurrency,
-  }).toList();
-}
-
-/// Provider that combines original chart data with currency conversion info
-@riverpod
-Future<Map<String, dynamic>> enhancedSpendingStatistics(
-  Ref ref,
-  int vehicleId, {
-  DateTime? startDate,
-  DateTime? endDate,
-  String? countryFilter,
-}) async {
-  // Get both original and multi-currency statistics
-  final multiCurrencyStats = await ref.watch(multiCurrencySpendingStatisticsProvider(
-    vehicleId,
-    startDate: startDate,
-    endDate: endDate,
-    countryFilter: countryFilter,
-  ).future);
-
-  final currencyUsage = await ref.watch(currencyUsageSummaryProvider(
-    vehicleId,
-    startDate: startDate,
-    endDate: endDate,
-    countryFilter: countryFilter,
-  ).future);
-
-  final hasMultiCurrency = await ref.watch(hasMultiCurrencyEntriesProvider(
-    vehicleId,
-    startDate: startDate,
-    endDate: endDate,
-  ).future);
-
-  return {
-    // Core statistics (converted to primary currency)
-    'totalSpent': multiCurrencyStats.totalSpent.displayAmount,
-    'averagePerFillUp': multiCurrencyStats.averagePerFillUp.displayAmount,
-    'averagePerMonth': multiCurrencyStats.averagePerMonth.displayAmount,
-    'mostExpensiveFillUp': multiCurrencyStats.mostExpensiveFillUp.displayAmount,
-    'cheapestFillUp': multiCurrencyStats.cheapestFillUp.displayAmount,
-    'totalFillUps': multiCurrencyStats.totalFillUps,
-    'mostExpensiveCountry': multiCurrencyStats.mostExpensiveCountry,
-    'cheapestCountry': multiCurrencyStats.cheapestCountry,
-    'totalCountries': multiCurrencyStats.totalCountries,
+  /// Clear cache for specific currency
+  void clearCacheForCurrency(String currency) {
+    final filteredState = <String, ChartDataCacheEntry>{};
     
-    // Multi-currency specific data
-    'primaryCurrency': multiCurrencyStats.primaryCurrency,
-    'totalCurrencies': multiCurrencyStats.totalCurrencies,
-    'hasMultiCurrency': hasMultiCurrency,
-    'currencyUsage': currencyUsage,
-    'hasConversionFailures': multiCurrencyStats.hasConversionFailures,
-    'failedCurrencies': multiCurrencyStats.failedCurrencies,
+    for (final entry in state.entries) {
+      if (entry.value.currency != currency) {
+        filteredState[entry.key] = entry.value;
+      }
+    }
     
-    // Currency breakdown
-    'countrySpending': multiCurrencyStats.countrySpending.map(
-      (country, amount) => MapEntry(country, {
-        'amount': amount.displayAmount,
-        'originalAmount': amount.originalAmount,
-        'originalCurrency': amount.originalCurrency,
-        'conversionFailed': amount.conversionFailed,
-      }),
-    ),
+    state = filteredState;
+  }
+
+  /// Clean expired cache entries
+  void _cleanExpiredEntries() {
+    final validEntries = <String, ChartDataCacheEntry>{};
     
-    'currencyBreakdown': multiCurrencyStats.currencyBreakdown.map(
-      (currency, amount) => MapEntry(currency, {
-        'amount': amount.displayAmount,
-        'originalAmount': amount.originalAmount,
-        'originalCurrency': amount.originalCurrency,
-        'conversionFailed': amount.conversionFailed,
-      }),
-    ),
+    for (final entry in state.entries) {
+      if (entry.value.isValid) {
+        validEntries[entry.key] = entry.value;
+      }
+    }
     
-    // Metadata
-    'calculatedAt': multiCurrencyStats.calculatedAt.toIso8601String(),
-  };
+    state = validEntries;
+  }
 }
 
-/// Provider for dashboard currency indicator data
-@riverpod
-Future<Map<String, dynamic>> dashboardCurrencyIndicator(
-  DashboardCurrencyIndicatorRef ref,
-  int vehicleId,
-) async {
-  final primaryCurrency = await ref.watch(userPrimaryCurrencyProvider.future);
-  final hasMultiCurrency = await ref.watch(hasMultiCurrencyEntriesProvider(vehicleId).future);
-  final currencyUsage = await ref.watch(currencyUsageSummaryProvider(vehicleId).future);
-  
-  return {
-    'primaryCurrency': primaryCurrency,
-    'hasMultiCurrency': hasMultiCurrency,
-    'totalCurrencies': currencyUsage.currencyEntryCount.length,
-    'mostUsedCurrency': currencyUsage.mostUsedCurrency,
-    'currencyBreakdown': currencyUsage.currencyUsagePercentages,
-  };
+/// Parameter classes for providers
+class ChartDataParams {
+  final ChartType chartType;
+  final ChartPeriod period;
+  final DateRange? dateRange;
+  final int? vehicleId;
+
+  const ChartDataParams({
+    required this.chartType,
+    required this.period,
+    this.dateRange,
+    this.vehicleId,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ChartDataParams &&
+        other.chartType == chartType &&
+        other.period == period &&
+        other.dateRange == dateRange &&
+        other.vehicleId == vehicleId;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(chartType, period, dateRange, vehicleId);
+  }
+}
+
+class ConsumptionAnalysisParams {
+  final DateTime periodStart;
+  final DateTime periodEnd;
+  final int? vehicleId;
+
+  const ConsumptionAnalysisParams({
+    required this.periodStart,
+    required this.periodEnd,
+    this.vehicleId,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ConsumptionAnalysisParams &&
+        other.periodStart == periodStart &&
+        other.periodEnd == periodEnd &&
+        other.vehicleId == vehicleId;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(periodStart, periodEnd, vehicleId);
+  }
 }
